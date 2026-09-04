@@ -15,6 +15,14 @@ bun add @kitlangton/rolling-number
 Or use `npm install @kitlangton/rolling-number`. The unscoped name belongs to
 another project. Import the stylesheet alongside either the DOM or React entrypoint.
 
+### For coding agents
+
+The site serves these docs as Markdown: [rolling.kitlangton.dev/llms.txt](https://rolling.kitlangton.dev/llms.txt)
+indexes them, [rolling.kitlangton.dev/index.md](https://rolling.kitlangton.dev/index.md)
+is this README, and the page itself answers `Accept: text/markdown` with the same
+content. The showcase has a "Copy prompt for your agent" button with the install
+command, entrypoints and the few layout rules worth knowing.
+
 ## Try it
 
 ```sh
@@ -126,6 +134,12 @@ New digits can also smear vertically during their eased entrance; the blend clea
 at settlement. Currency signs, separators and other symbols crossfade instead of
 rolling. Replaced symbols keep their semantic position rather than moving through
 the adjacent digits, with a small 4% scale accent during replacement.
+
+When a value grows or shrinks by several places at once, the new digits and their
+separators cascade outward from the digits already on screen, one short step each.
+The whole cascade stays inside half the duration, so it reads as one update rather
+than a typing effect, and interruptions still sample the current position of every
+place.
 See [the scoped blur-cost measurement](perf/blur-cost.md) for its overhead and limits.
 
 ## How it stays small and stable

@@ -1,6 +1,6 @@
 {
   "name": "@kitlangton/rolling-number",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Interruptible, locale-aware rolling numbers for the web.",
   "homepage": "https://rolling.kitlangton.dev",
   "type": "module",
@@ -47,7 +47,7 @@
     "typecheck": "tsc --noEmit",
     "test:browser": "playwright test",
     "build": "bun run scripts/build.ts && tsc -p tsconfig.build.json",
-    "build:demo": "vite build",
+    "build:demo": "vite build && bun run scripts/agent-docs.ts",
     "deploy": "bun run build:demo && wrangler deploy",
     "bench": "bun run scripts/bench.ts",
     "test:package": "bun run build && bun run scripts/verify-package.ts",

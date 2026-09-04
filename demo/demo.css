@@ -8,7 +8,8 @@
   --ink: #ededeb;
   --muted: #999b9f;
   --line: #27292d;
-  --accent: #f08062;
+  --accent: #d5d9df;
+  --icon: #6b727c;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 * { box-sizing: border-box; }
@@ -21,7 +22,7 @@ button, input, select { color: inherit; }
 button { border: 1px solid var(--line); border-radius: 7px; padding: 0 16px; min-height: 40px; background: #17191c; font-size: 13px; }
 button:disabled { opacity: .35; cursor: default; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-::selection { background: #824638; color: white; }
+::selection { background: #3a4048; color: white; }
 h1, h2, p { margin: 0; }
 .site-shell { width: min(1040px, 100%); padding: 0 40px; margin-inline: auto; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -56,8 +57,18 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .toggles { grid-column: span 2; display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
 .toggles label { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 12px; min-height: 30px; }
 .locale-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 12px; }
+.install { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 22px; padding: 0 0 34px; }
+.install-command { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 3px 3px 3px 3px; border: 1px solid #1f2227; border-radius: 9px; background: #0e1013; }
+.install-command code { font: 12px var(--mono); color: var(--ink); padding: 0 8px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.install-command .quiet { flex: none; }
+.install-managers { display: flex; gap: 2px; }
+.install-managers button { min-height: 30px; padding: 0 9px; font: 11px var(--mono); border-color: transparent; background: none; color: var(--muted); }
+.install-managers button[aria-pressed="true"] { color: var(--ink); background: #1e2227; }
+.install-command .quiet { min-height: 30px; padding: 0 10px 0 4px; font-size: 11px; }
+.install-agent { font-size: 12px; color: var(--muted); }
 .examples { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; }
-.example { position: relative; min-width: 0; padding: 20px; border: 1px solid #252a30; border-radius: 13px; background: #131619; overflow: visible; }
+.example { position: relative; min-width: 0; padding: 20px; border: 1px solid #1f2227; border-radius: 13px; background: #111316; overflow: visible; }
+.shirt-graphic, .file-graphic, .weather-graphic, .ledger-graphic, .activity-graphic { color: var(--icon); }
 .example:focus-within { z-index: 1; }
 .example h2 { color: var(--muted); font-size: 11px; font-weight: 450; }
 .example-number { max-width: 100%; padding: 18px 0; font-size: clamp(2.3rem, 5vw, 3.5rem); line-height: 1.25; letter-spacing: -.055em; font-weight: 450; font-variant-numeric: tabular-nums; overflow: visible; }
@@ -89,14 +100,14 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .mini-app .bigint-number { font-size: clamp(15px, 2vw, 22px); min-height: 0; }
 .mini-label { color: var(--muted); font-size: 11px; line-height: 1.5; letter-spacing: 0; }
 .mini-app strong { font-size: 13px; font-weight: 500; }
-.mini-button { width: fit-content; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 32px; padding: 0 11px; font-size: 11px; background: #20252b; border-color: #333a43; }
+.mini-button { width: fit-content; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 32px; padding: 0 11px; font-size: 11px; background: #1a1d22; border-color: #2c3037; }
 .mini-button.square { width: 32px; padding: 0; font-size: 16px; }
 .mini-app > .example-actions, .mini-app > .seat-control, .weather-controls, .currency-switch { margin-top: auto; }
 .mini-app .centered { justify-content: center; }
 .app-metric { min-width: 0; }
 .shop-product { display: flex; align-items: center; gap: 16px; }
-.product-art { display: grid; place-items: center; width: 98px; height: 98px; flex: none; border-radius: 8px; background: #1b1f24; }
-.shirt-graphic { width: 84px; height: 84px; }
+.product-art { display: grid; place-items: center; width: 98px; height: 98px; flex: none; border-radius: 8px; border: 1px solid #1f2227; background: #0e1013; }
+.shirt-graphic { width: 72px; height: 72px; }
 .product-info { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .product-info > span { color: var(--muted); font-size: 11px; }
 .product-info button { margin-top: 5px; }
@@ -107,22 +118,22 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .focus-dial .timer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; padding: 0; }
 .dial-progress { transition: stroke-dashoffset 500ms ease; }
 .avatar-stack { display: flex; align-items: center; min-height: 34px; margin-top: 6px; }
-.mini-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #131619; background: #29303a; color: #8693a5; overflow: hidden; margin-right: -9px; }
-.mini-avatar:nth-child(2n) { background: #343032; color: #af9992; }
-.mini-avatar:nth-child(3n) { background: #293532; color: #8caaa0; }
+.mini-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #111316; background: #1e2227; color: #8a9099; overflow: hidden; margin-right: -9px; }
+.mini-avatar:nth-child(2n) { background: #262a30; }
+.mini-avatar:nth-child(3n) { background: #1a1d21; }
 .mini-avatar svg { width: 100%; height: 100%; }
 .extra-members { color: var(--muted); font-size: 11px; padding-left: 20px; }
 .team-app .price { margin-top: 2px; }
 .team-app .seat-control { justify-content: space-between; }
 .team-app .seat-control input { width: min(240px, 70%); }
-.ledger-graphic { position: absolute; right: 16px; top: 12px; width: 110px; height: 37px; opacity: .7; }
+.ledger-graphic { position: absolute; right: 16px; top: 12px; width: 110px; height: 37px; }
 .example-bigint .app-metric { margin-top: 18px; }
 .upload-file { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
 .file-graphic { flex: none; width: 36px; height: 44px; }
 .upload-file > div:not(.example-number), .invoice-body > div { display: flex; flex-direction: column; gap: 6px; }
 .upload-file .example-number { margin-left: auto; font-size: 32px; }
-.upload-track { height: 3px; background: #2c323a; overflow: hidden; border-radius: 2px; }
-.upload-track > span { display: block; width: 100%; height: 100%; background: #b3c1cf; transform-origin: left; transition: transform 350ms ease-out; }
+.upload-track { height: 3px; background: #23272d; overflow: hidden; border-radius: 2px; }
+.upload-track > span { display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: left; transition: transform 350ms ease-out; }
 .weather-summary { margin-top: 8px; }
 .weather-graphic { position: absolute; width: 54px; height: 50px; top: 12px; right: 14px; }
 .weather-controls { display: flex; align-items: center; }
@@ -132,9 +143,9 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .invoice-body .file-graphic { width: 30px; height: 36px; }
 .invoice-total { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 .invoice-total .example-number { font-size: 30px; }
-.currency-switch { display: flex; gap: 3px; padding: 3px; align-self: flex-start; border: 1px solid #252c34; border-radius: 7px; background: #0e1114; }
+.currency-switch { display: flex; gap: 3px; padding: 3px; align-self: flex-start; border: 1px solid #1f2227; border-radius: 7px; background: #0d0f12; }
 .currency-switch button { min-height: 28px; padding: 0 8px; font: 9px var(--mono); border-color: transparent; background: none; color: var(--muted); }
-.currency-switch button[aria-pressed="true"] { color: var(--ink); background: #272c33; }
+.currency-switch button[aria-pressed="true"] { color: var(--ink); background: #22262c; }
 .activity-graphic { width: 100%; height: 46px; }
 .activity-graphic rect { transform-box: fill-box; transform-origin: center bottom; transition: transform 500ms ease-out; }
 .activity-graphic[data-animated="false"] rect { transition: none; }
@@ -159,6 +170,9 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .number-stage { min-height: 230px; font-size: calc(11.6vw * var(--number-scale)); }
   .settings { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 18px; }
   .examples { grid-template-columns: 1fr; }
+  .install-command { width: 100%; }
+  .install-managers { display: none; }
+  .install-command code { flex: 1; font-size: 11px; padding-left: 10px; }
   .example { grid-column: 1 / -1; padding: 20px; }
   .example-number { font-size: 48px; }
   .bigint-number { font-size: clamp(1rem, 4.8vw, 1.6rem); min-height: 92px; }

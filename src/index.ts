@@ -1,6 +1,6 @@
 import { direction, model, type FormatOptions, type Model, type Token, type Value } from "./format.js";
-import { entrance, numeral, rollTarget, spring } from "./motion.js";
-import { collapsePositions } from "./layout.js";
+import { delayed, entrance, numeral, rollTarget, spring } from "./motion.js";
+import { collapsePositions, entryRanks } from "./layout.js";
 import { Scheduler, type Participant } from "./scheduler.js";
 import { Track } from "./track.js";
 import { ReelBlur } from "./blur.js";
@@ -231,14 +231,14 @@ class Renderer implements Participant, RollingNumberController {
     column.entry = undefined;
   }
 
-  private enter(column: Column, duration: number): void {
+  private enter(column: Column, duration: number, delay: number): void {
     const element = this.host.ownerDocument.createElement("span");
     element.className = "rn-enter";
     column.reel.replaceWith(element);
     element.append(column.reel);
     const track = new Track(element, "transform");
     column.entry = { element, track, blurred: false };
-    const motion = entrance(column.height, duration);
+    const motion = delayed(entrance(column.height, duration), delay);
     if (this.options.motionBlur && column.token.text.trim()) {
       this.blur ??= new ReelBlur(this.host);
       const rows = { ...motion, points: motion.points.map((y) => y / column.height) };
@@ -262,9 +262,16 @@ class Renderer implements Participant, RollingNumberController {
     const exits = collapsePositions(oldOrder, geometry);
     const oldSymbols = new Map(this.displayed.tokens.filter((token) => token.digit === undefined).map((token) => [token.identity, token.key]));
     const newSymbols = new Map(this.target.tokens.filter((token) => token.digit === undefined).map((token) => [token.identity, token.key]));
-    for (const token of this.target.tokens) {
+    // New glyphs cascade outward from the digits already on screen (symbols such as
+    // a retained currency sign do not anchor it); the whole cascade stays inside a
+    // fraction of the duration so it still reads as one update.
+    const ranks = entryRanks(this.target.tokens.map((token) => token.digit !== undefined && this.columns.has(token.key) && !this.columns.get(token.key)!.exiting));
+    const span = Math.max(0, ...this.target.tokens.map((token, index) => this.columns.has(token.key) ? 0 : ranks[index]! - 1));
+    const step = Math.min(duration * .08, duration * .5 / Math.max(1, span));
+    for (const [index, token] of this.target.tokens.entries()) {
       const size = geometry.get(token.key);
       if (!size) continue;
+      const delay = Math.max(0, ranks[index]! - 1) * step;
       const oldKey = oldSymbols.get(token.identity);
       const replacement = oldKey !== undefined && oldKey !== token.key ? previous.get(oldKey) : undefined;
       let column = this.columns.get(token.key);
@@ -286,7 +293,8 @@ class Renderer implements Participant, RollingNumberController {
       column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
       if (fresh || reentered || !animate) {
         const alpha = column.opacity.read();
-        column.opacity.play(spring(alpha.position, 1, alpha.velocity, token.digit === undefined ? Math.min(duration, 180) : duration), opacity);
+        const fade = spring(alpha.position, 1, alpha.velocity, token.digit === undefined ? Math.min(duration, 180) : duration);
+        column.opacity.play(fresh ? delayed(fade, delay) : fade, opacity);
       }
       column.height = size.height;
       column.width = size.width;
@@ -312,7 +320,7 @@ class Renderer implements Participant, RollingNumberController {
         column.token = token;
         this.rest(column);
       }
-      if (fresh && duration && token.digit !== undefined) this.enter(column, duration);
+      if (fresh && duration && token.digit !== undefined) this.enter(column, duration, delay);
       if (replacement && duration && (fresh || reentered)) {
         const current = column.roll.read();
         const active = column;

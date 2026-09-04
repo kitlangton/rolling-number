@@ -21,6 +21,22 @@ export function entrance(height: number, duration: number): Motion {
   };
 }
 
+/** Hold the first point for `delay`, then play the motion unchanged; sampling stays exact. */
+export function delayed(motion: Motion, delay: number): Motion {
+  if (delay <= 0 || motion.duration <= 0) return motion;
+  const duration = motion.duration + delay;
+  const count = Math.round((motion.points.length - 1) * duration / motion.duration) + 1;
+  const first = motion.points[0] ?? motion.target;
+  return {
+    target: motion.target, duration,
+    points: Array.from({ length: count }, (_, index) => {
+      if (index === count - 1) return motion.target;
+      const time = index / (count - 1) * duration - delay;
+      return time <= 0 ? first : sample(motion, time).position;
+    }),
+  };
+}
+
 /** Critically damped spring, sampled once for native WAAPI playback. */
 export function spring(from: number, target: number, velocity: number, duration: number): Motion {
   if (duration <= 0) return { points: [target, target], duration: 0, target };

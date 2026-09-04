@@ -74,6 +74,16 @@ for (const alignment of ["left", "center", "right"] as const) {
       glyphTop: slot.querySelector(".rn-face")!.getBoundingClientRect().top,
     }));
     expect(entrance.glyphTop).toBeGreaterThanOrEqual(entrance.viewportBottom - .5);
+    // New places cascade outward from the retained "2" and "3": the adjacent "8"
+    // leads, each comma takes its own step, and the leading "5" is last.
+    const delays = await page.evaluate(() => ["digit:2", "group:3:,", "digit:3", "digit:4", "digit:5", "group:6:,", "digit:6"].map((key) => {
+      const slot = document.querySelector<HTMLElement>(`.rn-slot[data-rn-key='${key}']`)!;
+      const fade = slot.getAnimations().find((animation) => (animation.effect as KeyframeEffect).getKeyframes().some((frame) => "opacity" in frame))!;
+      return Number(fade.effect!.getComputedTiming().duration) - (key.startsWith("group") ? 180 : 600);
+    }));
+    expect(delays[0]).toBe(0);
+    for (let index = 1; index < delays.length; index++) expect(delays[index]!).toBeGreaterThan(delays[index - 1]!);
+    expect(delays.at(-1)!).toBeLessThanOrEqual(300);
     await page.evaluate(() => { for (const animation of document.getAnimations()) animation.currentTime = 240; });
     const interrupted = await state();
     await page.evaluate(async () => {
@@ -82,7 +92,9 @@ for (const alignment of ["left", "center", "right"] as const) {
       await new Promise(requestAnimationFrame);
     });
     const reversed = await state();
-    for (const key of Object.keys(interrupted)) expect(Math.abs(reversed[key]! - interrupted[key]!)).toBeLessThan(.5);
+    // Places still waiting in their stagger hold are invisible and may leave at once.
+    expect(Object.keys(reversed).length).toBeGreaterThan(8);
+    for (const key of Object.keys(reversed)) expect(Math.abs(reversed[key]! - interrupted[key]!)).toBeLessThan(.5);
     await page.evaluate(() => window.testNumber.finish());
     expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
   });

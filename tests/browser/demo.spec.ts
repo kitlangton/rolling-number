@@ -152,3 +152,23 @@ test("number containers keep horizontal overflow visible rather than truncating"
     expect(await frame.evaluate((element) => getComputedStyle(element).overflowX)).toBe("visible");
   }
 });
+
+test("install row copies the command and an agent prompt, and the docs exist as Markdown", async ({ page, context, browserName }) => {
+  await page.goto("/");
+  const install = page.locator(".install");
+  await expect(install.locator("code")).toHaveText("bun add @kitlangton/rolling-number");
+  await install.getByRole("button", { name: "npm", exact: true }).click();
+  await expect(install.locator("code")).toHaveText("npm install @kitlangton/rolling-number");
+  test.skip(browserName !== "chromium", "clipboard permissions are only scriptable in Chromium");
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await install.getByRole("button", { name: "Copy install command" }).click();
+  await expect(install.getByRole("button", { name: "Copy install command" })).toHaveText("Copied");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("npm install @kitlangton/rolling-number");
+  await install.getByRole("button", { name: "Copy prompt for your agent" }).click();
+  const prompt = await page.evaluate(() => navigator.clipboard.readText());
+  expect(prompt).toContain("bun add @kitlangton/rolling-number");
+  expect(prompt).toContain("https://rolling.kitlangton.dev/llms.txt");
+  expect(prompt).toContain("@kitlangton/rolling-number/styles.css");
+  expect(await page.locator("link[rel='alternate'][type='text/markdown']").getAttribute("href")).toBe("/index.md");
+  expect(await page.locator("footer a[href='./llms.txt']").count()).toBe(1);
+});

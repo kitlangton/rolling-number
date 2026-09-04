@@ -5,10 +5,43 @@ import { RollingNumber } from "../src/react";
 import { Track } from "../src/track";
 import { spring } from "../src/motion";
 import { ActivityGraphic, AvatarGraphic, FileGraphic, LedgerGraphic, ShirtGraphic, WeatherGraphic } from "./MiniGraphics";
+import { agentPrompt, installCommands, repository } from "./install";
 import "../src/styles.css";
 import "./demo.css";
 
-const repository = "https://github.com/kitlangton/rolling-number";
+type PackageManager = keyof typeof installCommands;
+
+/** Copies text and reports briefly; also readable by assistive technology through the status region. */
+function useCopy(): [string | undefined, (label: string, text: string) => void] {
+  const [copied, setCopied] = useState<string>();
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  return [copied, (label, text) => {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopied(label);
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(undefined), 1800);
+    }).catch(() => setCopied(undefined));
+  }];
+}
+
+function Install() {
+  const [manager, setManager] = useState<PackageManager>("bun");
+  const [copied, copy] = useCopy();
+  const command = installCommands[manager];
+  return (
+    <section className="install" aria-label="Install">
+      <div className="install-command">
+        <div className="install-managers" role="group" aria-label="Package manager">{(Object.keys(installCommands) as PackageManager[]).map((name) => <button key={name} aria-pressed={manager === name} onClick={() => setManager(name)}>{name}</button>)}</div>
+        <code>{command}</code>
+        <button className="quiet" aria-label="Copy install command" onClick={() => copy("command", command)}>{copied === "command" ? "Copied" : "Copy"}</button>
+      </div>
+      <button className="quiet install-agent" onClick={() => copy("prompt", agentPrompt)} aria-describedby="agent-prompt-hint">{copied === "prompt" ? "Prompt copied" : "Copy prompt for your agent"}</button>
+      <span id="agent-prompt-hint" className="sr-only">Copies setup instructions to paste into a coding agent such as Claude Code, Cursor or OpenCode. Docs are also available as Markdown at /llms.txt.</span>
+      <output className="sr-only" aria-live="polite">{copied ? "Copied to clipboard" : ""}</output>
+    </section>
+  );
+}
 const currency: Intl.NumberFormatOptions = { style: "currency", currency: "USD", maximumFractionDigits: 0 };
 const clock: Intl.NumberFormatOptions = { minimumIntegerDigits: 2, useGrouping: false };
 const milliseconds: Intl.NumberFormatOptions = { style: "unit", unit: "millisecond", unitDisplay: "short", maximumFractionDigits: 0 };
@@ -96,7 +129,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
       <article className="example mini-app focus-app">
         <h2>Focus</h2>
         <div className="focus-dial">
-          <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="53" fill="none" stroke="#282d34" strokeWidth="2" /><circle className="dial-progress" cx="60" cy="60" r="53" fill="none" stroke="#a6b1bf" strokeWidth="2" pathLength="1" strokeDasharray="1" strokeDashoffset={1 - seconds.value / 90} transform="rotate(-90 60 60)" /></svg>
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="53" fill="none" stroke="#1f2227" strokeWidth="1.5" /><circle className="dial-progress" cx="60" cy="60" r="53" fill="none" stroke="#d5d9df" strokeWidth="1.5" pathLength="1" strokeDasharray="1" strokeDashoffset={1 - seconds.value / 90} transform="rotate(-90 60 60)" /></svg>
           <div className="example-number timer" role="timer" aria-live="off"><span className="sr-only">{seconds.value} seconds remaining</span><span aria-hidden="true"><RollingNumber {...shared} value={Math.floor(seconds.value / 60)} format={clock} animated={!reduced && seconds.animated} /><span className="colon">:</span><RollingNumber {...shared} value={seconds.value % 60} format={clock} animated={!reduced && seconds.animated} /></span></div>
         </div>
         <div className="example-actions centered"><button className="mini-button" aria-label={running ? "Pause timer" : "Start timer"} disabled={seconds.value === 0} onClick={() => setRunning((current) => !current)}>{running ? "Pause" : "Start"}</button><button className="quiet muted" aria-label="Reset timer" onClick={(event) => { setRunning(false); setSeconds({ value: 90, animated: event.detail > 0 }); }}>Reset</button></div>
@@ -205,9 +238,10 @@ function App() {
           </details>
           {staticLocale && <p className="locale-note">This locale uses native text without rolling.</p>}
         </section>
+        <Install />
         <Examples locale={locale} duration={duration} reduced={reduced} motionBlur={motionBlur} />
       </main>
-      <footer className="site-footer"><code>{"<RollingNumber value={value} />"}</code><a href="./bench.html">Benchmarks</a><a href={`${repository}/blob/main/LICENSE`}>MIT</a></footer>
+      <footer className="site-footer"><code>{"<RollingNumber value={value} />"}</code><a href="./bench.html">Benchmarks</a><a href="./llms.txt">llms.txt</a><a href={`${repository}/blob/main/LICENSE`}>MIT</a></footer>
     </div>
   );
 }

@@ -166,3 +166,18 @@ measured task time in that run.
 - [Apple numericText(value:)](https://developer.apple.com/documentation/swiftui/contenttransition/numerictext(value:))
 - [Apple Motion HIG](https://developer.apple.com/design/human-interface-guidelines/motion)
 - [NumberFlow timing controls](https://number-flow.barvian.me/#timings)
+
+New places are staggered rather than revealed together. `entryRanks` orders fresh
+tokens by distance from the nearest retained digit (retained symbols such as a
+currency sign do not anchor the cascade), and `delayed` prepends a hold to the
+sampled entrance and fade motions so the browser still plays one native effect per
+property. The step is capped at 8% of the duration and the whole cascade at 50%,
+sized only by fresh tokens. A place still inside its hold is fully transparent, so a
+reversal removes it immediately instead of fading a glyph that never appeared.
+
+Agent access follows the llms.txt convention plus Markdown content negotiation:
+`scripts/agent-docs.ts` emits `index.md`, `llms.txt` and `_headers` from the README
+at build time, and `worker.ts` answers `Accept: text/markdown` on the page with the
+Markdown, advertising it through a `Link: rel="alternate"` header and a matching
+`<link>` element for agents that only parse HTML. Nothing on the site is generated
+from a second source of truth.
