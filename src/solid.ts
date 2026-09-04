@@ -7,7 +7,7 @@ export type RollingNumberProps = RollingNumberOptions & Omit<JSX.HTMLAttributes<
 /** Solid owns semantic text; the same DOM core owns only the decorative mount. */
 export function RollingNumber(props: RollingNumberProps): JSX.Element {
   const [options, local, attributes] = splitProps(props,
-    ["value", "locales", "format", "duration", "animated", "direction", "pauseOffscreen"],
+    ["value", "locales", "format", "duration", "animated", "motionBlur", "direction", "pauseOffscreen"],
     ["class", "ref"],
   );
   let root: HTMLSpanElement;

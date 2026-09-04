@@ -36,6 +36,7 @@ h1, h2, p { margin: 0; }
 .number-stage { display: flex; justify-content: center; align-items: center; min-height: 290px; padding: 36px 0; font-size: calc(clamp(3.5rem, 12.4vw, 9rem) * var(--number-scale)); font-weight: 450; line-height: 1.25; letter-spacing: -.065em; }
 .number-frame { display: flex; justify-content: safe center; width: 100%; max-width: 100%; padding: .05em .08em .12em; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
 .number-frame > .rn-react { flex-shrink: 0; }
+.number-frame .rn-slot[data-rn-key^="unit:"] { color: var(--muted); }
 .number-frame::-webkit-scrollbar, .example-number::-webkit-scrollbar { display: none; }
 .font-serif { font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
 .font-mono { font-family: var(--mono); }

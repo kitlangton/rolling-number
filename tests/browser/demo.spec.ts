@@ -22,15 +22,33 @@ test("the showcase measures elapsed milliseconds rather than inventing increment
   await expect(number).toHaveAttribute("data-rn-ready", "");
   await expect(page.locator("#number-value, .value-control, .play-actions")).toHaveCount(0);
   await expect(page.locator(".number-frame .rn-semantic")).toHaveText("0 ms");
-  await page.clock.runFor(1000);
-  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("1,000 ms");
+  await page.clock.runFor(1);
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("33 ms");
+  for (const value of [66, 99, 132]) {
+    await page.clock.runFor(33);
+    await expect(page.locator(".number-frame .rn-semantic")).toHaveText(`${value} ms`);
+  }
   await expect.poll(() => number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
   await page.clock.fastForward(9000);
-  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("10,032 ms");
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("9,132 ms");
+  const colors = await number.evaluate((element) => ({
+    unit: getComputedStyle(element.querySelector("[data-rn-key^='unit:']")!).color,
+    digit: getComputedStyle(element.querySelector("[data-rn-key='digit:0']")!).color,
+  }));
+  expect(colors.unit).not.toBe(colors.digit);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.clock.fastForward(1000);
-  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("11,032 ms");
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("10,132 ms");
   expect(await number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
+});
+
+test("hero motion blur can be turned off without changing the examples", async ({ page }) => {
+  await page.goto("/");
+  await expect.poll(() => page.locator(".number-frame .rn-smear").count()).toBeGreaterThan(0);
+  await page.locator("summary").click();
+  await page.getByLabel("Motion blur", { exact: true }).uncheck();
+  await expect(page.locator(".rn-smear, .rn-blur-defs")).toHaveCount(0);
+  await expect(page.locator("#examples .rn-smear")).toHaveCount(0);
 });
 
 test("eyes share their gaze and spin together as a smooth jackpot without squishing", async ({ page }) => {
@@ -69,7 +87,7 @@ test("eyes share their gaze and spin together as a smooth jackpot without squish
   expect(rolling[0]?.reelY).toBeGreaterThan(-182);
   expect((await frame(4200))[0]?.reelY).toBeCloseTo(-182, 1);
   expect((await frame(2640))[0]?.smear).toBeGreaterThan(.5);
-  await expect(page.locator("feGaussianBlur")).toHaveAttribute("stdDeviation", "0 1.1");
+  await expect(page.locator(".eyes feGaussianBlur")).toHaveAttribute("stdDeviation", "0 1.1");
   const seams = await page.locator(".eyes").evaluate((element) => [...element.querySelectorAll(".eye-shell")].map((shell) => {
     const period = parseFloat(getComputedStyle(shell.querySelector(".eye-sharp")!).animationDuration) * 1000;
     const visiblePupil = (time: number) => {

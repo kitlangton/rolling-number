@@ -36,6 +36,21 @@ export function spring(from: number, target: number, velocity: number, duration:
   return { points, duration, target };
 }
 
+/** Blend into a vertical smear as reel speed rises from 4 to 24 rows/second. */
+export function blurEnvelope(motion: Motion, from = 0): Motion {
+  if (motion.duration <= 0) return { points: [0, 0], duration: 0, target: 0 };
+  const step = motion.duration / (motion.points.length - 1) / 1000;
+  return {
+    duration: motion.duration, target: 0,
+    points: motion.points.map((_, index, points) => {
+      if (index === 0) return Math.max(0, Math.min(1, from));
+      if (index === points.length - 1) return 0;
+      const speed = Math.abs((points[index + 1]! - points[index - 1]!) / (2 * step));
+      return Math.max(0, Math.min(1, (speed - 4) / 20));
+    }),
+  };
+}
+
 /** Matches linear interpolation between the exact keyframes sent to the browser. */
 export function sample(motion: Motion, time: number): Sample {
   if (time >= motion.duration || motion.duration === 0) return { position: motion.target, velocity: 0 };

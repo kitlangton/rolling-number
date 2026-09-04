@@ -61,6 +61,10 @@
   mask-repeat: no-repeat;
 }
 .rn-enter, .rn-reel, .rn-face { display: block; }
+.rn-reel { position: relative; }
+.rn-sharp, .rn-smear { display: block; }
+.rn-smear { position: absolute; inset: 0; pointer-events: none; }
+.rn-blur-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .rn-face { text-align: center; white-space: pre; }
 .rn-react, .rn-solid { display: inline-block; position: relative; white-space: pre; unicode-bidi: isolate; }
 .rn-mount { display: inline-block; }

@@ -8,13 +8,13 @@ const useCommitEffect = typeof window === "undefined" ? useEffect : useLayoutEff
 
 /** React owns the accessible text. Only the empty aria-hidden mount is imperative. */
 export const RollingNumber = forwardRef<HTMLSpanElement, RollingNumberProps>(function RollingNumber(
-  { value, locales, format, duration, animated, direction, pauseOffscreen, className, ...props },
+  { value, locales, format, duration, animated, motionBlur, direction, pauseOffscreen, className, ...props },
   forwardedRef,
 ) {
   const root = useRef<HTMLSpanElement>(null);
   const mount = useRef<HTMLSpanElement>(null);
   const controller = useRef<RollingNumberController | null>(null);
-  const options = { value, locales, format, duration, animated, direction, pauseOffscreen };
+  const options = { value, locales, format, duration, animated, motionBlur, direction, pauseOffscreen };
   const setRoot = useCallback((node: HTMLSpanElement | null) => {
     root.current = node;
     if (typeof forwardedRef === "function") {

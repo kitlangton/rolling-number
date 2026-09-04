@@ -71,6 +71,7 @@ function App() {
   const [locale, setLocale] = useState("en-US");
   const [duration, setDuration] = useState(500);
   const [reduced, setReduced] = useState(false);
+  const [motionBlur, setMotionBlur] = useState(true);
   const [tabular, setTabular] = useState(true);
   const [font, setFont] = useState("sans");
   const [size, setSize] = useState(144);
@@ -82,7 +83,7 @@ function App() {
       if (document.hidden) return;
       setElapsed(Math.floor(performance.now() - start));
     };
-    const timer = setInterval(tick, 100);
+    const timer = setInterval(tick, 33);
     document.addEventListener("visibilitychange", tick);
     return () => {
       clearInterval(timer);
@@ -99,7 +100,7 @@ function App() {
       <main>
         <section className="playground" id="playground" aria-label="Interactive number playground">
           <div className={`number-stage font-${font} ${tabular ? "digits-tabular" : "digits-proportional"}`} style={{ "--number-scale": size / 144 } as CSSProperties}>
-            <div className="number-frame" role="timer" aria-live="off"><span className="sr-only">Time on this page: </span><RollingNumber value={elapsed} locales={locale} format={milliseconds} duration={duration} animated={!reduced} direction={direction} /></div>
+            <div className="number-frame" role="timer" aria-live="off"><span className="sr-only">Time on this page: </span><RollingNumber value={elapsed} locales={locale} format={milliseconds} duration={duration} animated={!reduced} motionBlur={motionBlur} direction={direction} /></div>
           </div>
           <details className="settings-panel">
             <summary>Options</summary>
@@ -109,7 +110,7 @@ function App() {
               <label>Duration<select id="duration" value={duration} onChange={(event) => setDuration(Number(event.target.value))}><option value="200">200 ms</option><option value="500">500 ms</option><option value="1000">1000 ms</option></select></label>
               <label>Direction<select id="direction" value={direction} onChange={(event) => { const value = event.target.value; if (value === "auto" || value === "up" || value === "down") setDirection(value); }}><option value="auto">Auto</option><option value="up">Up</option><option value="down">Down</option></select></label>
               <label className="size-control">Size <output>{Math.round(size / 144 * 100)}%</output><input id="font-size" type="range" min="72" max="176" step="8" value={size} onChange={(event) => setSize(Number(event.target.value))} /></label>
-              <div className="toggles"><label><input type="checkbox" checked={tabular} onChange={(event) => setTabular(event.target.checked)} />Tabular digits</label><label><input type="checkbox" checked={reduced} onChange={(event) => setReduced(event.target.checked)} />Reduce motion</label></div>
+              <div className="toggles"><label><input type="checkbox" checked={tabular} onChange={(event) => setTabular(event.target.checked)} />Tabular digits</label><label><input type="checkbox" checked={motionBlur} onChange={(event) => setMotionBlur(event.target.checked)} />Motion blur</label><label><input type="checkbox" checked={reduced} onChange={(event) => setReduced(event.target.checked)} />Reduce motion</label></div>
             </div>
           </details>
           {staticLocale && <p className="locale-note">This locale uses native text without rolling.</p>}

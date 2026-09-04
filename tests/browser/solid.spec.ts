@@ -30,9 +30,10 @@ for (const ssr of [false, true]) {
     if (original) expect(await original.evaluate((element) => element.isConnected)).toBe(true);
     expect(await page.evaluate(() => window.solidRef === document.getElementById("solid-number"))).toBe(true);
     expect(await root.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
-    await page.evaluate(() => window.updateSolid({ value: 99999.12, format: { style: "currency", currency: "USD" } }));
+    await page.evaluate(() => window.updateSolid({ value: 99999.12, motionBlur: true, format: { style: "currency", currency: "USD" } }));
     await expect(root.locator(".rn-semantic")).toHaveText("$99,999.12");
     await expect.poll(() => root.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
+    await expect.poll(() => root.locator(".rn-smear").count()).toBeGreaterThan(0);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.evaluate(() => window.updateSolid({ value: 7 }));
     await expect(root.locator(".rn-semantic")).toHaveText("$7.00");

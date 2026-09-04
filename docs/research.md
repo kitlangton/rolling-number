@@ -90,6 +90,20 @@ Supported format changes retain digit-place identities. Non-digit token keys als
 include their text, so currency and separator replacements fade out/in instead of
 snapping to a new glyph. Unsupported formats still settle to intact native text.
 
+## Optional hero blur
+
+`motionBlur` defaults to false. For opted-in rolling digits, a sampled speed
+envelope crossfades sharp and vertically blurred copies under the same reel
+transform. A static SVG Gaussian kernel uses zero horizontal deviation; native
+opacity playback controls the blend without a JavaScript frame loop. Copies and
+effects are bounded to one pair per moving reel and removed at settlement.
+
+The elapsed-millisecond demo samples at 33 ms rather than 100 ms. The previous
+cadence aliased the tens/ones places into nearly constant values. The counter still
+uses actual elapsed time, not invented trailing digits. See [the ticker experiment](../perf/ticker.md)
+for a rejected geometry-cache optimization; fewer explicit reads did not improve
+measured task time in that run.
+
 ## Sources
 
 - [NumberFlow documentation](https://number-flow.barvian.me/)
@@ -106,3 +120,4 @@ snapping to a new glyph. Unsupported formats still settle to intact native text.
 - [CSS linear and interruption](https://www.joshwcomeau.com/animation/linear-timing-function/)
 - [Safari 26.4 SVG fixes](https://webkit.org/blog/17862/webkit-features-for-safari-26-4/#svg)
 - [text-box-trim](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-box-trim)
+- [SVG Gaussian blur](https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/feGaussianBlur)

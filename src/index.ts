@@ -3,6 +3,7 @@ import { entrance, numeral, rollTarget, spring } from "./motion.js";
 import { collapsePositions } from "./layout.js";
 import { Scheduler, type Participant } from "./scheduler.js";
 import { Track } from "./track.js";
+import { ReelBlur } from "./blur.js";
 
 export { formatValue } from "./format.js";
 export type { Value, Locales } from "./format.js";
@@ -12,6 +13,8 @@ export interface RollingNumberOptions extends FormatOptions {
   /** Duration in milliseconds. Zero disables animation. Default: 500. */
   duration?: number | undefined;
   animated?: boolean | undefined;
+  /** Optional velocity-driven vertical blur for prominent counters. Default: false. */
+  motionBlur?: boolean | undefined;
   /** Auto follows displayed magnitude, including for negative values. */
   direction?: "auto" | "up" | "down" | undefined;
   /** Offscreen numbers retain their latest value without animation. Default: true. */
@@ -71,6 +74,7 @@ class Renderer implements Participant, RollingNumberController {
   private measurementPending = false;
   private hadClass: boolean;
   private previousLeft: number | undefined;
+  private blur: ReelBlur | undefined;
 
   constructor(private host: HTMLElement, options: RollingNumberOptions) {
     validate(options);
@@ -112,6 +116,10 @@ class Renderer implements Participant, RollingNumberController {
     validate(options);
     const next = model(options.value, options); // Validate before changing any visible state.
     const unchanged = next.text === this.target.text && next.signature === this.target.signature;
+    if (this.options.motionBlur && !options.motionBlur) {
+      this.blur?.destroy();
+      this.blur = undefined;
+    }
     this.options = options;
     // Rollable formats share digit-place identities; symbols enter/exit by token key.
     this.target = next;
@@ -207,6 +215,7 @@ class Renderer implements Participant, RollingNumberController {
   }
 
   private rest(column: Column): void {
+    this.blur?.remove(column.reel);
     column.reel.replaceChildren();
     this.face(column, column.token.text);
     column.roll.set(column.token.digit ?? 0, () => "translateY(0px)");
@@ -274,8 +283,13 @@ class Renderer implements Participant, RollingNumberController {
         const motion = spring(current.position, rollTarget(current.position, token.digit, trend), current.velocity, duration);
         const start = Math.floor(Math.min(...motion.points));
         const end = Math.ceil(Math.max(...motion.points));
+        const blur = this.blur?.remove(column.reel) ?? 0;
         column.reel.replaceChildren();
         for (let face = start; face <= end; face++) this.face(column, numeral(face));
+        if (this.options.motionBlur) {
+          this.blur ??= new ReelBlur(this.host);
+          this.blur.apply(column.reel, motion, size.height, blur);
+        }
         column.token = token;
         const active = column;
         column.roll.play(motion, (position) => `translateY(${(start - position) * size.height}px)`, () => this.rest(active));
@@ -305,6 +319,7 @@ class Renderer implements Participant, RollingNumberController {
   }
 
   private removeColumn(column: Column): void {
+    this.blur?.remove(column.reel);
     this.finishEntry(column);
     column.x.cancel();
     column.roll.cancel();
@@ -339,6 +354,8 @@ class Renderer implements Participant, RollingNumberController {
     this.measurementPending = false;
     for (const column of this.columns.values()) this.removeColumn(column);
     this.columns.clear();
+    this.blur?.destroy();
+    this.blur = undefined;
     this.semantic.textContent = this.target.text;
     delete this.host.dataset.rnReady;
     delete this.host.dataset.rnMeasuring;

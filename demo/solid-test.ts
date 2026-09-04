@@ -23,6 +23,7 @@ window.mountSolid = (html) => {
     get format() { return options().format; },
     get duration() { return options().duration; },
     get animated() { return options().animated; },
+    get motionBlur() { return options().motionBlur; },
     pauseOffscreen: false,
     id: "solid-number",
     class: "balance",

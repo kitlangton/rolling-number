@@ -101,6 +101,7 @@ idempotent. Invalid values/options throw before replacing the current display.
 | `format` | `{}` | Native `Intl.NumberFormatOptions` |
 | `duration` | `500` | Milliseconds; `0` disables motion; maximum `10000` |
 | `animated` | `true` | `false` immediately settles the latest value |
+| `motionBlur` | `false` | Opt-in, speed-driven vertical blur on rolling digits |
 | `direction` | `"auto"` | `"auto"`, `"up"`, or `"down"` |
 | `pauseOffscreen` | `true` | Offscreen counters keep the latest text without rolling |
 
@@ -114,6 +115,13 @@ The React component additionally accepts ordinary span attributes, including
 or raw HTML. Set `animated={false}` for updates that should settle immediately.
 Changes between supported formats animate digits, separators and symbols while
 respecting reduced-motion preferences.
+
+For prominent counters, opt into `motionBlur`. Fast reels crossfade into a vertical
+SVG blur, then sharpen as they slow down. Stable digits and punctuation stay sharp.
+The temporary duplicate reel and native opacity effects are removed on settlement;
+disabling the option clears active blur immediately. This adds paint/DOM work and
+is not a performance optimization. The hero enables it; normal counters default
+to no blur. Reduced motion disables the effect along with rolling.
 
 ## How it stays small and stable
 
