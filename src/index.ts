@@ -264,10 +264,10 @@ class Renderer implements Participant, RollingNumberController {
     const newSymbols = new Map(this.target.tokens.filter((token) => token.digit === undefined).map((token) => [token.identity, token.key]));
     // New glyphs cascade outward from the digits already on screen (symbols such as
     // a retained currency sign do not anchor it); the whole cascade stays inside a
-    // fraction of the duration so it still reads as one update.
+    // fraction of the duration so it still reads as one update, not typing.
     const ranks = entryRanks(this.target.tokens.map((token) => token.digit !== undefined && this.columns.has(token.key) && !this.columns.get(token.key)!.exiting));
     const span = Math.max(0, ...this.target.tokens.map((token, index) => this.columns.has(token.key) ? 0 : ranks[index]! - 1));
-    const step = Math.min(duration * .08, duration * .5 / Math.max(1, span));
+    const step = Math.min(duration * .045, duration * .3 / Math.max(1, span));
     for (const [index, token] of this.target.tokens.entries()) {
       const size = geometry.get(token.key);
       if (!size) continue;
@@ -290,7 +290,11 @@ class Renderer implements Participant, RollingNumberController {
       column.element.style.height = `${size.height}px`;
       column.element.style.top = `${size.y}px`;
       const x = previous.get(token.key);
-      column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
+      // A digit-only update must not restart horizontal motion already headed here.
+      // Refreshes still settle immediately; origin shifts still need compensation.
+      if (!duration || originShift || column.x.target !== size.x) {
+        column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
+      }
       if (fresh || reentered || !animate) {
         const alpha = column.opacity.read();
         const fade = spring(alpha.position, 1, alpha.velocity, token.digit === undefined ? Math.min(duration, 180) : duration);
@@ -332,7 +336,10 @@ class Renderer implements Participant, RollingNumberController {
       const x = previous.get(key)!;
       const replacementKey = newSymbols.get(column.token.identity);
       const replacement = replacementKey ? geometry.get(replacementKey) : undefined;
-      column.x.play(spring(x.position + originShift, replacement?.x ?? exits.get(key) ?? x.position, x.velocity, duration), translate);
+      const target = replacement?.x ?? exits.get(key) ?? x.position;
+      if (!duration || originShift || column.x.target !== target) {
+        column.x.play(spring(x.position + originShift, target, x.velocity, duration), translate);
+      }
       if (column.exiting) continue;
       column.exiting = true;
       if (replacement && duration) {

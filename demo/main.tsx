@@ -1,5 +1,5 @@
 import { StrictMode, memo, useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { RollingNumber } from "../src/react";
 import { Track } from "../src/track";
@@ -30,41 +30,80 @@ function useCopy(): [boolean, (text: string) => void] {
   }];
 }
 
+/** Parses the animated clip so an interrupted slide continues from where it is drawn. */
+function readInset(element: HTMLElement): { left: number; right: number } | undefined {
+  const match = /inset\(\S+ (\S+)px \S+ (\S+)px/.exec(getComputedStyle(element).clipPath);
+  return match ? { right: Number(match[1]), left: Number(match[2]) } : undefined;
+}
+
+/** Height/opacity reveal on the shared spring; the panel is inert and hidden once closed. */
+function Disclosure({ open, duration, reduced, id, children }: { open: boolean; duration: number; reduced: boolean; id: string; children: ReactNode }) {
+  const wrap = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+  useLayoutEffect(() => {
+    const element = wrap.current;
+    if (!element) return;
+    const first = !started.current;
+    started.current = true;
+    const rendered = element.getBoundingClientRect().height;
+    for (const animation of element.getAnimations({ subtree: true })) animation.cancel();
+    element.hidden = false;
+    const target = open ? element.scrollHeight : 0;
+    if (first || reduced || rendered === target) {
+      element.hidden = !open;
+      return;
+    }
+    const easing = springEasing(duration);
+    const animation = element.animate([{ height: `${rendered}px` }, { height: `${target}px` }], { duration, easing, fill: "forwards" });
+    element.firstElementChild?.animate(
+      [{ opacity: rendered > target ? getComputedStyle(element.firstElementChild).opacity : 0, transform: open ? "translateY(-6px)" : "none" }, { opacity: open ? 1 : 0, transform: open ? "none" : "translateY(-6px)" }],
+      { duration: duration * .65, easing, fill: "forwards" },
+    );
+    animation.onfinish = () => {
+      for (const running of element.getAnimations({ subtree: true })) running.cancel();
+      element.hidden = !open;
+    };
+  }, [open, duration, reduced]);
+  return <div ref={wrap} id={id} className="disclosure" inert={!open || undefined}>{children}</div>;
+}
+
 function Install({ duration, reduced }: { duration: number; reduced: boolean }) {
   const [manager, setManager] = useState<PackageManager>("bun");
   const [copied, copy] = useCopy();
   const command = installCommands[manager];
   const managers = useRef<HTMLDivElement>(null);
-  const indicator = useRef<HTMLSpanElement>(null);
+  const highlight = useRef<HTMLDivElement>(null);
   const code = useRef<HTMLElement>(null);
   const started = useRef(false);
   useLayoutEffect(() => {
-    const group = managers.current, pill = indicator.current, box = code.current;
-    if (!group || !pill || !box) return;
+    const group = managers.current, overlay = highlight.current, box = code.current;
+    if (!group || !overlay || !box) return;
     const target = group.querySelector<HTMLElement>("button[aria-pressed='true']");
     if (!target) return;
     // Read the rendered geometry first (an interruption point), then release the
     // previous effects to read the natural target geometry.
-    const pillRect = pill.getBoundingClientRect();
-    const pillFrom = pillRect.left - group.getBoundingClientRect().left;
+    const inset = readInset(overlay);
     const rendered = box.getBoundingClientRect().width;
-    for (const animation of [...pill.getAnimations(), ...box.getAnimations()]) animation.cancel();
+    for (const animation of [...overlay.getAnimations(), ...box.getAnimations()]) animation.cancel();
     const width = box.getBoundingClientRect().width;
     const first = !started.current;
     started.current = true;
     const options = { duration: reduced || first ? 0 : duration, easing: springEasing(duration), fill: "forwards" as const };
-    pill.animate([
-      { transform: `translateX(${pillFrom}px)`, width: `${pillRect.width}px` },
-      { transform: `translateX(${target.offsetLeft}px)`, width: `${target.offsetWidth}px` },
-    ], options);
+    const clip = (left: number, right: number) => `inset(0px ${right}px 0px ${left}px round 6px)`;
+    const to = { left: target.offsetLeft, right: group.offsetWidth - target.offsetLeft - target.offsetWidth };
+    const from = inset ?? to;
+    // The overlay holds bright copies of the labels; clipping it to the pill turns each
+    // label white exactly as the pill passes underneath.
+    overlay.animate([{ clipPath: clip(from.left, from.right) }, { clipPath: clip(to.left, to.right) }], options);
     if (options.duration) box.animate([{ width: `${rendered}px` }, { width: `${width}px` }], options);
   }, [manager, duration, reduced]);
+  const names = Object.keys(installCommands) as PackageManager[];
   return (
     <section className="install" aria-label="Install">
       <div className="install-command">
         <div ref={managers} className="install-managers" role="group" aria-label="Package manager">
-          <span ref={indicator} className="install-indicator" aria-hidden="true" />
-          {(Object.keys(installCommands) as PackageManager[]).map((name) => <button key={name} aria-pressed={manager === name} onClick={() => setManager(name)}>{name}</button>)}
+          {names.map((name) => <button key={name} aria-pressed={manager === name} onClick={() => setManager(name)}>{name}</button>)}
+          <div ref={highlight} className="install-highlight" aria-hidden="true">{names.map((name) => <span key={name}>{name}</span>)}</div>
         </div>
         <code ref={code}><span key={manager} className="install-text" data-animated={!reduced}>{command}</span></code>
         <button className="quiet" aria-label="Copy install command" onClick={() => copy(command)}>{copied ? "Copied" : "Copy"}</button>
@@ -226,6 +265,7 @@ function App() {
   const [locale, setLocale] = useState("en-US");
   const [duration, setDuration] = useState(500);
   const [reduced, setReduced] = useState(false);
+  const [options, setOptions] = useState(false);
   const [motionBlur, setMotionBlur] = useState(true);
   const [tabular, setTabular] = useState(true);
   const [font, setFont] = useState("sans");
@@ -257,8 +297,9 @@ function App() {
           <div className={`number-stage font-${font} ${tabular ? "digits-tabular" : "digits-proportional"}`} style={{ "--number-scale": size / 144 } as CSSProperties}>
             <div className="number-frame" role="timer" aria-live="off"><span className="sr-only">Time on this page: </span><RollingNumber value={elapsed} locales={locale} format={milliseconds} duration={duration} animated={!reduced} motionBlur={motionBlur} direction={direction} /></div>
           </div>
-          <details className="settings-panel">
-            <summary>Options</summary>
+          <div className="settings-panel">
+            <button className="quiet settings-toggle" aria-expanded={options} aria-controls="settings" onClick={() => setOptions((current) => !current)}>Options <span aria-hidden="true">{options ? "−" : "+"}</span></button>
+            <Disclosure id="settings" open={options} duration={duration} reduced={reduced}>
             <div className="settings">
               <label>Locale<select id="locale" value={locale} onChange={(event) => setLocale(event.target.value)}>{localeOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label>Typeface<select id="typeface" value={font} onChange={(event) => setFont(event.target.value)}><option value="sans">Sans</option><option value="serif">Serif</option><option value="mono">Mono</option></select></label>
@@ -267,7 +308,8 @@ function App() {
               <label className="size-control">Size <output>{Math.round(size / 144 * 100)}%</output><input id="font-size" type="range" min="72" max="176" step="8" value={size} onChange={(event) => setSize(Number(event.target.value))} /></label>
               <div className="toggles"><label><input type="checkbox" checked={tabular} onChange={(event) => setTabular(event.target.checked)} />Tabular digits</label><label><input type="checkbox" checked={motionBlur} onChange={(event) => setMotionBlur(event.target.checked)} />Motion blur</label><label><input type="checkbox" checked={reduced} onChange={(event) => setReduced(event.target.checked)} />Reduce motion</label></div>
             </div>
-          </details>
+            </Disclosure>
+          </div>
           {staticLocale && <p className="locale-note">This locale uses native text without rolling.</p>}
         </section>
         <Install duration={duration} reduced={reduced} />

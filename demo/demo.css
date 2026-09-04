@@ -16,12 +16,12 @@
 body { margin: 0; min-width: 320px; }
 a { color: inherit; text-decoration: none; }
 button, input, select { font: inherit; }
-button, select, summary, input[type="range"], input[type="checkbox"] { cursor: pointer; }
-button, a, input, select, summary { -webkit-tap-highlight-color: transparent; }
+button, select, input[type="range"], input[type="checkbox"] { cursor: pointer; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
 button, input, select { color: inherit; }
 button { border: 1px solid var(--line); border-radius: 7px; padding: 0 16px; min-height: 40px; background: #17191c; font-size: 13px; }
 button:disabled { opacity: .35; cursor: default; }
-button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
 ::selection { background: #3a4048; color: white; }
 h1, h2, p { margin: 0; }
 .site-shell { width: min(1040px, 100%); padding: 0 40px; margin-inline: auto; }
@@ -43,29 +43,31 @@ h1, h2, p { margin: 0; }
 .digits-tabular { font-variant-numeric: tabular-nums lining-nums; }
 .digits-proportional { font-variant-numeric: proportional-nums lining-nums; }
 .settings-panel { margin-top: 27px; }
-.settings-panel summary { width: fit-content; margin-inline: auto; color: var(--muted); font-size: 12px; padding: 10px; min-height: 36px; list-style: none; }
-.settings-panel summary::-webkit-details-marker { display: none; }
-.settings-panel summary::after { content: "+"; padding-left: 8px; }
-.settings-panel[open] summary::after { content: "−"; }
-.settings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px 18px; max-width: 720px; margin: 15px auto 0; padding: 22px; background: #131518; border-radius: 10px; }
-.settings > label, .size-control, .seat-control label { display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: var(--muted); }
-select { min-width: 0; width: 100%; height: 36px; border: 1px solid #34373c; border-radius: 5px; background: #17191c; padding-inline: 8px; font-size: 12px; }
+.settings-panel { display: flex; flex-direction: column; align-items: center; }
+.settings-panel .disclosure { width: 100%; }
+.settings-toggle { gap: 8px; color: var(--muted); font-size: 12px; padding: 10px; min-height: 36px; }
+/* Vertical clip for the height reveal; the negative inline inset keeps focus rings visible. */
+.disclosure { clip-path: inset(0 -8px round 0); }
+.disclosure[hidden] { display: none; }
+.settings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; max-width: 720px; margin: 14px auto 0; padding: 20px; border: 1px solid #1f2227; background: #111316; border-radius: 13px; }
+.settings > label, .size-control, .seat-control label { display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: var(--muted); }
+select { min-width: 0; width: 100%; height: 32px; border: 1px solid #1f2227; border-radius: 7px; background: #0e1013; padding-inline: 9px; font-size: 12px; color: var(--ink); }
 .settings .size-control { grid-column: span 2; display: grid; grid-template-columns: 1fr auto; }
 .size-control input { grid-column: 1 / -1; width: 100%; }
 input[type="range"] { accent-color: var(--accent); height: 20px; margin: 0; }
 input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; margin: 0; }
 .toggles { grid-column: span 2; display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
-.toggles label { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 12px; min-height: 30px; }
+.toggles label { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 11px; min-height: 30px; }
 .locale-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 12px; }
 .install { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 22px; padding: 0 0 34px; }
 .install-command { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 3px 3px 3px 3px; border: 1px solid #1f2227; border-radius: 9px; background: #0e1013; }
 .install-command code { font: 12px var(--mono); color: var(--ink); padding: 0 8px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
 .install-command .quiet { flex: none; }
 .install-managers { position: relative; display: flex; gap: 2px; }
-.install-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 6px; background: #1e2227; }
-.install-managers button { position: relative; }
-.install-managers button { min-height: 30px; padding: 0 9px; font: 11px var(--mono); border-color: transparent; background: none; color: var(--muted); }
-.install-managers button[aria-pressed="true"] { color: var(--ink); }
+.install-managers button, .install-highlight span { min-height: 30px; padding: 0 9px; font: 11px var(--mono); }
+.install-highlight { position: absolute; inset: 0; display: flex; gap: 2px; pointer-events: none; background: #1e2227; color: var(--ink); clip-path: inset(0 100% 0 0 round 6px); }
+.install-highlight span { display: inline-flex; align-items: center; border: 1px solid transparent; }
+.install-managers button { border-color: transparent; background: none; color: var(--muted); }
 .install-command code { display: block; box-sizing: border-box; }
 .install-text { display: inline-block; white-space: nowrap; }
 .install-text[data-animated="true"] { animation: install-fade 180ms ease-out; }
@@ -164,7 +166,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 @media (hover: hover) {
   button:not(:disabled):hover { background: #25282d; }
   .quiet:hover { background: none !important; color: var(--ink); }
-  a:hover, summary:hover { color: var(--ink); }
+  a:hover { color: var(--ink); }
 }
 @media (min-width: 641px) and (max-width: 900px) {
   .examples { grid-template-columns: repeat(6, minmax(0, 1fr)); }

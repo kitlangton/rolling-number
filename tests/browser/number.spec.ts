@@ -83,7 +83,7 @@ for (const alignment of ["left", "center", "right"] as const) {
     }));
     expect(delays[0]).toBe(0);
     for (let index = 1; index < delays.length; index++) expect(delays[index]!).toBeGreaterThan(delays[index - 1]!);
-    expect(delays.at(-1)!).toBeLessThanOrEqual(300);
+    expect(delays.at(-1)!).toBeLessThanOrEqual(180);
     await page.evaluate(() => { for (const animation of document.getAnimations()) animation.currentTime = 240; });
     const interrupted = await state();
     await page.evaluate(async () => {

@@ -136,7 +136,7 @@ the adjacent digits, with a small 4% scale accent during replacement.
 
 When a value grows or shrinks by several places at once, the new digits and their
 separators cascade outward from the digits already on screen, one short step each.
-The whole cascade stays inside half the duration, so it reads as one update rather
+The whole cascade stays inside a third of the duration, so it reads as one update rather
 than a typing effect, and interruptions still sample the current position of every
 place.
 See [the scoped blur-cost measurement](perf/blur-cost.md) for its overhead and limits.

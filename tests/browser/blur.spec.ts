@@ -16,9 +16,9 @@ test("entering digits get a softer blur and release it when the entrance settles
     window.testNumber.update({ value: 5823823 });
     await new Promise(requestAnimationFrame);
     await new Promise(requestAnimationFrame);
-    for (const animation of document.getAnimations()) animation.currentTime = 180;
+    for (const animation of document.getAnimations()) animation.currentTime = 100;
   });
-  // The place next to the retained digits enters first; the leading "5" is still in its stagger hold.
+  // The place next to the retained digits enters first; the leading "5" (162 ms hold at 600 ms) has not started at 100 ms.
   const incoming = page.locator("[data-rn-key='digit:2'] .rn-smear");
   expect(await incoming.evaluate((element) => Number(getComputedStyle(element).opacity))).toBeGreaterThan(.2);
   expect(await page.locator("[data-rn-key='digit:6'] .rn-smear").evaluate((element) => Number(getComputedStyle(element).opacity))).toBe(0);

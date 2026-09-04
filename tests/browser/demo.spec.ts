@@ -50,7 +50,7 @@ test("one motion-blur toggle controls the hero and examples", async ({ page }) =
   await expect.poll(() => page.locator(".number-frame .rn-smear").count()).toBeGreaterThan(0);
   await page.getByRole("button", { name: "Buy Studio tee" }).click();
   await expect.poll(() => page.locator("#examples article").first().locator(".rn-smear").count()).toBeGreaterThan(0);
-  await page.locator("summary").click();
+  await page.getByRole("button", { name: "Options" }).click();
   await page.getByLabel("Motion blur", { exact: true }).uncheck();
   await expect(page.locator(".rn-smear, .rn-blur-defs")).toHaveCount(0);
   await expect(page.locator("#examples .rn-smear")).toHaveCount(0);
@@ -157,7 +157,8 @@ test("install row slides its selection, animates the command width, copies, and 
   await page.goto("/");
   const install = page.locator(".install");
   await expect(install.locator("code")).toHaveText("bun add @kitlangton/rolling-number");
-  expect(await page.evaluate(() => document.querySelectorAll(".install-indicator, .install code").length)).toBe(2);
+  const inset = () => install.locator(".install-highlight").evaluate((element) => Number(/inset\(\S+ \S+ \S+ (\S+)px/.exec(getComputedStyle(element).clipPath)![1]));
+  expect(await inset()).toBeCloseTo(0, 0);
   await page.evaluate(() => {
     const animate = Element.prototype.animate;
     Element.prototype.animate = function (...args) {
@@ -166,21 +167,18 @@ test("install row slides its selection, animates the command width, copies, and 
       return animation;
     };
   });
-  const before = await install.locator(".install-indicator").evaluate((element) => element.getBoundingClientRect().x);
   const widthBefore = await install.locator("code").evaluate((element) => element.getBoundingClientRect().width);
   await install.getByRole("button", { name: "npm", exact: true }).click();
   await expect(install.locator("code")).toHaveText("npm install @kitlangton/rolling-number");
-  // Paused at the start, both the pill and the width still show the previous state.
-  expect(await install.locator(".install-indicator").evaluate((element) => element.getBoundingClientRect().x)).toBeCloseTo(before, 0);
+  // Paused at the start, both the pill clip and the width still show the previous state.
+  expect(await inset()).toBeCloseTo(0, 0);
   expect(await install.locator("code").evaluate((element) => element.getBoundingClientRect().width)).toBeCloseTo(widthBefore, 0);
   const animations = await install.evaluate((element) => element.getAnimations({ subtree: true }).map((animation) => (animation.effect as KeyframeEffect).getTiming().easing));
   expect(animations.length).toBeGreaterThanOrEqual(2);
   expect(animations.filter((easing) => easing?.startsWith("linear(")).length).toBeGreaterThanOrEqual(2);
   await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
-  const target = await install.getByRole("button", { name: "npm", exact: true }).evaluate((element) => element.getBoundingClientRect());
-  const pill = await install.locator(".install-indicator").evaluate((element) => element.getBoundingClientRect());
-  expect(pill.x).toBeCloseTo(target.x, 0);
-  expect(pill.width).toBeCloseTo(target.width, 0);
+  const target = await install.getByRole("button", { name: "npm", exact: true }).evaluate((element) => (element as HTMLElement).offsetLeft);
+  expect(await inset()).toBeCloseTo(target, 0);
   expect(await page.locator("link[rel='alternate'][type='text/markdown']").getAttribute("href")).toBe("/index.md");
   expect(await page.locator("footer a[href='./llms.txt']").count()).toBe(1);
   test.skip(browserName !== "chromium", "clipboard permissions are only scriptable in Chromium");
@@ -216,4 +214,36 @@ test("team avatars and the overflow count animate with the shared spring instead
   await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
   await expect.poll(() => team.locator(".mini-avatar[data-present='false']").first().evaluate((element) => element.getBoundingClientRect().width)).toBe(0);
   await expect(team.locator(".extra-members")).toHaveAttribute("data-present", "false");
+});
+
+test("the options panel reveals on the shared spring and is inert when closed", async ({ page }) => {
+  await page.goto("/");
+  const panel = page.locator("#settings");
+  await expect(panel).toBeHidden();
+  await expect(page.locator("#locale")).toHaveCount(1);
+  expect(await page.evaluate(() => document.getElementById("settings")!.inert)).toBe(true);
+  await page.evaluate(() => {
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (...args) {
+      const animation = animate.apply(this, args);
+      animation.pause(); animation.currentTime = 0;
+      return animation;
+    };
+  });
+  const toggle = page.getByRole("button", { name: "Options" });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  expect(await panel.evaluate((element) => element.getBoundingClientRect().height)).toBeLessThan(1);
+  const easings = await panel.evaluate((element) => element.getAnimations({ subtree: true }).map((animation) => (animation.effect as KeyframeEffect).getTiming().easing));
+  expect(easings.length).toBe(2);
+  for (const easing of easings) expect(easing).toMatch(/^linear\(/);
+  await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
+  await expect(panel).toBeVisible();
+  expect(await page.evaluate(() => document.getElementById("settings")!.inert)).toBe(false);
+  expect(await panel.evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThan(100);
+  await page.locator("#locale").focus();
+  await toggle.click();
+  expect(await panel.evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThan(100);
+  await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
+  await expect(panel).toBeHidden();
 });

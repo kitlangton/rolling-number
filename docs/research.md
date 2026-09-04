@@ -171,7 +171,7 @@ New places are staggered rather than revealed together. `entryRanks` orders fres
 tokens by distance from the nearest retained digit (retained symbols such as a
 currency sign do not anchor the cascade), and `delayed` prepends a hold to the
 sampled entrance and fade motions so the browser still plays one native effect per
-property. The step is capped at 8% of the duration and the whole cascade at 50%,
+property. The step is capped at 4.5% of the duration and the whole cascade at 30%,
 sized only by fresh tokens. A place still inside its hold is fully transparent, so a
 reversal removes it immediately instead of fading a glyph that never appeared.
 
