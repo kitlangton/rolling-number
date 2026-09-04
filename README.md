@@ -212,9 +212,11 @@ cleanup, proportional fonts, reduced motion, hidden → visible transitions, and
 React hydration under StrictMode and Solid hydration/reactive cleanup in Chromium,
 Firefox and WebKit.
 
-The dark-only demo keeps the showcase and four interactive examples up front.
-Its eye mark uses synchronized gaze and a paired jackpot roll with vertical SVG blur,
-and stops for reduced motion, hidden documents and offscreen state.
+The dark-only demo keeps the showcase and eight interactive examples up front:
+revenue, timer, pricing, BigInt, percentage progress, signed temperature, currency
+formats, and large digit growth. The header is a plain wordmark. Adding a sale
+briefly brightens revenue, then fades back over a second; reduced motion disables
+that flash. The examples do not re-render on every hero tick.
 
 `dist/` contains ESM and declarations plus an explicit stylesheet. There is no
 automatic global style injection, custom-element registration, or server-side DOM

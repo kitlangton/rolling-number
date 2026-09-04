@@ -28,7 +28,7 @@ h1, h2, p { margin: 0; }
 .skip-link { position: fixed; top: 12px; left: 12px; z-index: 10; padding: 12px; background: var(--ink); color: #111; transform: translateY(-200%); }
 .skip-link:focus { transform: none; }
 .site-header { min-height: 96px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; }
+.brand { display: inline-flex; align-items: center; min-height: 44px; }
 .brand h1 { font-size: 20px; font-weight: 550; letter-spacing: -.065em; }
 .site-header nav { display: flex; gap: 25px; font-size: 13px; color: var(--muted); }
 .site-header nav a { display: inline-flex; align-items: center; min-height: 44px; gap: 6px; }
@@ -62,6 +62,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .example:nth-child(even) { border-left: 1px solid var(--line); padding-left: 32px; padding-right: 0; }
 .example h2 { color: var(--muted); font-size: 12px; font-weight: 450; }
 .example-number { max-width: 100%; padding: 18px 0; font-size: clamp(2.3rem, 5vw, 3.5rem); line-height: 1.25; letter-spacing: -.055em; font-weight: 450; font-variant-numeric: tabular-nums; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.revenue-number { --revenue-ink: #b9bbc0; color: var(--revenue-ink); }
 .example-actions { display: flex; gap: 18px; }
 .quiet { display: inline-flex; align-items: center; gap: 20px; padding: 0; background: none; border-color: transparent; color: #b8babd; min-height: 36px; font-size: 12px; }
 .quiet span, .muted { color: #999b9f; }

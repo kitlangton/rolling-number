@@ -1,8 +1,7 @@
-import { StrictMode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { StrictMode, memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { createRoot } from "react-dom/client";
 import { RollingNumber } from "../src/react";
-import { Eyes } from "./Eyes";
 import { Track } from "../src/track";
 import { spring } from "../src/motion";
 import "../src/styles.css";
@@ -12,14 +11,44 @@ const repository = "https://github.com/kitlangton/rolling-number";
 const currency: Intl.NumberFormatOptions = { style: "currency", currency: "USD", maximumFractionDigits: 0 };
 const clock: Intl.NumberFormatOptions = { minimumIntegerDigits: 2, useGrouping: false };
 const milliseconds: Intl.NumberFormatOptions = { style: "unit", unit: "millisecond", unitDisplay: "short", maximumFractionDigits: 0 };
+const percent: Intl.NumberFormatOptions = { style: "percent", maximumFractionDigits: 0 };
+const temperature: Intl.NumberFormatOptions = { style: "unit", unit: "celsius", signDisplay: "exceptZero", minimumFractionDigits: 1, maximumFractionDigits: 1 };
+const currencies = ["USD", "EUR", "JPY", "GBP"];
 const localeOptions = [["en-US", "English"], ["de-DE", "Deutsch"], ["fr-FR", "Français"], ["hi-IN", "Hindi"], ["ja-JP", "日本語"], ["ar-EG", "العربية"], ["fa-IR", "فارسی"]];
 
-function Examples({ locale, duration, reduced, motionBlur }: { locale: string; duration: number; reduced: boolean; motionBlur: boolean }) {
+const Examples = memo(function Examples({ locale, duration, reduced, motionBlur }: { locale: string; duration: number; reduced: boolean; motionBlur: boolean }) {
   const [revenue, setRevenue] = useState({ value: 8240, animated: true });
   const [seconds, setSeconds] = useState({ value: 90, animated: true });
   const [running, setRunning] = useState(false);
   const [seats, setSeats] = useState({ value: 8, animated: true });
   const [large, setLarge] = useState({ value: 9007199254740993n, animated: true });
+  const [progress, setProgress] = useState({ value: .64, animated: true });
+  const [degrees, setDegrees] = useState({ value: -4.5, animated: true });
+  const [currencyIndex, setCurrencyIndex] = useState({ value: 0, animated: true });
+  const [growth, setGrowth] = useState({ value: 23, animated: true });
+  const revenueNumber = useRef<HTMLDivElement>(null);
+  const saleFlash = useRef<Animation | null>(null);
+  function stopSaleFlash() {
+    if (!saleFlash.current) return;
+    saleFlash.current.onfinish = null;
+    saleFlash.current.cancel();
+    saleFlash.current = null;
+  }
+  function flashSale(animated: boolean) {
+    stopSaleFlash();
+    const element = revenueNumber.current;
+    if (!animated || reduced || matchMedia("(prefers-reduced-motion: reduce)").matches || typeof element?.animate !== "function") return;
+    const animation = element.animate([{ color: "#fff" }, { color: "var(--revenue-ink)" }], { duration: 1000, easing: "ease-out" });
+    saleFlash.current = animation;
+    animation.onfinish = () => { if (saleFlash.current === animation) stopSaleFlash(); };
+  }
+  useEffect(() => {
+    const media = matchMedia("(prefers-reduced-motion: reduce)");
+    const changed = () => { if (reduced || media.matches) stopSaleFlash(); };
+    changed();
+    media.addEventListener("change", changed);
+    return () => { media.removeEventListener("change", changed); stopSaleFlash(); };
+  }, [reduced]);
   const pointer = useRef(false);
   const priceNumber = useRef<HTMLDivElement>(null);
   const priceSuffix = useRef<HTMLSpanElement>(null);
@@ -57,8 +86,8 @@ function Examples({ locale, duration, reduced, motionBlur }: { locale: string; d
     <section id="examples" className="examples" aria-label="Examples">
       <article className="example">
         <h2>Revenue</h2>
-        <div className="example-number"><RollingNumber {...shared} value={revenue.value} format={currency} animated={!reduced && revenue.animated} /></div>
-        <button className="quiet" onClick={(event) => setRevenue((current) => ({ value: current.value + 125, animated: event.detail > 0 }))}>Add a sale <span>+125</span></button>
+        <div ref={revenueNumber} className="example-number revenue-number"><RollingNumber {...shared} value={revenue.value} format={currency} animated={!reduced && revenue.animated} /></div>
+        <button className="quiet" onClick={(event) => { flashSale(event.detail > 0); setRevenue((current) => ({ value: current.value + 125, animated: event.detail > 0 })); }}>Add a sale <span>+125</span></button>
       </article>
       <article className="example">
         <h2>Timer</h2>
@@ -89,9 +118,35 @@ function Examples({ locale, duration, reduced, motionBlur }: { locale: string; d
           <button className="quiet" onClick={(event) => setLarge((current) => ({ value: current.value + 1n, animated: event.detail > 0 }))}>Add 1</button>
         </div>
       </article>
+      <article className="example">
+        <h2>Progress</h2>
+        <div className="example-number"><RollingNumber {...shared} value={progress.value} format={percent} animated={!reduced && progress.animated} /></div>
+        <div className="example-actions">
+          <button className="quiet" disabled={progress.value >= 1} onClick={(event) => setProgress((current) => ({ value: Math.min(1, current.value + .1), animated: event.detail > 0 }))}>Add 10%</button>
+          <button className="quiet muted" onClick={(event) => setProgress({ value: 0, animated: event.detail > 0 })}>Reset progress</button>
+        </div>
+      </article>
+      <article className="example">
+        <h2>Temperature</h2>
+        <div className="example-number"><RollingNumber {...shared} value={degrees.value} format={temperature} animated={!reduced && degrees.animated} /></div>
+        <div className="example-actions">
+          <button className="quiet" onClick={(event) => setDegrees((current) => ({ value: current.value - 5, animated: event.detail > 0 }))}>Cool down</button>
+          <button className="quiet" onClick={(event) => setDegrees((current) => ({ value: current.value + 5, animated: event.detail > 0 }))}>Warm up</button>
+        </div>
+      </article>
+      <article className="example">
+        <h2>Currency</h2>
+        <div className="example-number"><RollingNumber {...shared} value={1987.65} format={{ style: "currency", currency: currencies[currencyIndex.value]! }} animated={!reduced && currencyIndex.animated} /></div>
+        <button className="quiet" onClick={(event) => setCurrencyIndex((current) => ({ value: (current.value + 1) % currencies.length, animated: event.detail > 0 }))}>Change currency</button>
+      </article>
+      <article className="example">
+        <h2>Digit growth</h2>
+        <div className="example-number"><RollingNumber {...shared} value={growth.value} animated={!reduced && growth.animated} /></div>
+        <button className="quiet" onClick={(event) => setGrowth((current) => ({ value: current.value === 23 ? 5823823 : 23, animated: event.detail > 0 }))}>{growth.value === 23 ? "Grow" : "Shrink"}</button>
+      </article>
     </section>
   );
-}
+});
 
 function App() {
   const [elapsed, setElapsed] = useState(0);
@@ -121,7 +176,7 @@ function App() {
     <div className="site-shell">
       <a className="skip-link" href="#playground">Skip to showcase</a>
       <header className="site-header">
-        <a className="brand" href="#" aria-label="Rolling Number home"><Eyes reduced={reduced} /><h1>rolling number</h1></a>
+        <a className="brand" href="#" aria-label="Rolling Number home"><h1>rolling number</h1></a>
         <nav aria-label="Main navigation"><a href={`${repository}#readme`}>Docs</a><a href={repository}>GitHub <span aria-hidden="true">↗</span></a></nav>
       </header>
       <main>

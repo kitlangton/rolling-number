@@ -6,7 +6,9 @@ test("keeps the dark showcase and functional examples without marketing sections
   expect(await page.locator("html").evaluate((element) => getComputedStyle(element).colorScheme)).toBe("dark");
   await expect(page.locator(".hero, .eyebrow, .research-section, .section-heading")).toHaveCount(0);
   const examples = page.locator("#examples article");
-  await expect(examples).toHaveCount(4);
+  await expect(examples).toHaveCount(8);
+  await expect(page.locator(".brand h1")).toHaveText("rolling number");
+  await expect(page.locator(".brand svg")).toHaveCount(0);
   await page.getByRole("button", { name: /Add a sale/ }).click();
   await expect(examples.nth(0).locator(".rn-semantic")).toHaveText("$8,365");
   await page.getByRole("button", { name: "Add 1", exact: true }).click();
@@ -82,60 +84,56 @@ test("the price suffix follows width changes without snapping", async ({ page })
   expect(Math.abs(await suffix.evaluate((element) => element.getBoundingClientRect().x) - interrupted)).toBeLessThan(.5);
 });
 
-test("eyes share their gaze and spin together as a smooth jackpot without squishing", async ({ page }) => {
+test("a sale brightens immediately, fades for one second and replaces the previous flash", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".eyes")).toHaveAttribute("data-paused", "false");
-  await expect.poll(() => page.locator(".eyes").evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
-  const frame = (time: number) => page.locator(".eyes").evaluate((element, time) => {
-    for (const animation of element.getAnimations({ subtree: true })) { animation.pause(); animation.currentTime = time; }
-    return [...element.querySelectorAll(".eye-shell")].map((shell) => ({
-      scale: new DOMMatrix(getComputedStyle(shell).transform).d,
-      height: shell.querySelector("rect")!.getBoundingClientRect().height,
-      reelY: new DOMMatrix(getComputedStyle(shell.querySelector(".eye-sharp")!).transform).f,
-      smear: Number(getComputedStyle(shell.querySelector(".eye-smear")!).opacity),
-      duration: parseFloat(getComputedStyle(shell.querySelector(".eye-sharp")!).animationDuration),
-      pupilX: new DOMMatrix(getComputedStyle(shell.querySelector(".eye-look")!).transform).e,
-      pupilY: new DOMMatrix(getComputedStyle(shell.querySelector(".eye-look")!).transform).f,
-    }));
-  }, time);
-  // Engines differ on whether SVG bounds include the stroke; compare within each engine.
-  const initial = await frame(0);
-  for (const time of [600, 1800, 4200, 6000, 8200, 10000]) {
-    for (const [index, eye] of (await frame(time)).entries()) {
-      expect(eye.scale).toBe(1);
-      expect(eye.height).toBeCloseTo(initial[index]!.height, 1);
-    }
-  }
-  for (const time of [0, 600, 1200, 1900, 2640, 3000, 3600, 4200, 5100, 5900, 6600, 13900]) {
-    const eyes = await frame(time);
-    expect(eyes[0]?.pupilX).toBeCloseTo(eyes[1]!.pupilX, 4);
-    expect(eyes[0]?.pupilY).toBeCloseTo(eyes[1]!.pupilY, 4);
-    expect(eyes[0]?.reelY).toBeCloseTo(eyes[1]!.reelY, 4);
-  }
-  const rolling = await frame(3000);
-  expect(rolling[0]?.duration).toBe(6);
-  expect(rolling[0]?.reelY).toBeLessThan(-26);
-  expect(rolling[0]?.reelY).toBeGreaterThan(-182);
-  expect((await frame(4200))[0]?.reelY).toBeCloseTo(-182, 1);
-  expect((await frame(2640))[0]?.smear).toBeGreaterThan(.5);
-  await expect(page.locator(".eyes feGaussianBlur")).toHaveAttribute("stdDeviation", "0 1.1");
-  const seams = await page.locator(".eyes").evaluate((element) => [...element.querySelectorAll(".eye-shell")].map((shell) => {
-    const period = parseFloat(getComputedStyle(shell.querySelector(".eye-sharp")!).animationDuration) * 1000;
-    const visiblePupil = (time: number) => {
-      for (const animation of shell.getAnimations({ subtree: true })) { animation.pause(); animation.currentTime = time; }
-      const bounds = shell.querySelector("rect")!.getBoundingClientRect();
-      const center = bounds.y + bounds.height / 2;
-      return [...shell.querySelectorAll(".eye-sharp circle")].map((circle) => {
-        const box = circle.getBoundingClientRect();
-        return box.y + box.height / 2;
-      }).sort((a, b) => Math.abs(a - center) - Math.abs(b - center))[0] ?? Infinity;
+  const number = page.locator(".revenue-number");
+  const idle = await number.evaluate((element) => getComputedStyle(element).color);
+  await page.evaluate(() => {
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (...args) {
+      const animation = animate.apply(this, args);
+      if (this.matches(".revenue-number")) { animation.pause(); animation.currentTime = 0; }
+      return animation;
     };
-    return Math.abs(visiblePupil(period - .01) - visiblePupil(period + .01));
-  }));
-  for (const delta of seams) expect(delta).toBeLessThan(.1);
+  });
+  const button = page.getByRole("button", { name: /Add a sale/ });
+  await button.click();
+  await expect(number).toHaveCSS("color", "rgb(255, 255, 255)");
+  const first = await number.evaluateHandle((element) => element.getAnimations()[0]!);
+  expect(await first.evaluate((animation) => animation.effect!.getTiming().duration)).toBe(1000);
+  await first.evaluate((animation) => { animation.currentTime = 500; });
+  const halfway = await number.evaluate((element) => getComputedStyle(element).color);
+  expect(halfway).not.toBe(idle);
+  expect(halfway).not.toBe("rgb(255, 255, 255)");
+  await button.click();
+  expect(await first.evaluate((animation) => animation.playState)).toBe("idle");
+  expect(await number.evaluate((element) => element.getAnimations().length)).toBe(1);
+  await expect(number).toHaveCSS("color", "rgb(255, 255, 255)");
+  await number.evaluate((element) => element.getAnimations()[0]!.finish());
+  await expect.poll(() => number.evaluate((element) => element.getAnimations().length)).toBe(0);
+  await expect(number).toHaveCSS("color", idle);
+  await expect(number.locator(".rn-semantic")).toHaveText("$8,490");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".eyes")).toHaveAttribute("data-paused", "true");
-  expect(await page.locator(".eyes").evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
+  await page.waitForFunction(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
+  await button.click();
+  expect(await number.evaluate((element) => element.getAnimations().length)).toBe(0);
+});
+
+test("extra examples cover percentages, signs, currency changes and large growth", async ({ page }) => {
+  await page.goto("/");
+  const example = (name: string) => page.locator("article").filter({ has: page.getByRole("heading", { name, exact: true }) });
+  await page.getByRole("button", { name: "Add 10%", exact: true }).click();
+  await expect(example("Progress").locator(".rn-semantic")).toHaveText("74%");
+  await page.getByRole("button", { name: "Warm up", exact: true }).click();
+  await expect(example("Temperature").locator(".rn-semantic")).toHaveText("+0.5°C");
+  await page.getByRole("button", { name: "Change currency", exact: true }).click();
+  await expect(example("Currency").locator(".rn-semantic")).toHaveText("€1,987.65");
+  await page.getByRole("button", { name: "Change currency", exact: true }).click();
+  await expect(example("Currency").locator(".rn-semantic")).toHaveText("¥1,988");
+  await page.getByRole("button", { name: "Grow", exact: true }).click();
+  await expect(example("Digit growth").locator(".rn-semantic")).toHaveText("5,823,823");
+  await page.getByRole("button", { name: "Shrink", exact: true }).click();
+  await expect(example("Digit growth").locator(".rn-semantic")).toHaveText("23");
 });
 
 test("number displays hide scrollbars without disabling horizontal panning", async ({ page }) => {
