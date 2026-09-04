@@ -66,15 +66,11 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .install-command code { font: 12px var(--mono); color: var(--ink); padding: 0 8px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
 .install-command .quiet { flex: none; }
 .segmented { position: relative; display: flex; gap: 2px; }
-.segmented button, .segmented-highlight span { min-height: 30px; padding: 0 9px; font: 11px var(--mono); border: 0; border-radius: 6px; }
-.segmented button { background: none; color: var(--muted); }
-.segmented-highlight { position: absolute; inset: 0; display: flex; gap: 2px; pointer-events: none; background: #22262c; color: var(--ink); clip-path: inset(0 100% 0 0 round 6px); }
-.segmented-highlight span { display: inline-flex; align-items: center; }
-.install-command code { display: block; box-sizing: border-box; }
-.install-text { display: inline-block; white-space: nowrap; }
-.install-text[data-animated="true"] { animation: install-fade 180ms ease-out; }
-@keyframes install-fade { from { opacity: 0; } }
-.install-command .quiet { min-height: 30px; padding: 0 10px 0 4px; font-size: 11px; }
+.segmented button { position: relative; min-height: 30px; padding: 0 9px; font: 11px var(--mono); border: 0; border-radius: 6px; background: none; color: var(--muted); transition: color calc(var(--duration) * .5) var(--spring); }
+.segmented button[aria-pressed="true"] { color: var(--ink); }
+.segmented-pill { position: absolute; top: 0; bottom: 0; left: 0; width: 0; border-radius: 6px; background: #22262c; }
+.segmented-pill[data-live] { transition: transform var(--duration) var(--spring), width var(--duration) var(--spring); }
+[data-reduced="true"] .segmented-pill, [data-reduced="true"] .segmented button { transition: none; }
 .examples { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; }
 .example { position: relative; min-width: 0; padding: 20px; border-radius: 13px; background: #111316; overflow: visible; }
 .shirt-graphic, .file-graphic, .weather-graphic, .ledger-graphic, .activity-graphic { color: var(--icon); }
@@ -170,13 +166,13 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .invoice-total { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 .invoice-total .example-number { font-size: 30px; }
 .currency-switch { display: flex; padding: 3px; align-self: flex-start; border-radius: 9px; background: #0d0f12; }
-.currency-switch .segmented button, .currency-switch .segmented-highlight span { min-height: 28px; padding: 0 8px; font: 9px var(--mono); }
+.currency-switch .segmented button { min-height: 28px; padding: 0 8px; font: 9px var(--mono); }
 .activity-graphic { width: 100%; height: 46px; }
 .activity-graphic rect { transform-box: fill-box; transform-origin: center bottom; transition: transform var(--duration) var(--spring); }
 .activity-graphic rect:nth-child(3) { transition-delay: 20ms; } .activity-graphic rect:nth-child(4) { transition-delay: 40ms; } .activity-graphic rect:nth-child(5) { transition-delay: 60ms; } .activity-graphic rect:nth-child(6) { transition-delay: 80ms; } .activity-graphic rect:nth-child(7) { transition-delay: 100ms; } .activity-graphic rect:nth-child(8) { transition-delay: 120ms; }
 .activity-graphic[data-animated="false"] rect { transition: none; }
 [data-reduced="true"] :is(.upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members) { transition: none; }
-@media (prefers-reduced-motion: reduce) { .upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members, .segmented-pill, .segmented button { transition: none; } }
 @media (hover: hover) {
   button:not(:disabled):hover { background: #25282d; }
   /* Segments never paint a hover background: it would merge with the sliding pill. */
@@ -209,5 +205,5 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .mini-app { min-height: 210px; }
   .example-bigint, .upload-app { min-height: 190px; }
   .mini-app .bigint-number { font-size: clamp(16px, 4.8vw, 24px); }
-  .currency-switch .segmented button, .currency-switch .segmented-highlight span { min-height: 34px; }
+  .currency-switch .segmented button { min-height: 34px; }
 }

@@ -30,41 +30,28 @@ function useCopy(): [boolean, (text: string) => void] {
   }];
 }
 
-/** Parses the animated clip so an interrupted slide continues from where it is drawn. */
-function readInset(element: HTMLElement): { left: number; right: number } | undefined {
-  const match = /inset\(\S+ (\S+)px \S+ (\S+)px/.exec(getComputedStyle(element).clipPath);
-  return match ? { right: Number(match[1]), left: Number(match[2]) } : undefined;
-}
-
 /**
- * Segmented control with a sliding pill. The pill is an overlay of bright label
- * copies clipped to the selected segment, so each label turns white exactly as the
- * pill passes underneath. Slides run on the shared spring and resume from the
- * drawn clip when interrupted.
+ * Segmented control with one sliding pill. Its target transform and width are set
+ * inline; a CSS transition on the shared spring moves it there and handles any
+ * interruption from wherever it currently is. Labels change color via aria-pressed.
  */
-function Segmented<T extends string>({ options, value, onChange, label, duration, reduced, format = (option) => option }: {
-  options: readonly T[]; value: T; onChange: (value: T, animated: boolean) => void; label: string; duration: number; reduced: boolean; format?: (option: T) => string;
+function Segmented<T extends string>({ options, value, onChange, label, format = (option) => option }: {
+  options: readonly T[]; value: T; onChange: (value: T, animated: boolean) => void; label: string; format?: (option: T) => string;
 }) {
   const group = useRef<HTMLDivElement>(null);
-  const highlight = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
+  const pill = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
-    const element = group.current, overlay = highlight.current;
-    const target = element?.querySelector<HTMLElement>("button[aria-pressed='true']");
-    if (!element || !overlay || !target) return;
-    const from = readInset(overlay);
-    for (const animation of overlay.getAnimations()) animation.cancel();
-    const first = !started.current;
-    started.current = true;
-    const clip = (left: number, right: number) => `inset(0px ${right}px 0px ${left}px round 6px)`;
-    const to = { left: target.offsetLeft, right: element.offsetWidth - target.offsetLeft - target.offsetWidth };
-    const start = from ?? to;
-    overlay.animate([{ clipPath: clip(start.left, start.right) }, { clipPath: clip(to.left, to.right) }], { duration: reduced || first ? 0 : duration, easing: springEasing(duration), fill: "forwards" });
-  }, [value, duration, reduced]);
+    const target = group.current?.querySelector<HTMLElement>("button[aria-pressed='true']");
+    if (!target || !pill.current) return;
+    pill.current.style.transform = `translateX(${target.offsetLeft}px)`;
+    pill.current.style.width = `${target.offsetWidth}px`;
+    // Enable the transition only after the first placement so mount does not slide.
+    requestAnimationFrame(() => pill.current?.setAttribute("data-live", ""));
+  }, [value]);
   return (
     <div ref={group} className="segmented" role="group" aria-label={label}>
+      <span ref={pill} className="segmented-pill" aria-hidden="true" />
       {options.map((option) => <button key={option} aria-pressed={value === option} onClick={(event) => onChange(option, event.detail > 0)}>{format(option)}</button>)}
-      <div ref={highlight} className="segmented-highlight" aria-hidden="true">{options.map((option) => <span key={option}>{format(option)}</span>)}</div>
     </div>
   );
 }
@@ -122,7 +109,7 @@ function Install({ duration, reduced }: { duration: number; reduced: boolean }) 
   return (
     <section className="install" aria-label="Install">
       <div className="install-command">
-        <Segmented options={Object.keys(installCommands) as PackageManager[]} value={manager} onChange={setManager} label="Package manager" duration={duration} reduced={reduced} />
+        <Segmented options={Object.keys(installCommands) as PackageManager[]} value={manager} onChange={setManager} label="Package manager" />
         <code ref={code}><span key={manager} className="install-text" data-animated={!reduced}>{command}</span></code>
         <button className="quiet" aria-label="Copy install command" onClick={() => copy(command)}>{copied ? "Copied" : "Copy"}</button>
       </div>
@@ -208,7 +195,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
   }, []);
   const shared = { locales: locale, duration, motionBlur };
   return (
-    <section id="examples" className="examples" aria-label="Examples" data-reduced={reduced} style={{ "--duration": `${duration}ms`, "--spring": springEasing(duration) } as CSSProperties}>
+    <section id="examples" className="examples" aria-label="Examples" data-reduced={reduced}>
       <article className="example mini-app shop-app">
         <h2>Shop</h2>
         <div className="shop-product">
@@ -277,7 +264,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
         <h2>Invoice</h2>
         <div className="invoice-body"><FileGraphic /><div><strong>INV–0042</strong><span className="mini-label">Design services</span></div></div>
         <div className="invoice-total"><span className="mini-label">Total</span><div className="example-number"><RollingNumber {...shared} value={1987.65} format={{ style: "currency", currency: currencies[currencyIndex.value]! }} animated={!reduced && currencyIndex.animated} /></div></div>
-        <div className="currency-switch"><Segmented options={currencies} value={currencies[currencyIndex.value]!} onChange={(code, animated) => setCurrencyIndex({ value: currencies.indexOf(code), animated })} label="Invoice currency" duration={duration} reduced={reduced} /></div>
+        <div className="currency-switch"><Segmented options={currencies} value={currencies[currencyIndex.value]!} onChange={(code, animated) => setCurrencyIndex({ value: currencies.indexOf(code), animated })} label="Invoice currency" /></div>
       </article>
       <article className="example mini-app audience-app">
         <h2>Audience</h2>
@@ -331,7 +318,7 @@ function App() {
     };
   }, []);
   return (
-    <div className="site-shell">
+    <div className="site-shell" data-reduced={reduced} style={{ "--duration": `${duration}ms`, "--spring": springEasing(duration) } as CSSProperties}>
       <a className="skip-link" href="#playground">Skip to showcase</a>
       <header className="site-header">
         <a className="brand" href="#" aria-label="Rolling Number home"><h1>rolling number</h1></a>

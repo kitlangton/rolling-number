@@ -153,32 +153,30 @@ test("number containers keep horizontal overflow visible rather than truncating"
   }
 });
 
-test("install row slides its selection, animates the command width, copies, and links Markdown docs", async ({ page, context, browserName }) => {
+test("install row slides one pill, animates the command width, copies, and links Markdown docs", async ({ page, context, browserName }) => {
   await page.goto("/");
   const install = page.locator(".install");
   await expect(install.locator("code")).toHaveText("bun add @kitlangton/rolling-number");
-  const inset = () => install.locator(".segmented-highlight").evaluate((element) => Number(/inset\(\S+ \S+ \S+ (\S+)px/.exec(getComputedStyle(element).clipPath)![1]));
-  expect(await inset()).toBeCloseTo(0, 0);
-  await page.evaluate(() => {
-    const animate = Element.prototype.animate;
-    Element.prototype.animate = function (...args) {
-      const animation = animate.apply(this, args);
-      animation.pause(); animation.currentTime = 0;
-      return animation;
-    };
-  });
-  const widthBefore = await install.locator("code").evaluate((element) => element.getBoundingClientRect().width);
-  await install.getByRole("button", { name: "npm", exact: true }).click();
+  const pill = install.locator(".segmented-pill");
+  const rect = (locator: typeof pill) => locator.evaluate((element) => { const box = element.getBoundingClientRect(); return { x: box.x, width: box.width }; });
+  const bun = install.getByRole("button", { name: "bun", exact: true });
+  const npm = install.getByRole("button", { name: "npm", exact: true });
+  await expect(pill).toHaveAttribute("data-live", "");
+  const initial = await rect(pill), first = await rect(bun);
+  expect(Math.abs(initial.x - first.x)).toBeLessThan(1);
+  expect(Math.abs(initial.width - first.width)).toBeLessThan(1);
+  await npm.click();
   await expect(install.locator("code")).toHaveText("npm install @kitlangton/rolling-number");
-  // Paused at the start, both the pill clip and the width still show the previous state.
-  expect(await inset()).toBeCloseTo(0, 0);
-  expect(await install.locator("code").evaluate((element) => element.getBoundingClientRect().width)).toBeCloseTo(widthBefore, 0);
-  const animations = await install.evaluate((element) => element.getAnimations({ subtree: true }).map((animation) => (animation.effect as KeyframeEffect).getTiming().easing));
-  expect(animations.length).toBeGreaterThanOrEqual(2);
-  expect(animations.filter((easing) => easing?.startsWith("linear(")).length).toBeGreaterThanOrEqual(2);
-  await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
-  const target = await install.getByRole("button", { name: "npm", exact: true }).evaluate((element) => (element as HTMLElement).offsetLeft);
-  expect(await inset()).toBeCloseTo(target, 0);
+  // The pill transitions on the shared spring from where it is; mid-way it sits between the two.
+  const mid = await rect(pill);
+  const from = await rect(bun);
+  const to = await rect(npm);
+  expect(mid.x).toBeGreaterThanOrEqual(from.x);
+  expect(mid.x).toBeLessThanOrEqual(to.x + .5);
+  expect(await pill.evaluate((element) => getComputedStyle(element).transitionTimingFunction)).toMatch(/^linear\(/);
+  await expect.poll(async () => Math.abs((await rect(pill)).x - to.x)).toBeLessThan(1);
+  expect(Math.abs((await rect(pill)).width - to.width)).toBeLessThan(1);
+  await expect(npm).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   expect(await page.locator("link[rel='alternate'][type='text/markdown']").getAttribute("href")).toBe("/index.md");
   expect(await page.locator("footer a[href='./llms.txt']").count()).toBe(1);
   test.skip(browserName !== "chromium", "clipboard permissions are only scriptable in Chromium");
