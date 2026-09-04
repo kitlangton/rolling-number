@@ -20,7 +20,7 @@ test("entering digits get a softer blur and release it when the entrance settles
   });
   const incoming = page.locator("[data-rn-key='digit:6'] .rn-smear");
   expect(await incoming.evaluate((element) => Number(getComputedStyle(element).opacity))).toBeGreaterThan(.2);
-  await expect(page.locator("[data-rn-key^='group:'] .rn-smear")).toHaveCount(2);
+  await expect(page.locator("[data-rn-key^='group:'] .rn-enter, [data-rn-key^='group:'] .rn-smear")).toHaveCount(0);
   await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
   await expect(page.locator(".rn-enter, .rn-smear, .rn-sharp")).toHaveCount(0);
   await expect(page.locator("#number > .rn-value")).toHaveText("5,823,823");

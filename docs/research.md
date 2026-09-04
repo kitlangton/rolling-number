@@ -87,8 +87,9 @@ Solid's adapter uses its native `Dynamic` primitive so one prebuilt entry suppor
 client rendering and SSR without shipping uncompiled JSX or importing React.
 
 Supported format changes retain digit-place identities. Non-digit token keys also
-include their text, so currency and separator replacements fade out/in instead of
-snapping to a new glyph. Unsupported formats still settle to intact native text.
+include their text, while a separate identity retains the symbol's role. Replacements
+crossfade at that role's previous horizontal position instead of entering from the
+next digit's insertion edge. Unsupported formats still settle to intact native text.
 
 ## Optional hero blur
 
@@ -97,7 +98,7 @@ envelope crossfades sharp and vertically blurred copies under the same reel
 transform. A static SVG Gaussian kernel uses zero horizontal deviation; native
 opacity playback controls the blend without a JavaScript frame loop. Copies and
 effects are bounded to one pair per moving reel and removed at settlement.
-Entrances use a delayed critically damped ease-out: horizontal room opens first,
+Digit entrances use a delayed critically damped ease-out: horizontal room opens first,
 then the glyph rises decisively and settles gently. Their blur envelope uses
 vertical speed in rows/second with a lower onset than full digit rolls. If a new
 roll interrupts an entrance, it takes over blur ownership so the older entry's
@@ -108,6 +109,23 @@ ResizeObserver supplies its number-box width delta to the same sampled spring;
 native translation preserves the suffix's screen position during width changes
 and reversals. This is explicit demo layout coordination, not a promise that the
 core automatically animates arbitrary siblings.
+
+## Subtler symbol motion: reference check
+
+- NumberFlow's documentation separates digit spin, layout transforms and opacity
+  timing. A public-API runtime probe of installed NumberFlow **0.6.2**, changing USD
+  to GBP at a fixed value, found opacity animations on the `$` and `£` nodes, not
+  vertical roll animations. The probe used our configured benchmark timings; it
+  was not a measurement of NumberFlow's default durations or a source-code port.
+- Apple's `numericText(value:)` documentation describes a transition for numeric
+  text, with the value difference determining direction. It does not specify an
+  exact currency-symbol transition or spring curve. Apple's Motion HIG calls for
+  purposeful, brief, precise feedback, restrained frequent motion, and cancellation.
+- Our refinement: digits retain rolling and optional blur; non-digit symbols use
+  a short crossfade (up to 180 ms) and never get a vertical entry wrapper. Replacement
+  currency/sign glyphs share a role anchor, while the existing layout spring continues
+  to preserve surrounding digit positions. This is an original design informed by
+  those references, not a claim of pixel-identical iOS animation.
 
 The elapsed-millisecond demo samples at 33 ms rather than 100 ms. The previous
 cadence aliased the tens/ones places into nearly constant values. The counter still
@@ -132,3 +150,6 @@ measured task time in that run.
 - [Safari 26.4 SVG fixes](https://webkit.org/blog/17862/webkit-features-for-safari-26-4/#svg)
 - [text-box-trim](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-box-trim)
 - [SVG Gaussian blur](https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/feGaussianBlur)
+- [Apple numericText(value:)](https://developer.apple.com/documentation/swiftui/contenttransition/numerictext(value:))
+- [Apple Motion HIG](https://developer.apple.com/design/human-interface-guidelines/motion)
+- [NumberFlow timing controls](https://number-flow.barvian.me/#timings)

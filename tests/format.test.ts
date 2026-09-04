@@ -35,6 +35,16 @@ describe("formatting", () => {
     expect(direction(model(1.004), model(1.0041))).toBe(0);
   });
 
+  it("keeps symbol roles stable while giving changed glyphs distinct keys", () => {
+    const usd = model(23, { format: { style: "currency", currency: "USD" } }).tokens.find((token) => token.identity === "currency:0")!;
+    const gbp = model(23, { format: { style: "currency", currency: "GBP" } }).tokens.find((token) => token.identity === "currency:0")!;
+    expect(usd.identity).toBe(gbp.identity);
+    expect(usd.key).not.toBe(gbp.key);
+    const plus = model(3, { format: { signDisplay: "always" } }).tokens.find((token) => token.identity === "sign:0")!;
+    const minus = model(-3, { format: { signDisplay: "always" } }).tokens.find((token) => token.identity === "sign:0")!;
+    expect(plus.key).not.toBe(minus.key);
+  });
+
   it("leaves bidi, localized digits and alternate notation intact", () => {
     expect(model(120, { locales: "ar-EG" }).rollable).toBe(false);
     expect(model(120, { locales: "fa-IR" }).rollable).toBe(false);

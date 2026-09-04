@@ -8,6 +8,7 @@ export interface FormatOptions {
 
 export interface Token {
   key: string;
+  identity: string;
   text: string;
   digit?: number;
   place?: number;
@@ -64,14 +65,17 @@ export function model(value: Value, options: FormatOptions = {}): Model {
       else fraction += part.value;
       for (const digit of part.value) {
         const place = part.type === "integer" ? --integerPlace : fractionPlace--;
-        tokens.push({ key: `digit:${place}`, text: digit, digit: Number(digit), place });
+        const identity = `digit:${place}`;
+        tokens.push({ key: identity, identity, text: digit, digit: Number(digit), place });
       }
     } else if (part.type === "group") {
-      tokens.push({ key: `group:${integerPlace}:${part.value}`, text: part.value });
+      const identity = `group:${integerPlace}`;
+      tokens.push({ key: `${identity}:${part.value}`, identity, text: part.value });
     } else {
       const occurrence = occurrences.get(part.type) ?? 0;
       occurrences.set(part.type, occurrence + 1);
-      tokens.push({ key: `${part.type}:${occurrence}:${part.value}`, text: part.value });
+      const role = part.type === "plusSign" || part.type === "minusSign" ? "sign" : part.type;
+      tokens.push({ key: `${part.type}:${occurrence}:${part.value}`, identity: `${role}:${occurrence}`, text: part.value });
     }
   }
   return { text, tokens, rollable, signature, magnitude: `${integer.replace(/^0+(?=\d)/u, "")}.${fraction}` };

@@ -88,6 +88,32 @@ for (const alignment of ["left", "center", "right"] as const) {
   });
 }
 
+test("currency replacements crossfade in place instead of entering through the digits", async ({ page }) => {
+  await page.evaluate(() => window.mountNumber({ value: 1987.65, locales: "en-US", format: { style: "currency", currency: "USD" }, duration: 600, motionBlur: true }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  const oldSymbol = page.locator("[data-rn-key='currency:0:$']");
+  const before = await oldSymbol.boundingBox();
+  await page.evaluate(async () => {
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (...args) {
+      const animation = animate.apply(this, args);
+      animation.pause(); animation.currentTime = 0;
+      return animation;
+    };
+    window.testNumber.update({ format: { style: "currency", currency: "GBP" } });
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+  });
+  const nextSymbol = page.locator("[data-rn-key='currency:0:£']");
+  expect(Math.abs((await nextSymbol.boundingBox())!.x - before!.x)).toBeLessThan(.5);
+  await expect(nextSymbol.locator(".rn-enter, .rn-smear")).toHaveCount(0);
+  await page.evaluate(() => { for (const animation of document.getAnimations()) animation.currentTime = 90; });
+  const oldAlpha = await oldSymbol.evaluate((element) => Number(getComputedStyle(element).opacity));
+  const newAlpha = await nextSymbol.evaluate((element) => Number(getComputedStyle(element).opacity));
+  expect(oldAlpha + newAlpha).toBeCloseTo(1, 3);
+  await page.evaluate(() => window.testNumber.finish());
+});
+
 test("same formatted value does not restart animations", async ({ page }) => {
   await page.evaluate(() => window.mountNumber({ value: 1, duration: 600, format: { maximumFractionDigits: 0 } }));
   await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");

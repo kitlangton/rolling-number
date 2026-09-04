@@ -258,15 +258,19 @@ class Renderer implements Participant, RollingNumberController {
     const starts = collapsePositions(this.target.tokens.map((token) => token.key), previous);
     const oldOrder = [...previous.keys()].sort((a, b) => previous.get(a)!.x - previous.get(b)!.x);
     const exits = collapsePositions(oldOrder, geometry);
+    const oldSymbols = new Map(this.displayed.tokens.filter((token) => token.digit === undefined).map((token) => [token.identity, token.key]));
+    const newSymbols = new Map(this.target.tokens.filter((token) => token.digit === undefined).map((token) => [token.identity, token.key]));
     for (const token of this.target.tokens) {
       const size = geometry.get(token.key);
       if (!size) continue;
+      const oldKey = oldSymbols.get(token.identity);
+      const replacement = oldKey !== undefined && oldKey !== token.key ? previous.get(oldKey) : undefined;
       let column = this.columns.get(token.key);
       const fresh = !column;
       if (!column) {
         column = this.makeColumn(token);
         this.columns.set(token.key, column);
-        column.x.set(animate ? (starts.get(token.key) ?? size.x) + originShift : size.x, translate);
+        column.x.set(animate ? (replacement?.x ?? starts.get(token.key) ?? size.x) + originShift : size.x, translate);
         column.opacity.set(animate ? 0 : 1, opacity);
       }
       const changed = column.token.text !== token.text;
@@ -280,7 +284,7 @@ class Renderer implements Participant, RollingNumberController {
       column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
       if (fresh || reentered || !animate) {
         const alpha = column.opacity.read();
-        column.opacity.play(spring(alpha.position, 1, alpha.velocity, duration), opacity);
+        column.opacity.play(spring(alpha.position, 1, alpha.velocity, token.digit === undefined ? Math.min(duration, 180) : duration), opacity);
       }
       column.height = size.height;
       column.width = size.width;
@@ -306,16 +310,18 @@ class Renderer implements Participant, RollingNumberController {
         column.token = token;
         this.rest(column);
       }
-      if (fresh && duration) this.enter(column, duration);
+      if (fresh && duration && token.digit !== undefined) this.enter(column, duration);
     }
     for (const [key, column] of this.columns) {
       if (geometry.has(key)) continue;
       const x = previous.get(key)!;
-      column.x.play(spring(x.position + originShift, exits.get(key) ?? x.position, x.velocity, duration), translate);
+      const replacementKey = newSymbols.get(column.token.identity);
+      const replacement = replacementKey ? geometry.get(replacementKey) : undefined;
+      column.x.play(spring(x.position + originShift, replacement?.x ?? exits.get(key) ?? x.position, x.velocity, duration), translate);
       if (column.exiting) continue;
       column.exiting = true;
       const alpha = column.opacity.read();
-      column.opacity.play(spring(alpha.position, 0, alpha.velocity, duration * 0.65), opacity, () => {
+      column.opacity.play(spring(alpha.position, 0, alpha.velocity, column.token.digit === undefined ? Math.min(duration, 180) : duration * 0.65), opacity, () => {
         if (!column.exiting) return;
         this.removeColumn(column);
         this.columns.delete(key);

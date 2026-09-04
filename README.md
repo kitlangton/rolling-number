@@ -122,8 +122,10 @@ The temporary duplicate reel and native opacity effects are removed on settlemen
 disabling the option clears active blur immediately. This adds paint/DOM work and
 is not a performance optimization. The showcase and examples enable it; library
 counters default to no blur. Reduced motion disables the effect along with rolling.
-New glyphs can also smear vertically during their eased entrance; the blend clears
-at settlement.
+New digits can also smear vertically during their eased entrance; the blend clears
+at settlement. Currency signs, separators and other symbols crossfade instead of
+rolling. Replaced symbols keep their semantic position rather than moving through
+the adjacent digits.
 See [the scoped blur-cost measurement](perf/blur-cost.md) for its overhead and limits.
 
 ## How it stays small and stable
@@ -212,11 +214,12 @@ cleanup, proportional fonts, reduced motion, hidden → visible transitions, and
 React hydration under StrictMode and Solid hydration/reactive cleanup in Chromium,
 Firefox and WebKit.
 
-The dark-only demo keeps the showcase and eight interactive examples up front:
-revenue, timer, pricing, BigInt, percentage progress, signed temperature, currency
-formats, and large digit growth. The header is a plain wordmark. Adding a sale
-briefly brightens revenue, then fades back over a second; reduced motion disables
-that flash. The examples do not re-render on every hero tick.
+The dark-only demo pairs the showcase with eight small interactive interfaces:
+a fictional tee shop, focus timer, team plan, BigInt event viewer, upload, weather
+control, invoice and audience chart. Their SVG illustrations are local and original;
+no purchases, uploads or external account changes take place. The header is a plain
+wordmark. Buying the demo tee brightens revenue, then fades back over 1.8 seconds;
+reduced motion disables that flash. The examples do not re-render on every hero tick.
 
 `dist/` contains ESM and declarations plus an explicit stylesheet. There is no
 automatic global style injection, custom-element registration, or server-side DOM

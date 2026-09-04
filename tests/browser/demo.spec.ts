@@ -9,9 +9,9 @@ test("keeps the dark showcase and functional examples without marketing sections
   await expect(examples).toHaveCount(8);
   await expect(page.locator(".brand h1")).toHaveText("rolling number");
   await expect(page.locator(".brand svg")).toHaveCount(0);
-  await page.getByRole("button", { name: /Add a sale/ }).click();
+  await page.getByRole("button", { name: "Buy Studio tee" }).click();
   await expect(examples.nth(0).locator(".rn-semantic")).toHaveText("$8,365");
-  await page.getByRole("button", { name: "Add 1", exact: true }).click();
+  await page.getByRole("button", { name: "Next event", exact: true }).click();
   await expect(examples.nth(3).locator(".rn-semantic")).toHaveText("9,007,199,254,740,994");
 });
 
@@ -45,9 +45,10 @@ test("the showcase measures elapsed milliseconds rather than inventing increment
 });
 
 test("one motion-blur toggle controls the hero and examples", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 1000 });
   await page.goto("/");
   await expect.poll(() => page.locator(".number-frame .rn-smear").count()).toBeGreaterThan(0);
-  await page.getByRole("button", { name: /Add a sale/ }).click();
+  await page.getByRole("button", { name: "Buy Studio tee" }).click();
   await expect.poll(() => page.locator("#examples article").first().locator(".rn-smear").count()).toBeGreaterThan(0);
   await page.locator("summary").click();
   await page.getByLabel("Motion blur", { exact: true }).uncheck();
@@ -84,7 +85,7 @@ test("the price suffix follows width changes without snapping", async ({ page })
   expect(Math.abs(await suffix.evaluate((element) => element.getBoundingClientRect().x) - interrupted)).toBeLessThan(.5);
 });
 
-test("a sale brightens immediately, fades for one second and replaces the previous flash", async ({ page }) => {
+test("a purchase brightens immediately, fades for 1.8 seconds and replaces the previous flash", async ({ page }) => {
   await page.goto("/");
   const number = page.locator(".revenue-number");
   const idle = await number.evaluate((element) => getComputedStyle(element).color);
@@ -96,12 +97,12 @@ test("a sale brightens immediately, fades for one second and replaces the previo
       return animation;
     };
   });
-  const button = page.getByRole("button", { name: /Add a sale/ });
+  const button = page.getByRole("button", { name: "Buy Studio tee" });
   await button.click();
   await expect(number).toHaveCSS("color", "rgb(255, 255, 255)");
   const first = await number.evaluateHandle((element) => element.getAnimations()[0]!);
-  expect(await first.evaluate((animation) => animation.effect!.getTiming().duration)).toBe(1000);
-  await first.evaluate((animation) => { animation.currentTime = 500; });
+  expect(await first.evaluate((animation) => animation.effect!.getTiming().duration)).toBe(1800);
+  await first.evaluate((animation) => { animation.currentTime = 900; });
   const halfway = await number.evaluate((element) => getComputedStyle(element).color);
   expect(halfway).not.toBe(idle);
   expect(halfway).not.toBe("rgb(255, 255, 255)");
@@ -122,18 +123,18 @@ test("a sale brightens immediately, fades for one second and replaces the previo
 test("extra examples cover percentages, signs, currency changes and large growth", async ({ page }) => {
   await page.goto("/");
   const example = (name: string) => page.locator("article").filter({ has: page.getByRole("heading", { name, exact: true }) });
-  await page.getByRole("button", { name: "Add 10%", exact: true }).click();
-  await expect(example("Progress").locator(".rn-semantic")).toHaveText("74%");
+  await page.getByRole("button", { name: "Upload chunk", exact: true }).click();
+  await expect(example("Upload").locator(".rn-semantic")).toHaveText("74%");
   await page.getByRole("button", { name: "Warm up", exact: true }).click();
-  await expect(example("Temperature").locator(".rn-semantic")).toHaveText("+0.5°C");
-  await page.getByRole("button", { name: "Change currency", exact: true }).click();
-  await expect(example("Currency").locator(".rn-semantic")).toHaveText("€1,987.65");
-  await page.getByRole("button", { name: "Change currency", exact: true }).click();
-  await expect(example("Currency").locator(".rn-semantic")).toHaveText("¥1,988");
-  await page.getByRole("button", { name: "Grow", exact: true }).click();
-  await expect(example("Digit growth").locator(".rn-semantic")).toHaveText("5,823,823");
-  await page.getByRole("button", { name: "Shrink", exact: true }).click();
-  await expect(example("Digit growth").locator(".rn-semantic")).toHaveText("23");
+  await expect(example("Weather").locator(".rn-semantic")).toHaveText("+0.5°C");
+  await page.getByRole("button", { name: "EUR", exact: true }).click();
+  await expect(example("Invoice").locator(".rn-semantic")).toHaveText("€1,987.65");
+  await page.getByRole("button", { name: "JPY", exact: true }).click();
+  await expect(example("Invoice").locator(".rn-semantic")).toHaveText("¥1,988");
+  await page.getByRole("button", { name: "Go viral", exact: true }).click();
+  await expect(example("Audience").locator(".rn-semantic")).toHaveText("5,823,823");
+  await page.getByRole("button", { name: "Reset audience", exact: true }).click();
+  await expect(example("Audience").locator(".rn-semantic")).toHaveText("23");
 });
 
 test("number displays hide scrollbars without disabling horizontal panning", async ({ page }) => {

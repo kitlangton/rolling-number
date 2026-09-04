@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { RollingNumber } from "../src/react";
 import { Track } from "../src/track";
 import { spring } from "../src/motion";
+import { ActivityGraphic, AvatarGraphic, FileGraphic, LedgerGraphic, ShirtGraphic, WeatherGraphic } from "./MiniGraphics";
 import "../src/styles.css";
 import "./demo.css";
 
@@ -38,7 +39,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
     stopSaleFlash();
     const element = revenueNumber.current;
     if (!animated || reduced || matchMedia("(prefers-reduced-motion: reduce)").matches || typeof element?.animate !== "function") return;
-    const animation = element.animate([{ color: "#fff" }, { color: "var(--revenue-ink)" }], { duration: 1000, easing: "ease-out" });
+    const animation = element.animate([{ color: "#fff" }, { color: "var(--revenue-ink)" }], { duration: 1800, easing: "ease-out" });
     saleFlash.current = animation;
     animation.onfinish = () => { if (saleFlash.current === animation) stopSaleFlash(); };
   }
@@ -83,25 +84,26 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
   useEffect(() => { if (seconds.value === 0) setRunning(false); }, [seconds.value]);
   const shared = { locales: locale, duration, motionBlur };
   return (
-    <section id="examples" className="examples" aria-label="Examples">
-      <article className="example">
-        <h2>Revenue</h2>
-        <div ref={revenueNumber} className="example-number revenue-number"><RollingNumber {...shared} value={revenue.value} format={currency} animated={!reduced && revenue.animated} /></div>
-        <button className="quiet" onClick={(event) => { flashSale(event.detail > 0); setRevenue((current) => ({ value: current.value + 125, animated: event.detail > 0 })); }}>Add a sale <span>+125</span></button>
-      </article>
-      <article className="example">
-        <h2>Timer</h2>
-        <div className="example-number timer" role="timer" aria-live="off">
-          <span className="sr-only">{seconds.value} seconds remaining</span>
-          <span aria-hidden="true"><RollingNumber {...shared} value={Math.floor(seconds.value / 60)} format={clock} animated={!reduced && seconds.animated} /><span className="colon">:</span><RollingNumber {...shared} value={seconds.value % 60} format={clock} animated={!reduced && seconds.animated} /></span>
+    <section id="examples" className="examples" aria-label="Examples" data-reduced={reduced}>
+      <article className="example mini-app shop-app">
+        <h2>Shop</h2>
+        <div className="shop-product">
+          <div className="product-art"><ShirtGraphic /></div>
+          <div className="product-info"><strong>Studio tee</strong><span>Washed black · $125</span><button className="mini-button" aria-label="Buy Studio tee" onClick={(event) => { flashSale(event.detail > 0); setRevenue((current) => ({ value: current.value + 125, animated: event.detail > 0 })); }}>Buy <span aria-hidden="true">↗</span></button></div>
         </div>
-        <div className="example-actions">
-          <button className="quiet" disabled={seconds.value === 0} onClick={() => setRunning((current) => !current)}>{running ? "Pause timer" : "Start timer"}</button>
-          <button className="quiet muted" onClick={(event) => { setRunning(false); setSeconds({ value: 90, animated: event.detail > 0 }); }}>Reset</button>
-        </div>
+        <div className="app-metric"><span className="mini-label">Revenue</span><div ref={revenueNumber} className="example-number revenue-number"><RollingNumber {...shared} value={revenue.value} format={currency} animated={!reduced && revenue.animated} /></div></div>
       </article>
-      <article className="example">
-        <h2>Pricing</h2>
+      <article className="example mini-app focus-app">
+        <h2>Focus</h2>
+        <div className="focus-dial">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="53" fill="none" stroke="#282d34" strokeWidth="2" /><circle className="dial-progress" cx="60" cy="60" r="53" fill="none" stroke="#a6b1bf" strokeWidth="2" pathLength="1" strokeDasharray="1" strokeDashoffset={1 - seconds.value / 90} transform="rotate(-90 60 60)" /></svg>
+          <div className="example-number timer" role="timer" aria-live="off"><span className="sr-only">{seconds.value} seconds remaining</span><span aria-hidden="true"><RollingNumber {...shared} value={Math.floor(seconds.value / 60)} format={clock} animated={!reduced && seconds.animated} /><span className="colon">:</span><RollingNumber {...shared} value={seconds.value % 60} format={clock} animated={!reduced && seconds.animated} /></span></div>
+        </div>
+        <div className="example-actions centered"><button className="mini-button" aria-label={running ? "Pause timer" : "Start timer"} disabled={seconds.value === 0} onClick={() => setRunning((current) => !current)}>{running ? "Pause" : "Start"}</button><button className="quiet muted" aria-label="Reset timer" onClick={(event) => { setRunning(false); setSeconds({ value: 90, animated: event.detail > 0 }); }}>Reset</button></div>
+      </article>
+      <article className="example mini-app team-app">
+        <h2>Team plan</h2>
+        <div className="avatar-stack" aria-hidden="true">{Array.from({ length: Math.min(seats.value, 5) }, (_, index) => <span className="mini-avatar" key={index}><AvatarGraphic /></span>)}{seats.value > 5 && <span className="extra-members">+{seats.value - 5}</span>}</div>
         <div className="price"><div ref={priceNumber} className="example-number"><RollingNumber {...shared} value={seats.value * 12} format={currency} animated={!reduced && seats.animated} /></div><span ref={priceSuffix}>/ month</span></div>
         <div className="seat-control">
           <label htmlFor="seats">Seats <output>{seats.value}</output></label>
@@ -110,39 +112,45 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
             onChange={(event) => setSeats({ value: Number(event.target.value), animated: pointer.current })} />
         </div>
       </article>
-      <article className="example example-bigint">
-        <h2>BigInt</h2>
-        <div className="example-number bigint-number"><RollingNumber {...shared} value={large.value} animated={!reduced && large.animated} /></div>
+      <article className="example mini-app example-bigint">
+        <h2>Event stream</h2>
+        <LedgerGraphic />
+        <div className="app-metric"><span className="mini-label">Event ID · BigInt</span><div className="example-number bigint-number"><RollingNumber {...shared} value={large.value} animated={!reduced && large.animated} /></div></div>
         <div className="example-actions">
-          <button className="quiet" onClick={(event) => setLarge((current) => ({ value: current.value - 1n, animated: event.detail > 0 }))}>Subtract 1</button>
-          <button className="quiet" onClick={(event) => setLarge((current) => ({ value: current.value + 1n, animated: event.detail > 0 }))}>Add 1</button>
+          <button className="quiet" aria-label="Previous event" onClick={(event) => setLarge((current) => ({ value: current.value - 1n, animated: event.detail > 0 }))}>← Previous</button>
+          <button className="quiet" aria-label="Next event" onClick={(event) => setLarge((current) => ({ value: current.value + 1n, animated: event.detail > 0 }))}>Next →</button>
         </div>
       </article>
-      <article className="example">
-        <h2>Progress</h2>
-        <div className="example-number"><RollingNumber {...shared} value={progress.value} format={percent} animated={!reduced && progress.animated} /></div>
+      <article className="example mini-app upload-app">
+        <h2>Upload</h2>
+        <div className="upload-file"><FileGraphic video /><div><strong>demo.mov</strong><span className="mini-label">24 MB</span></div><div className="example-number"><RollingNumber {...shared} value={progress.value} format={percent} animated={!reduced && progress.animated} /></div></div>
+        <div className="upload-track" aria-hidden="true"><span style={{ transform: `scaleX(${progress.value})`, transition: progress.animated ? undefined : "none" }} /></div>
         <div className="example-actions">
-          <button className="quiet" disabled={progress.value >= 1} onClick={(event) => setProgress((current) => ({ value: Math.min(1, current.value + .1), animated: event.detail > 0 }))}>Add 10%</button>
-          <button className="quiet muted" onClick={(event) => setProgress({ value: 0, animated: event.detail > 0 })}>Reset progress</button>
+          <button className="mini-button" disabled={progress.value >= 1} onClick={(event) => setProgress((current) => ({ value: Math.min(1, current.value + .1), animated: event.detail > 0 }))}>{progress.value >= 1 ? "Uploaded" : "Upload chunk"}</button>
+          <button className="quiet muted" aria-label="Restart upload" onClick={(event) => setProgress({ value: 0, animated: event.detail > 0 })}>Restart</button>
         </div>
       </article>
-      <article className="example">
-        <h2>Temperature</h2>
-        <div className="example-number"><RollingNumber {...shared} value={degrees.value} format={temperature} animated={!reduced && degrees.animated} /></div>
+      <article className="example mini-app weather-app">
+        <h2>Weather</h2>
+        <div className="weather-summary"><div><span className="mini-label">Reykjavík</span><div className="example-number"><RollingNumber {...shared} value={degrees.value} format={temperature} animated={!reduced && degrees.animated} /></div></div><WeatherGraphic /></div>
+        <div className="weather-controls"><span className="mini-label">Adjust temperature</span><div className="example-actions">
+          <button className="mini-button square" aria-label="Cool down" onClick={(event) => setDegrees((current) => ({ value: current.value - 5, animated: event.detail > 0 }))}>−</button>
+          <button className="mini-button square" aria-label="Warm up" onClick={(event) => setDegrees((current) => ({ value: current.value + 5, animated: event.detail > 0 }))}>+</button>
+        </div></div>
+      </article>
+      <article className="example mini-app invoice-app">
+        <h2>Invoice</h2>
+        <div className="invoice-body"><FileGraphic /><div><strong>INV–0042</strong><span className="mini-label">Design services</span></div></div>
+        <div className="invoice-total"><span className="mini-label">Total</span><div className="example-number"><RollingNumber {...shared} value={1987.65} format={{ style: "currency", currency: currencies[currencyIndex.value]! }} animated={!reduced && currencyIndex.animated} /></div></div>
+        <div className="currency-switch" role="group" aria-label="Invoice currency">{currencies.map((code, index) => <button key={code} aria-pressed={currencyIndex.value === index} onClick={(event) => setCurrencyIndex({ value: index, animated: event.detail > 0 })}>{code}</button>)}</div>
+      </article>
+      <article className="example mini-app audience-app">
+        <h2>Audience</h2>
+        <div className="app-metric"><span className="mini-label">Followers</span><div className="example-number"><RollingNumber {...shared} value={growth.value} animated={!reduced && growth.animated} /></div></div>
+        <ActivityGraphic active={growth.value > 23} animated={growth.animated} />
         <div className="example-actions">
-          <button className="quiet" onClick={(event) => setDegrees((current) => ({ value: current.value - 5, animated: event.detail > 0 }))}>Cool down</button>
-          <button className="quiet" onClick={(event) => setDegrees((current) => ({ value: current.value + 5, animated: event.detail > 0 }))}>Warm up</button>
+          <button className="mini-button" onClick={(event) => setGrowth((current) => ({ value: current.value === 23 ? 5823823 : 23, animated: event.detail > 0 }))}>{growth.value === 23 ? "Go viral" : "Reset audience"}</button>
         </div>
-      </article>
-      <article className="example">
-        <h2>Currency</h2>
-        <div className="example-number"><RollingNumber {...shared} value={1987.65} format={{ style: "currency", currency: currencies[currencyIndex.value]! }} animated={!reduced && currencyIndex.animated} /></div>
-        <button className="quiet" onClick={(event) => setCurrencyIndex((current) => ({ value: (current.value + 1) % currencies.length, animated: event.detail > 0 }))}>Change currency</button>
-      </article>
-      <article className="example">
-        <h2>Digit growth</h2>
-        <div className="example-number"><RollingNumber {...shared} value={growth.value} animated={!reduced && growth.animated} /></div>
-        <button className="quiet" onClick={(event) => setGrowth((current) => ({ value: current.value === 23 ? 5823823 : 23, animated: event.detail > 0 }))}>{growth.value === 23 ? "Grow" : "Shrink"}</button>
       </article>
     </section>
   );
