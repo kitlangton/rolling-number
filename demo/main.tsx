@@ -111,7 +111,7 @@ function Install({ duration, reduced }: { duration: number; reduced: boolean }) 
       <div className="install-command">
         <Segmented options={Object.keys(installCommands) as PackageManager[]} value={manager} onChange={setManager} label="Package manager" />
         <code ref={code}><span key={manager} className="install-text" data-animated={!reduced}>{command}</span></code>
-        <button className="quiet" aria-label="Copy install command" onClick={() => copy(command)}>{copied ? "Copied" : "Copy"}</button>
+        <button className="install-copy" aria-label="Copy install command" onClick={() => copy(command)}>{copied ? "Copied" : "Copy"}</button>
       </div>
       <output className="sr-only" aria-live="polite">{copied ? "Copied to clipboard" : ""}</output>
     </section>

@@ -62,9 +62,10 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 /* Left-anchored in the options column: the command grows to the right only, so the
    segmented pill never drifts while it slides. */
 .install { display: flex; align-items: center; width: min(720px, 100%); margin-inline: auto; padding: 0 0 34px; }
-.install-command { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 3px; border-radius: 9px; background: #111316; }
-.install-command code { font: 12px var(--mono); color: var(--ink); padding: 0 8px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
-.install-command .quiet { flex: none; }
+.install-command { display: flex; align-items: center; gap: 4px; min-height: 40px; padding: 3px; border-radius: 9px; background: #111316; }
+.install-command code { font: 12px var(--mono); color: var(--ink); padding: 0 14px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.install-copy { flex: none; min-height: 30px; min-width: 60px; padding: 0 10px; border-radius: 6px; background: none; font: 11px var(--mono); color: var(--muted); transition: color calc(var(--duration) * .5) var(--spring); }
+.install-copy:hover { color: var(--ink); }
 .segmented { position: relative; display: flex; gap: 2px; }
 .segmented button { position: relative; min-height: 30px; padding: 0 9px; font: 11px var(--mono); border: 0; border-radius: 6px; background: none; color: var(--muted); transition: color calc(var(--duration) * .5) var(--spring); }
 .segmented button[aria-pressed="true"] { color: var(--ink); }
