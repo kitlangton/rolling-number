@@ -63,7 +63,7 @@
 @supports (overflow: clip) {
   .rn-slot { overflow-x: visible; overflow-y: clip; }
 }
-.rn-slot:not([data-rn-key^="digit:"]) {
+.rn-slot:not([data-rn-wheel]) {
   overflow: visible;
   -webkit-mask-image: none;
   mask-image: none;

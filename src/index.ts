@@ -1,15 +1,15 @@
-import { direction, model, type FormatOptions, type Model, type Token, type Value } from "./format.js";
-import { delayed, entrance, numeral, rollTarget, spring } from "./motion.js";
-import { collapsePositions, entryRanks } from "./layout.js";
+import { direction, model, textModel, type FormatOptions, type Model, type TextOptions, type Token, type Value } from "./format.js";
+import { delayed, entrance, face, rollTarget, spring } from "./motion.js";
+import { collapsePositions, entryRanks, type Stagger } from "./layout.js";
 import { Scheduler, type Participant } from "./scheduler.js";
 import { Track } from "./track.js";
 import { ReelBlur } from "./blur.js";
 
-export { formatValue } from "./format.js";
+export { formatValue, FLAP_CHARSET } from "./format.js";
 export type { Value, Locales } from "./format.js";
+export type { Stagger } from "./layout.js";
 
-export interface RollingNumberOptions extends FormatOptions {
-  value: Value;
+export interface MotionOptions {
   /** Duration in milliseconds. Zero disables animation. Default: 500. */
   duration?: number | undefined;
   animated?: boolean | undefined;
@@ -19,10 +19,20 @@ export interface RollingNumberOptions extends FormatOptions {
   direction?: "auto" | "up" | "down" | undefined;
   /** Offscreen numbers retain their latest value without animation. Default: true. */
   pauseOffscreen?: boolean | undefined;
+  /** Order in which new glyphs cascade in. Default: "outward" from retained glyphs. */
+  stagger?: Stagger | undefined;
 }
 
-export interface RollingNumberController {
-  update(options: Partial<RollingNumberOptions>): void;
+export interface RollingNumberOptions extends FormatOptions, MotionOptions {
+  value: Value;
+}
+
+export interface RollingTextOptions extends TextOptions, MotionOptions {
+  text: string;
+}
+
+export interface RollingController<Options> {
+  update(options: Partial<Options>): void;
   /** Explicit invalidation for theme/variable-font changes. */
   refresh(): void;
   /** Immediately show the latest target without motion. */
@@ -30,6 +40,9 @@ export interface RollingNumberController {
   /** Releases all resources and leaves the final formatted text. Idempotent. */
   destroy(): void;
 }
+
+export type RollingNumberController = RollingController<RollingNumberOptions>;
+export type RollingTextController = RollingController<RollingTextOptions>;
 
 interface Geometry { x: number; y: number; width: number; height: number }
 interface Column {
@@ -50,15 +63,40 @@ const translate = (x: number): string => `translateX(${x}px)`;
 const scale = (value: number): string => `scale(${value})`;
 const opacity = (value: number): string => String(Math.max(0, Math.min(1, value)));
 
-function validate(options: RollingNumberOptions): void {
-  if (typeof options.value !== "number" && typeof options.value !== "bigint") throw new TypeError("value must be a number or bigint");
+function validate(options: MotionOptions): void {
   if (options.duration !== undefined && (!Number.isFinite(options.duration) || options.duration < 0 || options.duration > 10_000)) {
     throw new RangeError("duration must be between 0 and 10000 milliseconds");
   }
 }
 
-class Renderer implements Participant, RollingNumberController {
-  private options: RollingNumberOptions;
+interface Source<Options extends MotionOptions> {
+  validate(options: Options): void;
+  model(options: Options): Model;
+  /** Trend for wheels when `direction` is "auto". */
+  direction(previous: Model, next: Model): -1 | 0 | 1;
+}
+
+const numberSource: Source<RollingNumberOptions> = {
+  validate(options) {
+    if (typeof options.value !== "number" && typeof options.value !== "bigint") throw new TypeError("value must be a number or bigint");
+    validate(options);
+  },
+  model: (options) => model(options.value, options),
+  direction,
+};
+
+const textSource: Source<RollingTextOptions> = {
+  validate(options) {
+    if (typeof options.text !== "string") throw new TypeError("text must be a string");
+    validate(options);
+  },
+  model: (options) => textModel(options.text, options),
+  // Boards only ever advance; a wheel never runs backwards to reach a letter.
+  direction: () => 1,
+};
+
+class Renderer<Options extends MotionOptions> implements Participant, RollingController<Options> {
+  private options: Options;
   private target: Model;
   private displayed: Model;
   private semantic: HTMLSpanElement;
@@ -76,11 +114,12 @@ class Renderer implements Participant, RollingNumberController {
   private hadClass: boolean;
   private previousLeft: number | undefined;
   private blur: ReelBlur | undefined;
+  private blurIntensity = 1;
 
-  constructor(private host: HTMLElement, options: RollingNumberOptions) {
-    validate(options);
+  constructor(private host: HTMLElement, options: Options, private source: Source<Options>) {
+    source.validate(options);
     this.options = { ...options };
-    this.target = this.displayed = model(options.value, options);
+    this.target = this.displayed = source.model(options);
     const doc = host.ownerDocument;
     const span = (className: string): HTMLSpanElement => {
       const element = doc.createElement("span");
@@ -111,11 +150,11 @@ class Renderer implements Participant, RollingNumberController {
       (this.visible || this.options.pauseOffscreen === false) && this.target.rollable && this.host.isConnected;
   }
 
-  update(patch: Partial<RollingNumberOptions>): void {
+  update(patch: Partial<Options>): void {
     if (this.destroyed) return;
     const options = { ...this.options, ...patch };
-    validate(options);
-    const next = model(options.value, options); // Validate before changing any visible state.
+    this.source.validate(options);
+    const next = this.source.model(options); // Validate before changing any visible state.
     const unchanged = next.text === this.target.text && next.signature === this.target.signature;
     if (this.options.motionBlur && !options.motionBlur) {
       this.blur?.destroy();
@@ -184,6 +223,8 @@ class Renderer implements Participant, RollingNumberController {
     if (!width || !height || !bounds.width || !bounds.height) return () => this.finish();
     const scaleX = bounds.width / width;
     const scaleY = bounds.height / height;
+    // Per-counter blur strength, read here so playback never touches computed style.
+    this.blurIntensity = Math.max(0, parseFloat(style.getPropertyValue("--rn-blur")) || 1);
     this.sizes.set(this.measurement, { width, height });
     const geometry = new Map<string, Geometry>();
     for (const [key, node] of this.measures) {
@@ -200,6 +241,7 @@ class Renderer implements Participant, RollingNumberController {
     const element = this.host.ownerDocument.createElement("span");
     element.className = "rn-slot";
     element.dataset.rnKey = token.key;
+    if (token.index !== undefined) element.dataset.rnWheel = "";
     const reel = this.host.ownerDocument.createElement("span");
     reel.className = "rn-reel";
     element.append(reel);
@@ -219,8 +261,8 @@ class Renderer implements Participant, RollingNumberController {
     this.blur?.remove(column.reel);
     column.reel.replaceChildren();
     this.face(column, column.token.text);
-    if (column.token.digit === undefined) column.roll.set(1, scale);
-    else column.roll.set(column.token.digit, () => "translateY(0px)");
+    if (column.token.index === undefined) column.roll.set(1, scale);
+    else column.roll.set(column.token.index, () => "translateY(0px)");
   }
 
   private finishEntry(column: Column): void {
@@ -241,6 +283,7 @@ class Renderer implements Participant, RollingNumberController {
     const motion = delayed(entrance(column.height, duration), delay);
     if (this.options.motionBlur && column.token.text.trim()) {
       this.blur ??= new ReelBlur(this.host);
+      this.blur.intensity = this.blurIntensity;
       const rows = { ...motion, points: motion.points.map((y) => y / column.height) };
       column.entry.blurred = this.blur.apply(column.reel, rows, column.height, 0, "entry");
     }
@@ -252,7 +295,8 @@ class Renderer implements Participant, RollingNumberController {
     this.measurementPending = false;
     const animate = this.enhanced && !this.reset;
     const duration = animate ? this.options.duration ?? 500 : 0;
-    const trend = this.options.direction === "up" ? 1 : this.options.direction === "down" ? -1 : direction(this.displayed, this.target);
+    const trend = this.options.direction === "up" ? 1 : this.options.direction === "down" ? -1 : this.source.direction(this.displayed, this.target);
+    if (this.target.text !== this.displayed.text) this.host.dataset.rnTrend = trend > 0 ? "up" : trend < 0 ? "down" : "none";
     const previous = new Map([...this.columns].map(([key, column]) => {
       const sample = column.x.read();
       return [key, { ...sample, x: sample.position, width: column.width }];
@@ -260,12 +304,12 @@ class Renderer implements Participant, RollingNumberController {
     const starts = collapsePositions(this.target.tokens.map((token) => token.key), previous);
     const oldOrder = [...previous.keys()].sort((a, b) => previous.get(a)!.x - previous.get(b)!.x);
     const exits = collapsePositions(oldOrder, geometry);
-    const oldSymbols = new Map(this.displayed.tokens.filter((token) => token.digit === undefined).map((token) => [token.identity, token.key]));
-    const newSymbols = new Map(this.target.tokens.filter((token) => token.digit === undefined).map((token) => [token.identity, token.key]));
+    const oldSymbols = new Map(this.displayed.tokens.filter((token) => token.index === undefined).map((token) => [token.identity, token.key]));
+    const newSymbols = new Map(this.target.tokens.filter((token) => token.index === undefined).map((token) => [token.identity, token.key]));
     // New glyphs cascade outward from the digits already on screen (symbols such as
     // a retained currency sign do not anchor it); the whole cascade stays inside a
     // fraction of the duration so it still reads as one update, not typing.
-    const ranks = entryRanks(this.target.tokens.map((token) => token.digit !== undefined && this.columns.has(token.key) && !this.columns.get(token.key)!.exiting));
+    const ranks = entryRanks(this.target.tokens.map((token) => token.index !== undefined && this.columns.has(token.key) && !this.columns.get(token.key)!.exiting), this.options.stagger);
     const span = Math.max(0, ...this.target.tokens.map((token, index) => this.columns.has(token.key) ? 0 : ranks[index]! - 1));
     const step = Math.min(duration * .045, duration * .3 / Math.max(1, span));
     for (const [index, token] of this.target.tokens.entries()) {
@@ -293,24 +337,25 @@ class Renderer implements Participant, RollingNumberController {
       column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
       if (fresh || reentered || !animate) {
         const alpha = column.opacity.read();
-        const fade = spring(alpha.position, 1, alpha.velocity, token.digit === undefined ? Math.min(duration, 180) : duration);
+        const fade = spring(alpha.position, 1, alpha.velocity, token.index === undefined ? Math.min(duration, 180) : duration);
         column.opacity.play(fresh ? delayed(fade, delay) : fade, opacity);
       }
       column.height = size.height;
       column.width = size.width;
       if (!animate || resized) this.finishEntry(column);
-      if (!fresh && !resized && changed && token.digit !== undefined && column.token.digit !== undefined && duration) {
+      if (!fresh && !resized && changed && token.index !== undefined && token.wheel && column.token.index !== undefined && duration) {
         const current = column.roll.read();
-        const motion = spring(current.position, rollTarget(current.position, token.digit, trend), current.velocity, duration);
+        const motion = spring(current.position, rollTarget(current.position, token.index, trend, token.wheel.length), current.velocity, duration);
         const start = Math.floor(Math.min(...motion.points));
         const end = Math.ceil(Math.max(...motion.points));
         // A new roll takes over the blend; entry completion must not cancel it.
         if (column.entry) column.entry.blurred = false;
         const blur = this.blur?.remove(column.reel) ?? 0;
         column.reel.replaceChildren();
-        for (let face = start; face <= end; face++) this.face(column, numeral(face));
+        for (let position = start; position <= end; position++) this.face(column, face(token.wheel, position));
         if (this.options.motionBlur) {
           this.blur ??= new ReelBlur(this.host);
+          this.blur.intensity = this.blurIntensity;
           this.blur.apply(column.reel, motion, size.height, blur);
         }
         column.token = token;
@@ -320,7 +365,7 @@ class Renderer implements Participant, RollingNumberController {
         column.token = token;
         this.rest(column);
       }
-      if (fresh && duration && token.digit !== undefined) this.enter(column, duration, delay);
+      if (fresh && duration && token.index !== undefined) this.enter(column, duration, delay);
       if (replacement && duration && (fresh || reentered)) {
         const current = column.roll.read();
         const active = column;
@@ -340,7 +385,7 @@ class Renderer implements Participant, RollingNumberController {
         column.roll.play(spring(current.position, 1.04, current.velocity, Math.min(duration, 180)), scale);
       }
       const alpha = column.opacity.read();
-      column.opacity.play(spring(alpha.position, 0, alpha.velocity, column.token.digit === undefined ? Math.min(duration, 180) : duration * 0.65), opacity, () => {
+      column.opacity.play(spring(alpha.position, 0, alpha.velocity, column.token.index === undefined ? Math.min(duration, 180) : duration * 0.65), opacity, () => {
         if (!column.exiting) return;
         this.removeColumn(column);
         this.columns.delete(key);
@@ -393,6 +438,7 @@ class Renderer implements Participant, RollingNumberController {
     this.semantic.textContent = this.target.text;
     delete this.host.dataset.rnReady;
     delete this.host.dataset.rnMeasuring;
+    delete this.host.dataset.rnTrend;
     this.enhanced = false;
     this.reset = true;
     this.displayed = this.target;
@@ -414,7 +460,15 @@ class Renderer implements Participant, RollingNumberController {
 /** The host's children belong exclusively to this controller until destroy(). */
 export function createRollingNumber(host: HTMLElement, options: RollingNumberOptions): RollingNumberController {
   if (mounted.has(host)) throw new Error("A rolling number is already mounted on this element");
-  const renderer = new Renderer(host, options);
+  const renderer = new Renderer(host, options, numberSource);
+  mounted.add(host);
+  return renderer;
+}
+
+/** Split-flap style text: characters in the charset roll through a wheel, others crossfade. */
+export function createRollingText(host: HTMLElement, options: RollingTextOptions): RollingTextController {
+  if (mounted.has(host)) throw new Error("A rolling number is already mounted on this element");
+  const renderer = new Renderer(host, options, textSource);
   mounted.add(host);
   return renderer;
 }

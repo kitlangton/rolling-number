@@ -1,51 +1,76 @@
 "use client";
 
 import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, type ComponentPropsWithoutRef, type RefCallback } from "react";
-import { createRollingNumber, formatValue, type RollingNumberController, type RollingNumberOptions } from "./index.js";
+import { createRollingNumber, createRollingText, formatValue, type MotionOptions, type RollingController, type RollingNumberOptions, type RollingTextOptions } from "./index.js";
 
-export type RollingNumberProps = RollingNumberOptions & Omit<ComponentPropsWithoutRef<"span">, "children" | "dangerouslySetInnerHTML">;
+type SpanProps = Omit<ComponentPropsWithoutRef<"span">, "children" | "dangerouslySetInnerHTML">;
+export type RollingNumberProps = RollingNumberOptions & SpanProps;
+export type RollingTextProps = RollingTextOptions & SpanProps;
 const useCommitEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
+const motionKeys = ["duration", "animated", "motionBlur", "direction", "pauseOffscreen", "stagger"] as const satisfies readonly (keyof MotionOptions)[];
+
+/** Splits engine options from span attributes without enumerating every option twice. */
+function partition<Options extends MotionOptions>(props: Options & SpanProps, own: readonly (keyof Options)[]): [Options, SpanProps] {
+  const options = {} as Record<string, unknown>;
+  const rest = { ...props } as Record<string, unknown>;
+  for (const key of [...own, ...motionKeys] as string[]) {
+    if (key in rest) { options[key] = rest[key]; delete rest[key]; }
+  }
+  return [options as Options, rest as SpanProps];
+}
+
 /** React owns the accessible text. Only the empty aria-hidden mount is imperative. */
-export const RollingNumber = forwardRef<HTMLSpanElement, RollingNumberProps>(function RollingNumber(
-  { value, locales, format, duration, animated, motionBlur, direction, pauseOffscreen, className, ...props },
-  forwardedRef,
+function rolling<Options extends MotionOptions>(
+  name: string,
+  own: readonly (keyof Options)[],
+  create: (host: HTMLElement, options: Options) => RollingController<Options>,
+  semantic: (options: Options) => string,
 ) {
-  const root = useRef<HTMLSpanElement>(null);
-  const mount = useRef<HTMLSpanElement>(null);
-  const controller = useRef<RollingNumberController | null>(null);
-  const options = { value, locales, format, duration, animated, motionBlur, direction, pauseOffscreen };
-  const setRoot = useCallback((node: HTMLSpanElement | null) => {
-    root.current = node;
-    if (typeof forwardedRef === "function") {
-      // ForwardedRef still declares a void callback; RefCallback includes the
-      // cleanup contract accepted by React 19's public ref prop.
-      const callback: RefCallback<HTMLSpanElement> = forwardedRef;
-      const cleanup = callback(node);
-      if (typeof cleanup === "function") return () => {
-        root.current = null;
-        cleanup();
+  const Component = forwardRef<HTMLSpanElement, Options & SpanProps>(function Rolling(props, forwardedRef) {
+    const [options, { className, ...attributes }] = partition(props as Options & SpanProps, own);
+    const root = useRef<HTMLSpanElement>(null);
+    const mount = useRef<HTMLSpanElement>(null);
+    const controller = useRef<RollingController<Options> | null>(null);
+    const setRoot = useCallback((node: HTMLSpanElement | null) => {
+      root.current = node;
+      if (typeof forwardedRef === "function") {
+        // ForwardedRef still declares a void callback; RefCallback includes the
+        // cleanup contract accepted by React 19's public ref prop.
+        const callback: RefCallback<HTMLSpanElement> = forwardedRef;
+        const cleanup = callback(node);
+        if (typeof cleanup === "function") return () => {
+          root.current = null;
+          cleanup();
+        };
+      }
+      else if (forwardedRef) forwardedRef.current = node;
+    }, [forwardedRef]);
+    useCommitEffect(() => {
+      if (!mount.current || !root.current) return;
+      const element = root.current;
+      const renderer = create(mount.current, options);
+      controller.current = renderer;
+      element.dataset.rnHydrated = "";
+      return () => {
+        renderer.destroy();
+        controller.current = null;
+        delete element.dataset.rnHydrated;
       };
-    }
-    else if (forwardedRef) forwardedRef.current = node;
-  }, [forwardedRef]);
-  useCommitEffect(() => {
-    if (!mount.current || !root.current) return;
-    const element = root.current;
-    const renderer = createRollingNumber(mount.current, options);
-    controller.current = renderer;
-    element.dataset.rnHydrated = "";
-    return () => {
-      renderer.destroy();
-      controller.current = null;
-      delete element.dataset.rnHydrated;
-    };
-  }, []);
-  useCommitEffect(() => { controller.current?.update(options); });
-  return (
-    <span {...props} className={["rn-react", className].filter(Boolean).join(" ")} ref={setRoot}>
-      <span className="rn-semantic">{formatValue(value, { locales, format })}</span>
-      <span className="rn-mount" aria-hidden="true" ref={mount} />
-    </span>
-  );
-});
+    }, []);
+    useCommitEffect(() => { controller.current?.update(options); });
+    return (
+      <span {...attributes} className={["rn-react", className].filter(Boolean).join(" ")} ref={setRoot}>
+        <span className="rn-semantic">{semantic(options)}</span>
+        <span className="rn-mount" aria-hidden="true" ref={mount} />
+      </span>
+    );
+  });
+  Component.displayName = name;
+  return Component;
+}
+
+export const RollingNumber = rolling<RollingNumberOptions>("RollingNumber", ["value", "locales", "format"], createRollingNumber, (options) => formatValue(options.value, options));
+
+/** Split-flap style text. Characters in `charset` roll; others crossfade in place. */
+export const RollingText = rolling<RollingTextOptions>("RollingText", ["text", "charset"], createRollingText, (options) => options.text);

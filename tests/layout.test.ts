@@ -38,3 +38,11 @@ it("reveals new glyphs from below only after horizontal space starts opening", (
   expect(sample(motion, 500)).toEqual({ position: 0, velocity: 0 });
   expect(motion.points.every((point, index) => index === 0 || point <= motion.points[index - 1]!)).toBe(true);
 });
+
+it("supports board-style cascades from either edge and no stagger at all", () => {
+  const retained = [true, false, false, true, false];
+  expect(entryRanks(retained, "start")).toEqual([0, 1, 2, 0, 3]);
+  expect(entryRanks(retained, "end")).toEqual([0, 3, 2, 0, 1]);
+  expect(entryRanks(retained, "none")).toEqual([0, 1, 1, 0, 1]);
+  expect(entryRanks(retained, "outward")).toEqual([0, 1, 1, 0, 1]);
+});

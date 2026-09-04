@@ -57,3 +57,18 @@ describe("formatting", () => {
     expect(() => model(1, { locales: "invalid_locale" })).toThrow();
   });
 });
+
+it("models text as per-character wheels with symbols crossfading in place", async () => {
+  const { textModel, FLAP_CHARSET } = await import("../src/format");
+  const board = textModel("PARIS 09:15");
+  expect(board.rollable).toBe(true);
+  expect(board.tokens.map((token) => token.identity)).toEqual(Array.from({ length: 11 }, (_, index) => `char:${index}`));
+  expect(board.tokens[0]).toMatchObject({ key: "char:0", text: "P", index: FLAP_CHARSET.indexOf("P") });
+  expect(board.tokens[5]).toMatchObject({ text: " ", index: 0 });
+  // A glyph outside the charset keeps a glyph-specific key, so it crossfades instead of rolling.
+  const emoji = textModel("A→B");
+  expect(emoji.tokens[1]).toMatchObject({ key: "char:1:→", identity: "char:1" });
+  expect(emoji.tokens[1]).not.toHaveProperty("index");
+  expect(textModel("abc", { charset: "abc" }).tokens.every((token) => token.wheel?.length === 3)).toBe(true);
+  expect(textModel("שלום").rollable).toBe(false);
+});

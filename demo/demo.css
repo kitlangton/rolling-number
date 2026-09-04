@@ -10,7 +10,7 @@
   --line: #27292d;
   --accent: #d5d9df;
   --icon: #6b727c;
-  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
 }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
@@ -103,6 +103,20 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .weather-app { grid-column: span 3; }
 .invoice-app { grid-column: span 4; }
 .audience-app { grid-column: span 5; }
+.scrub-app { grid-column: span 7; }
+.board-teaser { grid-column: span 5; }
+.scrub-number { --rn-blur: 1.4; }
+.scrub-control { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+.scrub-control input { width: 100%; }
+.teaser-body { flex: 1; display: flex; align-items: center; }
+.teaser-text { font: 500 clamp(22px, 2.6vw, 30px) var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #e6e2d6; }
+.teaser-text .rn-slot[data-rn-wheel]::after { content: ""; position: absolute; left: .15em; right: .27em; top: 50%; height: 1px; background: rgba(0, 0, 0, .55); pointer-events: none; }
+.teaser-text .rn-face { background: linear-gradient(#191c21, #191c21) 0 0 / calc(100% - .12em) 100% no-repeat; border-radius: .1em; }
+.teaser-text .rn-root { --rn-blur: 1.5; }
+/* Trend is exposed by the engine as data-rn-trend; the weather number warms or cools with it. */
+.weather-app .rn-root { transition: color calc(var(--duration) * .65) var(--spring); }
+.weather-app .rn-root[data-rn-trend="up"] { color: #f0dcc0; }
+.weather-app .rn-root[data-rn-trend="down"] { color: #c4d8f0; }
 .shop-app, .likes-app, .team-app { min-height: 242px; }
 .mini-app .example-number { font-size: 36px; padding: 0; }
 .mini-app .bigint-number { font-size: clamp(15px, 2vw, 22px); min-height: 0; }
@@ -173,7 +187,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .examples { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .shop-app, .example-bigint { grid-column: span 4; }
   .likes-app, .team-app { grid-column: span 2; }
-  .upload-app, .weather-app, .invoice-app, .audience-app { grid-column: span 3; }
+  .upload-app, .weather-app, .invoice-app, .audience-app, .scrub-app, .board-teaser { grid-column: span 3; }
 }
 @media (max-width: 640px) {
   .site-shell { padding-inline: 22px; }

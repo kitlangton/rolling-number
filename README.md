@@ -78,6 +78,23 @@ an initial roll. React and Solid are optional peers; each adapter imports only i
 own framework. The shipped Solid entry works in browser and server builds without
 a package-specific JSX transform.
 
+## Rolling text (split-flap boards)
+
+```tsx
+import { RollingText } from '@kitlangton/rolling-number/react'
+
+<RollingText text="EDINBURGH" stagger="start" motionBlur />
+```
+
+`RollingText` (also exported from `/solid`, and `createRollingText` from the DOM
+core) treats each character as a wheel. Characters in `charset` (default:
+space, A–Z, 0–9 and common punctuation, exported as `FLAP_CHARSET`) roll forward
+through the wheel like a departure board; other glyphs crossfade in place. Words
+of different length open and close width with the same layout spring as numbers.
+Wheels always advance, so a change from `Z` to `A` travels through the blank
+rather than backwards. See the live board at
+[rolling.kitlangton.dev/board.html](https://rolling.kitlangton.dev/board.html).
+
 ## Vanilla DOM
 
 ```ts
@@ -136,10 +153,22 @@ the adjacent digits, with a small 4% scale accent during replacement.
 
 When a value grows or shrinks by several places at once, the new digits and their
 separators cascade outward from the digits already on screen, one short step each.
+`stagger` selects the order: `"outward"` (default), `"start"` or `"end"` for a
+board-style sweep from either edge, or `"none"`.
 The whole cascade stays inside a third of the duration, so it reads as one update rather
 than a typing effect, and interruptions still sample the current position of every
 place.
 See [the scoped blur-cost measurement](perf/blur-cost.md) for its overhead and limits.
+
+### Styling hooks
+
+- `data-rn-trend="up" | "down" | "none"` is set on the host for every change, so
+  CSS can tint or weight a number by direction without any JavaScript.
+- `--rn-blur` (default `1`) scales the optional motion blur per counter; set it on
+  the host or any ancestor. It is read during measurement, never during playback.
+- `--rn-mask` and `--rn-edge-fade` control the reel's soft top and bottom edges.
+- Wheel slots carry `data-rn-wheel`; symbol slots do not. The board demo uses
+  this to draw a split line only across rolling characters.
 
 ## How it stays small and stable
 

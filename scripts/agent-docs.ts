@@ -18,7 +18,8 @@ Install with \`${installCommands.bun}\` or \`${installCommands.npm}\`. Import \`
 
 ## Docs
 
-- [README](${siteUrl}/index.md): install, DOM, React and Solid APIs, formatting, layout, motion blur and accessibility notes
+- [README](${siteUrl}/index.md): install, DOM, React and Solid APIs, RollingText split-flap text, formatting, layout, motion blur and accessibility notes
+- [Departure board demo](${siteUrl}/board.html): RollingText with stagger="start"
 - [Source repository](${repository}): TypeScript source, tests and benchmarks
 - [npm package](https://www.npmjs.com/package/${packageName})
 

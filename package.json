@@ -1,6 +1,6 @@
 {
   "name": "@kitlangton/rolling-number",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Interruptible, locale-aware rolling numbers for the web.",
   "homepage": "https://rolling.kitlangton.dev",
   "type": "module",

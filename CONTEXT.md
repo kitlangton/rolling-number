@@ -8,6 +8,7 @@ the number on every frame.
 - **Formatted value**: the full string and semantic parts produced by `Intl.NumberFormat`.
 - **Digit place**: a stable integer or fraction position, independent of grouping separators.
 - **Glyph**: a visible digit, symbol, or literal. The accessible value is separate from animated glyphs.
+- **Wheel**: the ordered faces a glyph can roll through. Digits use `0–9`; rolling text uses a charset. A token with a wheel rolls; a token without one crossfades.
 - **Symbol role**: currency, sign, separator, or literal position independent of its glyph. A replacement crossfades at the same role; it is not a new digit insertion.
 - **Transition**: movement from the currently displayed state to the newest target; a newer target interrupts rather than queues behind it.
 - **Measurement**: actual browser geometry. Font and size changes invalidate geometry without changing the numeric value.

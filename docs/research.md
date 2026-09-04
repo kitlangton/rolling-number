@@ -181,3 +181,18 @@ at build time, and `worker.ts` answers `Accept: text/markdown` on the page with 
 Markdown, advertising it through a `Link: rel="alternate"` header and a matching
 `<link>` element for agents that only parse HTML. Nothing on the site is generated
 from a second source of truth.
+
+## Text wheels
+
+`RollingText` reuses the digit machinery unchanged: `Token.wheel` and `Token.index`
+replace the numeric `digit`, `face(wheel, position)` replaces `numeral`, and
+`rollTarget` takes the wheel size. Character position is the token identity, so a
+word retargets in place and length changes use the existing layout spring. The
+text source reports a constant upward trend, matching physical split-flap boards
+which only advance; a 44-glyph default charset means a single change can travel up
+to 43 faces, which is the intended look and stays bounded per slot. Graphemes are
+segmented with `Intl.Segmenter` when available. Bidi text stays static, as with
+numbers.
+
+`stagger` exposes the existing cascade with explicit orders; `data-rn-trend` and
+`--rn-blur` expose state the renderer already had, read only at measurement time.

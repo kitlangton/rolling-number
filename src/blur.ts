@@ -14,6 +14,9 @@ export class ReelBlur {
   private layers = new Map<HTMLElement, Layer>();
   private filter: { svg: SVGSVGElement; blur: SVGFEGaussianBlurElement; id: string; height: number } | undefined;
 
+  /** Multiplier on the vertical deviation; set before `apply`, read at definition time. */
+  intensity = 1;
+
   constructor(private host: HTMLElement) {}
 
   private filterUrl(height: number): string {
@@ -36,9 +39,10 @@ export class ReelBlur {
       this.host.append(svg);
       this.filter = { svg, blur, id, height: 0 };
     }
-    if (this.filter.height !== height) {
-      this.filter.blur.setAttribute("stdDeviation", `0 ${height * .035}`);
-      this.filter.height = height;
+    const deviation = height * .035 * this.intensity;
+    if (this.filter.height !== deviation) {
+      this.filter.blur.setAttribute("stdDeviation", `0 ${deviation}`);
+      this.filter.height = deviation;
     }
     return `url("#${this.filter.id}")`;
   }

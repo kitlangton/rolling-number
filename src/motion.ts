@@ -82,12 +82,15 @@ export function sample(motion: Motion, time: number): Sample {
   };
 }
 
-export function rollTarget(position: number, digit: number, trend: -1 | 0 | 1): number {
-  let target = Math.floor(position / 10) * 10 + digit;
-  if (trend > 0 && target < position - 0.001) target += 10;
-  else if (trend < 0 && target > position + 0.001) target -= 10;
-  else if (trend === 0) target += Math.round((position - target) / 10) * 10;
+/** Nearest wheel position showing `index`, honoring the trend; `size` faces per revolution. */
+export function rollTarget(position: number, index: number, trend: -1 | 0 | 1, size = 10): number {
+  let target = Math.floor(position / size) * size + index;
+  if (trend > 0 && target < position - 0.001) target += size;
+  else if (trend < 0 && target > position + 0.001) target -= size;
+  else if (trend === 0) target += Math.round((position - target) / size) * size;
   return target;
 }
 
+/** The face shown at an integer wheel position, wrapping in both directions. */
+export const face = (wheel: readonly string[], position: number): string => wheel[((position % wheel.length) + wheel.length) % wheel.length]!;
 export const numeral = (position: number): string => String(((position % 10) + 10) % 10);

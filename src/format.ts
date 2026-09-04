@@ -10,9 +10,14 @@ export interface Token {
   key: string;
   identity: string;
   text: string;
-  digit?: number;
+  /** Faces this glyph can roll through; undefined for symbols that crossfade instead. */
+  wheel?: readonly string[];
+  /** Position of `text` on the wheel. */
+  index?: number;
   place?: number;
 }
+
+export const DIGITS: readonly string[] = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 export interface Model {
   text: string;
@@ -66,7 +71,7 @@ export function model(value: Value, options: FormatOptions = {}): Model {
       for (const digit of part.value) {
         const place = part.type === "integer" ? --integerPlace : fractionPlace--;
         const identity = `digit:${place}`;
-        tokens.push({ key: identity, identity, text: digit, digit: Number(digit), place });
+        tokens.push({ key: identity, identity, text: digit, wheel: DIGITS, index: Number(digit), place });
       }
     } else if (part.type === "group") {
       const identity = `group:${integerPlace}`;
@@ -91,4 +96,41 @@ export function direction(previous: Model, next: Model): -1 | 0 | 1 {
   const left = af.padEnd(length, "0");
   const right = bf.padEnd(length, "0");
   return right === left ? 0 : right > left ? 1 : -1;
+}
+
+export interface TextOptions {
+  /** Characters that roll through a wheel, in wheel order. Others crossfade in place. */
+  charset?: string | undefined;
+}
+
+/** Split-flap style board default: space, A–Z, digits, then common punctuation. */
+export const FLAP_CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.-/&+'";
+
+const wheels = new Map<string, readonly string[]>();
+function wheelFor(charset: string): readonly string[] {
+  let wheel = wheels.get(charset);
+  if (!wheel) {
+    wheel = [...new Set(segment(charset))];
+    if (wheels.size >= 16) wheels.delete(wheels.keys().next().value!);
+    wheels.set(charset, wheel);
+  }
+  return wheel;
+}
+
+function segment(text: string): string[] {
+  if (typeof Intl.Segmenter === "function") return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)].map((part) => part.segment);
+  return [...text];
+}
+
+/** One token per grapheme; identity is the character position so words retarget in place. */
+export function textModel(text: string, options: TextOptions = {}): Model {
+  const wheel = wheelFor(options.charset ?? FLAP_CHARSET);
+  const rollable = !bidi.test(text);
+  if (!rollable) return { text, tokens: [], rollable, signature: "text", magnitude: "" };
+  const tokens = segment(text).map((glyph, position): Token => {
+    const identity = `char:${position}`;
+    const index = wheel.indexOf(glyph);
+    return index >= 0 ? { key: identity, identity, text: glyph, wheel, index } : { key: `${identity}:${glyph}`, identity, text: glyph };
+  });
+  return { text, tokens, rollable, signature: "text", magnitude: "" };
 }

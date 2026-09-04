@@ -15,6 +15,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: new URL("./demo/index.html", import.meta.url).pathname,
+        board: new URL("./demo/board.html", import.meta.url).pathname,
         // The benchmark page is built only for `bun run bench`, not for the public site.
         ...(process.env.ROLLING_NUMBER_BENCH ? { bench: new URL("./demo/bench.html", import.meta.url).pathname } : {}),
       },

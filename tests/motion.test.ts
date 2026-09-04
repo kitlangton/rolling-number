@@ -21,3 +21,13 @@ it("keeps wrap travel bounded and direction explicit", () => {
     expect(Math.max(...motion.points) - Math.min(...motion.points)).toBeLessThan(13);
   }
 });
+
+it("rolls arbitrary wheels forward and wraps faces in both directions", async () => {
+  const { face } = await import("../src/motion");
+  const wheel = [" ", "A", "B", "C"];
+  expect(face(wheel, 5)).toBe("A");
+  expect(face(wheel, -1)).toBe("C");
+  // Forward-only trend from "C" (index 3) to "A" (index 1) travels through the blank, not backwards.
+  expect(rollTarget(3, 1, 1, wheel.length)).toBe(5);
+  expect(rollTarget(3, 1, -1, wheel.length)).toBe(1);
+});

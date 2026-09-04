@@ -1,7 +1,7 @@
 import { StrictMode, memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { RollingNumber } from "../src/react";
+import { RollingNumber, RollingText } from "../src/react";
 import { Track } from "../src/track";
 import { spring } from "../src/motion";
 import { ActivityGraphic, AvatarGraphic, FileGraphic, LedgerGraphic, ShirtGraphic, WeatherGraphic } from "./MiniGraphics";
@@ -148,6 +148,8 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
   const [degrees, setDegrees] = useState({ value: -4.5, animated: true });
   const [currencyIndex, setCurrencyIndex] = useState({ value: 0, animated: true });
   const [growth, setGrowth] = useState({ value: 23, animated: true });
+  const [scrub, setScrub] = useState({ value: 48210, animated: true });
+  const scrubbing = useRef(false);
   const revenueNumber = useRef<HTMLDivElement>(null);
   const saleFlash = useRef<Animation | null>(null);
   function stopSaleFlash() {
@@ -197,6 +199,13 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
     media.addEventListener("change", preference);
     return () => { observer.disconnect(); track.cancel(); media.removeEventListener("change", preference); };
   }, [duration, reduced]);
+  const [teaser, setTeaser] = useState("EDINBURGH");
+  useEffect(() => {
+    const words = ["EDINBURGH", "PENZANCE", "ON TIME", "PLATFORM 9", "DELAYED"];
+    let index = 0;
+    const timer = setInterval(() => setTeaser(words[++index % words.length]!), 2800);
+    return () => clearInterval(timer);
+  }, []);
   const shared = { locales: locale, duration, motionBlur };
   return (
     <section id="examples" className="examples" aria-label="Examples" data-reduced={reduced} style={{ "--duration": `${duration}ms`, "--spring": springEasing(duration) } as CSSProperties}>
@@ -278,6 +287,20 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
           <button className="mini-button" onClick={(event) => setGrowth((current) => ({ value: current.value === 23 ? 5823823 : 23, animated: event.detail > 0 }))}>{growth.value === 23 ? "Go viral" : "Reset audience"}</button>
         </div>
       </article>
+      <article className="example mini-app scrub-app">
+        <h2>Scrub</h2>
+        <div className="app-metric"><span className="mini-label">Odometer · continuous input</span><div className="example-number scrub-number"><RollingNumber {...shared} value={scrub.value} format={{ style: "unit", unit: "kilometer", unitDisplay: "short", maximumFractionDigits: 0 }} duration={Math.min(duration, 350)} animated={!reduced && scrub.animated} /></div></div>
+        <label className="scrub-control"><span className="mini-label">Drag freely; every input retargets the wheels from their current speed.</span>
+          <input type="range" min="0" max="120000" step="1" value={scrub.value} aria-label="Distance"
+            onPointerDown={() => { scrubbing.current = true; }} onPointerUp={() => { scrubbing.current = false; }} onPointerCancel={() => { scrubbing.current = false; }} onBlur={() => { scrubbing.current = false; }} onKeyDown={() => { scrubbing.current = false; }}
+            onChange={(event) => setScrub({ value: Number(event.target.value), animated: scrubbing.current })} />
+        </label>
+      </article>
+      <article className="example mini-app board-teaser">
+        <h2>Departures</h2>
+        <div className="teaser-body"><span className="teaser-text"><RollingText {...shared} text={teaser} stagger="start" duration={Math.max(duration, 700)} animated={!reduced} /></span></div>
+        <div className="example-actions"><a className="mini-button" href="./board.html">Open the split-flap board <span aria-hidden="true">→</span></a></div>
+      </article>
     </section>
   );
 });
@@ -312,7 +335,7 @@ function App() {
       <a className="skip-link" href="#playground">Skip to showcase</a>
       <header className="site-header">
         <a className="brand" href="#" aria-label="Rolling Number home"><h1>rolling number</h1></a>
-        <nav aria-label="Main navigation"><a href={`${repository}#readme`}>Docs</a><a href={repository}>GitHub <span aria-hidden="true">↗</span></a></nav>
+        <nav aria-label="Main navigation"><a href="./board.html">Departures</a><a href={`${repository}#readme`}>Docs</a><a href={repository}>GitHub <span aria-hidden="true">↗</span></a></nav>
       </header>
       <main>
         <section className="playground" id="playground" aria-label="Interactive number playground">
