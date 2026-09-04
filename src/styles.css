@@ -60,6 +60,14 @@
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
 }
+@supports (overflow: clip) {
+  .rn-slot { overflow-x: visible; overflow-y: clip; }
+}
+.rn-slot:not([data-rn-key^="digit:"]) {
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
 .rn-enter, .rn-reel, .rn-face { display: block; }
 .rn-reel { position: relative; }
 .rn-sharp, .rn-smear { display: block; }

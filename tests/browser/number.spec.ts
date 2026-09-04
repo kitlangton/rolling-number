@@ -107,10 +107,13 @@ test("currency replacements crossfade in place instead of entering through the d
   const nextSymbol = page.locator("[data-rn-key='currency:0:£']");
   expect(Math.abs((await nextSymbol.boundingBox())!.x - before!.x)).toBeLessThan(.5);
   await expect(nextSymbol.locator(".rn-enter, .rn-smear")).toHaveCount(0);
+  expect(await nextSymbol.evaluate((element) => getComputedStyle(element).maskImage)).toBe("none");
+  expect(await nextSymbol.locator(".rn-reel").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).a)).toBeCloseTo(.96, 3);
   await page.evaluate(() => { for (const animation of document.getAnimations()) animation.currentTime = 90; });
   const oldAlpha = await oldSymbol.evaluate((element) => Number(getComputedStyle(element).opacity));
   const newAlpha = await nextSymbol.evaluate((element) => Number(getComputedStyle(element).opacity));
   expect(oldAlpha + newAlpha).toBeCloseTo(1, 3);
+  expect(await oldSymbol.locator(".rn-reel").evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).a)).toBeGreaterThan(1);
   await page.evaluate(() => window.testNumber.finish());
 });
 

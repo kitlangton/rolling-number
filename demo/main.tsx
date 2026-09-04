@@ -89,7 +89,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
         <h2>Shop</h2>
         <div className="shop-product">
           <div className="product-art"><ShirtGraphic /></div>
-          <div className="product-info"><strong>Studio tee</strong><span>Washed black · $125</span><button className="mini-button" aria-label="Buy Studio tee" onClick={(event) => { flashSale(event.detail > 0); setRevenue((current) => ({ value: current.value + 125, animated: event.detail > 0 })); }}>Buy <span aria-hidden="true">↗</span></button></div>
+          <div className="product-info"><strong>Studio tee</strong><span>Washed black · $125</span><button className="mini-button" aria-label="Buy Studio tee" onClick={(event) => { flashSale(event.detail > 0); setRevenue((current) => ({ value: current.value + 125, animated: event.detail > 0 })); }}>Buy</button></div>
         </div>
         <div className="app-metric"><span className="mini-label">Revenue</span><div ref={revenueNumber} className="example-number revenue-number"><RollingNumber {...shared} value={revenue.value} format={currency} animated={!reduced && revenue.animated} /></div></div>
       </article>

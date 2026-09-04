@@ -125,7 +125,7 @@ counters default to no blur. Reduced motion disables the effect along with rolli
 New digits can also smear vertically during their eased entrance; the blend clears
 at settlement. Currency signs, separators and other symbols crossfade instead of
 rolling. Replaced symbols keep their semantic position rather than moving through
-the adjacent digits.
+the adjacent digits, with a small 4% scale accent during replacement.
 See [the scoped blur-cost measurement](perf/blur-cost.md) for its overhead and limits.
 
 ## How it stays small and stable
@@ -165,6 +165,11 @@ This does not animate arbitrary surrounding siblings
 or promise zero layout shift. Reserve space with CSS `min-width` when a stable
 surrounding layout matters. Ancestor axis-aligned scaling is supported; rotated or
 skewed ancestors, vertical writing and per-digit typography are not a v0.1 contract.
+
+Keep horizontal overflow visible on containers around the number. A horizontal
+scrollport or `overflow: hidden` can cut off outgoing digits when the host shrinks,
+even when the final value fits. The demo leaves both its bento tiles and number
+containers unclipped; the renderer handles vertical reel clipping separately.
 
 ### Locale and accessibility boundaries
 

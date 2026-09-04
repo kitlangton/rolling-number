@@ -34,10 +34,9 @@ h1, h2, p { margin: 0; }
 .site-header nav a { display: inline-flex; align-items: center; min-height: 44px; gap: 6px; }
 .playground { padding: 10px 0 32px; }
 .number-stage { display: flex; justify-content: center; align-items: center; min-height: 290px; padding: 36px 0; font-size: calc(clamp(3.5rem, 12.4vw, 9rem) * var(--number-scale)); font-weight: 450; line-height: 1.25; letter-spacing: -.065em; }
-.number-frame { display: flex; justify-content: safe center; width: 100%; max-width: 100%; padding: .05em .08em .12em; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.number-frame { display: flex; justify-content: safe center; width: 100%; max-width: 100%; padding: .05em .08em .12em; overflow: visible; }
 .number-frame > .rn-react { flex-shrink: 0; }
 .number-frame .rn-slot[data-rn-key^="unit:"] { color: var(--muted); }
-.number-frame::-webkit-scrollbar, .example-number::-webkit-scrollbar { display: none; }
 .font-serif { font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
 .font-mono { font-family: var(--mono); }
 .digits-tabular { font-variant-numeric: tabular-nums lining-nums; }
@@ -57,11 +56,11 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .toggles { grid-column: span 2; display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
 .toggles label { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 12px; min-height: 30px; }
 .locale-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 12px; }
-.examples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); }
-.example { min-width: 0; padding: 28px 28px 26px 0; border-bottom: 1px solid var(--line); }
-.example:nth-child(even) { border-left: 1px solid var(--line); padding-left: 32px; padding-right: 0; }
-.example h2 { color: var(--muted); font-size: 12px; font-weight: 450; }
-.example-number { max-width: 100%; padding: 18px 0; font-size: clamp(2.3rem, 5vw, 3.5rem); line-height: 1.25; letter-spacing: -.055em; font-weight: 450; font-variant-numeric: tabular-nums; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.examples { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; }
+.example { position: relative; min-width: 0; padding: 20px; border: 1px solid #252a30; border-radius: 13px; background: #131619; overflow: visible; }
+.example:focus-within { z-index: 1; }
+.example h2 { color: var(--muted); font-size: 11px; font-weight: 450; }
+.example-number { max-width: 100%; padding: 18px 0; font-size: clamp(2.3rem, 5vw, 3.5rem); line-height: 1.25; letter-spacing: -.055em; font-weight: 450; font-variant-numeric: tabular-nums; overflow: visible; }
 .revenue-number { --revenue-ink: #d2d4d8; color: var(--revenue-ink); }
 .example-actions { display: flex; gap: 18px; }
 .quiet { display: inline-flex; align-items: center; gap: 20px; padding: 0; background: none; border-color: transparent; color: #b8babd; min-height: 36px; font-size: 12px; }
@@ -76,56 +75,67 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .bigint-number { font-size: clamp(1rem, 3vw, 1.875rem); min-height: 106px; display: flex; align-items: center; }
 .site-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; padding: 28px 0 36px; color: #94979b; font-size: 11px; }
 .site-footer code { margin-right: auto; font-family: var(--mono); color: #b0b2b6; }
-.mini-app { display: flex; flex-direction: column; min-height: 300px; gap: 18px; }
-.mini-app .example-number { font-size: 44px; padding: 6px 0; }
-.mini-app .bigint-number { font-size: clamp(16px, 2.5vw, 27px); min-height: 0; }
+.mini-app { display: flex; flex-direction: column; min-height: 210px; gap: 12px; }
+.shop-app { grid-column: span 5; }
+.focus-app { grid-column: span 3; }
+.team-app { grid-column: span 4; }
+.example-bigint { grid-column: span 5; }
+.upload-app { grid-column: span 7; }
+.weather-app { grid-column: span 3; }
+.invoice-app { grid-column: span 4; }
+.audience-app { grid-column: span 5; }
+.shop-app, .focus-app, .team-app { min-height: 242px; }
+.mini-app .example-number { font-size: 36px; padding: 0; }
+.mini-app .bigint-number { font-size: clamp(15px, 2vw, 22px); min-height: 0; }
 .mini-label { color: var(--muted); font-size: 11px; line-height: 1.5; letter-spacing: 0; }
-.mini-app strong { font-size: 14px; font-weight: 500; }
-.mini-button { width: fit-content; display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 36px; padding: 0 14px; font-size: 12px; background: #202329; border-color: #353a42; }
-.mini-button.square { width: 36px; padding: 0; font-size: 18px; }
+.mini-app strong { font-size: 13px; font-weight: 500; }
+.mini-button { width: fit-content; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 32px; padding: 0 11px; font-size: 11px; background: #20252b; border-color: #333a43; }
+.mini-button.square { width: 32px; padding: 0; font-size: 16px; }
 .mini-app > .example-actions, .mini-app > .seat-control, .weather-controls, .currency-switch { margin-top: auto; }
 .mini-app .centered { justify-content: center; }
 .app-metric { min-width: 0; }
-.shop-product { display: flex; align-items: center; gap: 20px; }
-.product-art { display: grid; place-items: center; width: 124px; height: 124px; flex: none; border-radius: 8px; background: #171a1e; }
-.shirt-graphic { width: 108px; height: 108px; }
+.shop-product { display: flex; align-items: center; gap: 16px; }
+.product-art { display: grid; place-items: center; width: 98px; height: 98px; flex: none; border-radius: 8px; background: #1b1f24; }
+.shirt-graphic { width: 84px; height: 84px; }
 .product-info { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .product-info > span { color: var(--muted); font-size: 11px; }
 .product-info button { margin-top: 5px; }
 .shop-app .app-metric { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: auto; }
-.shop-app .example-number { font-size: 36px; }
-.focus-dial { width: 162px; height: 162px; position: relative; align-self: center; }
+.shop-app .example-number { font-size: 32px; }
+.focus-dial { width: 124px; height: 124px; position: relative; align-self: center; }
 .focus-dial > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.focus-dial .timer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; padding: 0; }
+.focus-dial .timer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; padding: 0; }
 .dial-progress { transition: stroke-dashoffset 500ms ease; }
-.avatar-stack { display: flex; align-items: center; min-height: 46px; margin-top: 12px; }
-.mini-avatar { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #0d0e10; background: #29303a; color: #8693a5; overflow: hidden; margin-right: -10px; }
+.avatar-stack { display: flex; align-items: center; min-height: 34px; margin-top: 6px; }
+.mini-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #131619; background: #29303a; color: #8693a5; overflow: hidden; margin-right: -9px; }
 .mini-avatar:nth-child(2n) { background: #343032; color: #af9992; }
 .mini-avatar:nth-child(3n) { background: #293532; color: #8caaa0; }
 .mini-avatar svg { width: 100%; height: 100%; }
-.extra-members { color: var(--muted); font-size: 12px; padding-left: 22px; }
+.extra-members { color: var(--muted); font-size: 11px; padding-left: 20px; }
 .team-app .price { margin-top: 2px; }
 .team-app .seat-control { justify-content: space-between; }
 .team-app .seat-control input { width: min(240px, 70%); }
-.ledger-graphic { width: min(250px, 100%); height: 83px; margin: 1px 0; }
-.upload-file { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
-.file-graphic { flex: none; width: 62px; height: 74px; }
+.ledger-graphic { position: absolute; right: 16px; top: 12px; width: 110px; height: 37px; opacity: .7; }
+.example-bigint .app-metric { margin-top: 18px; }
+.upload-file { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.file-graphic { flex: none; width: 36px; height: 44px; }
 .upload-file > div:not(.example-number), .invoice-body > div { display: flex; flex-direction: column; gap: 6px; }
-.upload-file .example-number { margin-left: auto; font-size: 36px; }
-.upload-track { height: 4px; background: #2c323a; overflow: hidden; border-radius: 2px; }
+.upload-file .example-number { margin-left: auto; font-size: 32px; }
+.upload-track { height: 3px; background: #2c323a; overflow: hidden; border-radius: 2px; }
 .upload-track > span { display: block; width: 100%; height: 100%; background: #b3c1cf; transform-origin: left; transition: transform 350ms ease-out; }
-.weather-summary { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-.weather-graphic { flex: none; width: 112px; height: 103px; }
-.weather-controls { display: flex; align-items: center; justify-content: space-between; }
+.weather-summary { margin-top: 8px; }
+.weather-graphic { position: absolute; width: 54px; height: 50px; top: 12px; right: 14px; }
+.weather-controls { display: flex; align-items: center; }
+.weather-controls > .mini-label { display: none; }
 .weather-controls .example-actions { gap: 8px; }
-.invoice-body { display: flex; align-items: center; gap: 16px; }
-.invoice-body .file-graphic { width: 46px; height: 54px; }
+.invoice-body { display: flex; align-items: center; gap: 10px; }
+.invoice-body .file-graphic { width: 30px; height: 36px; }
 .invoice-total { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
-.invoice-total .example-number { font-size: 36px; }
-.currency-switch { display: flex; gap: 6px; }
-.currency-switch button { min-height: 32px; padding: 0 12px; font: 10px var(--mono); border-color: transparent; background: none; color: var(--muted); }
+.invoice-total .example-number { font-size: 30px; }
+.currency-switch { display: flex; gap: 3px; padding: 3px; align-self: flex-start; border: 1px solid #252c34; border-radius: 7px; background: #0e1114; }
+.currency-switch button { min-height: 28px; padding: 0 8px; font: 9px var(--mono); border-color: transparent; background: none; color: var(--muted); }
 .currency-switch button[aria-pressed="true"] { color: var(--ink); background: #272c33; }
-.activity-graphic { width: 100%; height: 74px; }
+.activity-graphic { width: 100%; height: 46px; }
 .activity-graphic rect { transform-box: fill-box; transform-origin: center bottom; transition: transform 500ms ease-out; }
 .activity-graphic[data-animated="false"] rect { transition: none; }
 [data-reduced="true"] :is(.dial-progress, .upload-track > span, .activity-graphic rect) { transition: none; }
@@ -135,6 +145,12 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .quiet:hover { background: none !important; color: var(--ink); }
   a:hover, summary:hover { color: var(--ink); }
 }
+@media (min-width: 641px) and (max-width: 900px) {
+  .examples { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .shop-app, .example-bigint { grid-column: span 4; }
+  .focus-app, .team-app { grid-column: span 2; }
+  .upload-app, .weather-app, .invoice-app, .audience-app { grid-column: span 3; }
+}
 @media (max-width: 640px) {
   .site-shell { padding-inline: 22px; }
   .site-header { min-height: 80px; }
@@ -143,13 +159,13 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .number-stage { min-height: 230px; font-size: calc(11.6vw * var(--number-scale)); }
   .settings { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 18px; }
   .examples { grid-template-columns: 1fr; }
-  .example, .example:nth-child(even) { border-left: 0; padding: 25px 0; }
+  .example { grid-column: 1 / -1; padding: 20px; }
   .example-number { font-size: 48px; }
   .bigint-number { font-size: clamp(1rem, 4.8vw, 1.6rem); min-height: 92px; }
   .site-footer { gap: 20px; }
   .site-footer code { width: 100%; }
-  .mini-app { min-height: 280px; }
+  .mini-app { min-height: 210px; }
+  .example-bigint, .upload-app { min-height: 190px; }
   .mini-app .bigint-number { font-size: clamp(16px, 4.8vw, 24px); }
-  .product-art { width: 112px; height: 112px; }
-  .weather-graphic { width: 96px; }
+  .currency-switch button { min-height: 34px; }
 }

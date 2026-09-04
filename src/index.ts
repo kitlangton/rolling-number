@@ -47,6 +47,7 @@ interface Column {
 
 const mounted = new WeakSet<HTMLElement>();
 const translate = (x: number): string => `translateX(${x}px)`;
+const scale = (value: number): string => `scale(${value})`;
 const opacity = (value: number): string => String(Math.max(0, Math.min(1, value)));
 
 function validate(options: RollingNumberOptions): void {
@@ -218,7 +219,8 @@ class Renderer implements Participant, RollingNumberController {
     this.blur?.remove(column.reel);
     column.reel.replaceChildren();
     this.face(column, column.token.text);
-    column.roll.set(column.token.digit ?? 0, () => "translateY(0px)");
+    if (column.token.digit === undefined) column.roll.set(1, scale);
+    else column.roll.set(column.token.digit, () => "translateY(0px)");
   }
 
   private finishEntry(column: Column): void {
@@ -311,6 +313,11 @@ class Renderer implements Participant, RollingNumberController {
         this.rest(column);
       }
       if (fresh && duration && token.digit !== undefined) this.enter(column, duration);
+      if (replacement && duration && (fresh || reentered)) {
+        const current = column.roll.read();
+        const active = column;
+        column.roll.play(spring(fresh ? .96 : current.position, 1, current.velocity, Math.min(duration, 180)), scale, () => this.rest(active));
+      }
     }
     for (const [key, column] of this.columns) {
       if (geometry.has(key)) continue;
@@ -320,6 +327,10 @@ class Renderer implements Participant, RollingNumberController {
       column.x.play(spring(x.position + originShift, replacement?.x ?? exits.get(key) ?? x.position, x.velocity, duration), translate);
       if (column.exiting) continue;
       column.exiting = true;
+      if (replacement && duration) {
+        const current = column.roll.read();
+        column.roll.play(spring(current.position, 1.04, current.velocity, Math.min(duration, 180)), scale);
+      }
       const alpha = column.opacity.read();
       column.opacity.play(spring(alpha.position, 0, alpha.velocity, column.token.digit === undefined ? Math.min(duration, 180) : duration * 0.65), opacity, () => {
         if (!column.exiting) return;

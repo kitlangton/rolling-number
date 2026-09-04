@@ -137,27 +137,18 @@ test("extra examples cover percentages, signs, currency changes and large growth
   await expect(example("Audience").locator(".rn-semantic")).toHaveText("23");
 });
 
-test("number displays hide scrollbars without disabling horizontal panning", async ({ page }) => {
+test("number containers keep horizontal overflow visible rather than truncating", async ({ page }) => {
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     const frame = page.locator(".number-frame");
     await expect(frame.locator(".rn-react")).toHaveAttribute("data-rn-hydrated", "");
-    await frame.locator(".rn-react").evaluate((element) => { element.style.minWidth = "2000px"; });
-    const scroll = await frame.evaluate((element) => {
-      element.scrollLeft = 100;
-      return {
-        scrollable: element.scrollWidth > element.clientWidth,
-        scrollbar: getComputedStyle(element).scrollbarWidth,
-        position: element.scrollLeft,
-      };
-    });
-    expect(scroll.scrollable).toBe(true);
-    expect(scroll.scrollbar).toBe("none");
-    expect(scroll.position).toBeGreaterThan(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
-    for (const example of await page.locator(".example-number").all()) {
-      expect(await example.evaluate((element) => getComputedStyle(element).scrollbarWidth)).toBe("none");
+    for (const element of await page.locator(".number-frame, .example-number, .mini-app").all()) {
+      expect(await element.evaluate((element) => getComputedStyle(element).overflowX)).toBe("visible");
     }
+    await frame.locator(".rn-react").evaluate((element) => { element.style.minWidth = "2000px"; });
+    expect(await frame.locator(".rn-react").evaluate((element) => element.getBoundingClientRect().width)).toBeGreaterThanOrEqual(2000);
+    expect(await frame.evaluate((element) => getComputedStyle(element).overflowX)).toBe("visible");
   }
 });

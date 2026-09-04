@@ -93,7 +93,15 @@ test("optional blur is vertical, speed-driven, interruptible and cleaned up", as
   await page.evaluate(() => window.mountNumber({ value: 1200, motionBlur: true, locales: "en-US", duration: 600, format: { style: "unit", unit: "millisecond" } }));
   await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
   await expect(page.locator(".rn-smear")).toHaveCount(0);
-  await page.evaluate(() => window.testNumber.update({ value: 1289 }));
+  await page.evaluate(() => {
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (...args) {
+      const animation = animate.apply(this, args);
+      animation.pause(); animation.currentTime = 0;
+      return animation;
+    };
+    window.testNumber.update({ value: 1289 });
+  });
   await expect(page.locator(".rn-smear")).toHaveCount(2);
   await expect(page.locator("[data-rn-key='digit:3'] .rn-smear, [data-rn-key^='unit:'] .rn-smear")).toHaveCount(0);
   const deviation = (await page.locator(".rn-blur-defs feGaussianBlur").getAttribute("stdDeviation"))!.split(" ").map(Number);
@@ -106,12 +114,6 @@ test("optional blur is vertical, speed-driven, interruptible and cleaned up", as
   const sharp = await page.locator("[data-rn-key='digit:0'] .rn-sharp").evaluate((element) => Number(getComputedStyle(element).opacity));
   expect(sharp + before).toBeCloseTo(1, 5);
   await page.evaluate(async () => {
-    const animate = Element.prototype.animate;
-    Element.prototype.animate = function (...args) {
-      const animation = animate.apply(this, args);
-      animation.pause(); animation.currentTime = 0;
-      return animation;
-    };
     window.testNumber.update({ value: 1245 });
     await new Promise(requestAnimationFrame);
     await new Promise(requestAnimationFrame);

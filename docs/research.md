@@ -127,6 +127,19 @@ core automatically animates arbitrary siblings.
   to preserve surrounding digit positions. This is an original design informed by
   those references, not a claim of pixel-identical iOS animation.
 
+Replacement symbols also scale subtly from 96% to 100%; the outgoing symbol grows
+from its current scale toward 104% as it fades. These transforms stay on the glyph
+reel and do not resize the measurement box or scale numeric digits.
+Symbols no longer need vertical reel masks, so their entire glyph stays visible
+during the crossfade and scale accent. Only numeric reels retain the edge masks.
+
+The demo's outer number containers must not be horizontal scrollports. A shrinking
+price can still have visible digits beyond its new intrinsic width. The regression
+test samples an actual painted pixel inside such a digit, then reapplies the old
+scrollport styles as a negative control. Bento tiles remain overflow-visible too.
+Reel viewports use vertical-only clipping where supported, with the previous
+per-slot clipping as a legacy CSS fallback; soft top/bottom masks are preserved.
+
 The elapsed-millisecond demo samples at 33 ms rather than 100 ms. The previous
 cadence aliased the tens/ones places into nearly constant values. The counter still
 uses actual elapsed time, not invented trailing digits. See [the ticker experiment](../perf/ticker.md)

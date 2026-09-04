@@ -40,7 +40,7 @@ export function AvatarGraphic() {
 }
 
 export function ActivityGraphic({ active, animated }: { active: boolean; animated: boolean }) {
-  return <svg viewBox="0 0 240 80" className="activity-graphic" data-animated={animated} aria-hidden="true">
+  return <svg viewBox="0 0 240 80" preserveAspectRatio="none" className="activity-graphic" data-animated={animated} aria-hidden="true">
     <path d="M0 76h240" stroke="#363b42" />
     {[20, 32, 25, 46, 38, 60, 72].map((height, index) => <rect key={index} x={7 + index * 33} y={76 - height} width="18" height={height} rx="2" fill={index === 6 ? "#f08062" : "#39414b"} style={{ transform: `scaleY(${active ? 1 : .45})` }} />)}
   </svg>;
