@@ -19,7 +19,7 @@ button, input, select { font: inherit; }
 button, select, input[type="range"], input[type="checkbox"] { cursor: pointer; }
 button, a, input, select { -webkit-tap-highlight-color: transparent; }
 button, input, select { color: inherit; }
-button { border: 1px solid var(--line); border-radius: 7px; padding: 0 16px; min-height: 40px; background: #17191c; font-size: 13px; }
+button { border: 0; border-radius: 7px; padding: 0 16px; min-height: 40px; background: #17191c; font-size: 13px; }
 button:disabled { opacity: .35; cursor: default; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
 ::selection { background: #3a4048; color: white; }
@@ -49,9 +49,9 @@ h1, h2, p { margin: 0; }
 /* Vertical clip for the height reveal; the negative inline inset keeps focus rings visible. */
 .disclosure { clip-path: inset(0 -8px round 0); }
 .disclosure[hidden] { display: none; }
-.settings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; max-width: 720px; margin: 14px auto 0; padding: 20px; border: 1px solid #1f2227; background: #111316; border-radius: 13px; }
+.settings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; max-width: 720px; margin: 14px auto 0; padding: 20px; background: #111316; border-radius: 13px; }
 .settings > label, .size-control, .seat-control label { display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: var(--muted); }
-select { min-width: 0; width: 100%; height: 32px; border: 1px solid #1f2227; border-radius: 7px; background: #0e1013; padding-inline: 9px; font-size: 12px; color: var(--ink); }
+select { min-width: 0; width: 100%; height: 32px; border: 0; border-radius: 7px; background: #0c0e11; padding-inline: 9px; font-size: 12px; color: var(--ink); }
 .settings .size-control { grid-column: span 2; display: grid; grid-template-columns: 1fr auto; }
 .size-control input { grid-column: 1 / -1; width: 100%; }
 input[type="range"] { accent-color: var(--accent); height: 20px; margin: 0; }
@@ -60,28 +60,28 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .toggles label { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 11px; min-height: 30px; }
 .locale-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 12px; }
 .install { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 22px; padding: 0 0 34px; }
-.install-command { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 3px 3px 3px 3px; border: 1px solid #1f2227; border-radius: 9px; background: #0e1013; }
+.install-command { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 3px; border-radius: 9px; background: #111316; }
 .install-command code { font: 12px var(--mono); color: var(--ink); padding: 0 8px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
 .install-command .quiet { flex: none; }
-.install-managers { position: relative; display: flex; gap: 2px; }
-.install-managers button, .install-highlight span { min-height: 30px; padding: 0 9px; font: 11px var(--mono); }
-.install-highlight { position: absolute; inset: 0; display: flex; gap: 2px; pointer-events: none; background: #1e2227; color: var(--ink); clip-path: inset(0 100% 0 0 round 6px); }
-.install-highlight span { display: inline-flex; align-items: center; border: 1px solid transparent; }
-.install-managers button { border-color: transparent; background: none; color: var(--muted); }
+.segmented { position: relative; display: flex; gap: 2px; }
+.segmented button, .segmented-highlight span { min-height: 30px; padding: 0 9px; font: 11px var(--mono); border: 0; border-radius: 6px; }
+.segmented button { background: none; color: var(--muted); }
+.segmented-highlight { position: absolute; inset: 0; display: flex; gap: 2px; pointer-events: none; background: #22262c; color: var(--ink); clip-path: inset(0 100% 0 0 round 6px); }
+.segmented-highlight span { display: inline-flex; align-items: center; }
 .install-command code { display: block; box-sizing: border-box; }
 .install-text { display: inline-block; white-space: nowrap; }
 .install-text[data-animated="true"] { animation: install-fade 180ms ease-out; }
 @keyframes install-fade { from { opacity: 0; } }
 .install-command .quiet { min-height: 30px; padding: 0 10px 0 4px; font-size: 11px; }
 .examples { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; }
-.example { position: relative; min-width: 0; padding: 20px; border: 1px solid #1f2227; border-radius: 13px; background: #111316; overflow: visible; }
+.example { position: relative; min-width: 0; padding: 20px; border-radius: 13px; background: #111316; overflow: visible; }
 .shirt-graphic, .file-graphic, .weather-graphic, .ledger-graphic, .activity-graphic { color: var(--icon); }
 .example:focus-within { z-index: 1; }
 .example h2 { color: var(--muted); font-size: 11px; font-weight: 450; }
 .example-number { max-width: 100%; padding: 18px 0; font-size: clamp(2.3rem, 5vw, 3.5rem); line-height: 1.25; letter-spacing: -.055em; font-weight: 450; font-variant-numeric: tabular-nums; overflow: visible; }
 .revenue-number { --revenue-ink: #d2d4d8; color: var(--revenue-ink); }
 .example-actions { display: flex; gap: 18px; }
-.quiet { display: inline-flex; align-items: center; gap: 20px; padding: 0; background: none; border-color: transparent; color: #b8babd; min-height: 36px; font-size: 12px; }
+.quiet { display: inline-flex; align-items: center; gap: 20px; padding: 0; background: none; color: #b8babd; min-height: 36px; font-size: 12px; }
 .quiet span, .muted { color: #999b9f; }
 .colon { color: #76797f; padding-inline: .05em; }
 .price { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
@@ -107,13 +107,13 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .mini-app .bigint-number { font-size: clamp(15px, 2vw, 22px); min-height: 0; }
 .mini-label { color: var(--muted); font-size: 11px; line-height: 1.5; letter-spacing: 0; }
 .mini-app strong { font-size: 13px; font-weight: 500; }
-.mini-button { width: fit-content; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 32px; padding: 0 11px; font-size: 11px; background: #1a1d22; border-color: #2c3037; }
+.mini-button { width: fit-content; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 32px; padding: 0 11px; font-size: 11px; background: #1c2025; }
 .mini-button.square { width: 32px; padding: 0; font-size: 16px; }
 .mini-app > .example-actions, .mini-app > .seat-control, .weather-controls, .currency-switch { margin-top: auto; }
 .mini-app .centered { justify-content: center; }
 .app-metric { min-width: 0; }
 .shop-product { display: flex; align-items: center; gap: 16px; }
-.product-art { display: grid; place-items: center; width: 98px; height: 98px; flex: none; border-radius: 8px; border: 1px solid #1f2227; background: #0e1013; }
+.product-art { display: grid; place-items: center; width: 98px; height: 98px; flex: none; border-radius: 8px; background: #0c0e11; }
 .shirt-graphic { width: 72px; height: 72px; }
 .product-info { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .product-info > span { color: var(--muted); font-size: 11px; }
@@ -155,9 +155,8 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .invoice-body .file-graphic { width: 30px; height: 36px; }
 .invoice-total { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 .invoice-total .example-number { font-size: 30px; }
-.currency-switch { display: flex; gap: 3px; padding: 3px; align-self: flex-start; border: 1px solid #1f2227; border-radius: 7px; background: #0d0f12; }
-.currency-switch button { min-height: 28px; padding: 0 8px; font: 9px var(--mono); border-color: transparent; background: none; color: var(--muted); }
-.currency-switch button[aria-pressed="true"] { color: var(--ink); background: #22262c; }
+.currency-switch { display: flex; padding: 3px; align-self: flex-start; border-radius: 9px; background: #0d0f12; }
+.currency-switch .segmented button, .currency-switch .segmented-highlight span { min-height: 28px; padding: 0 8px; font: 9px var(--mono); }
 .activity-graphic { width: 100%; height: 46px; }
 .activity-graphic rect { transform-box: fill-box; transform-origin: center bottom; transition: transform 500ms ease-out; }
 .activity-graphic[data-animated="false"] rect { transition: none; }
@@ -183,7 +182,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .settings { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 18px; }
   .examples { grid-template-columns: 1fr; }
   .install-command { width: 100%; }
-  .install-managers { display: none; }
+  .install-command .segmented { display: none; }
   .install-command code { flex: 1; font-size: 11px; padding-left: 10px; }
   .example { grid-column: 1 / -1; padding: 20px; }
   .example-number { font-size: 48px; }
@@ -193,5 +192,5 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .mini-app { min-height: 210px; }
   .example-bigint, .upload-app { min-height: 190px; }
   .mini-app .bigint-number { font-size: clamp(16px, 4.8vw, 24px); }
-  .currency-switch button { min-height: 34px; }
+  .currency-switch .segmented button, .currency-switch .segmented-highlight span { min-height: 34px; }
 }

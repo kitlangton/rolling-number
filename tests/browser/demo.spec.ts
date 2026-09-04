@@ -157,7 +157,7 @@ test("install row slides its selection, animates the command width, copies, and 
   await page.goto("/");
   const install = page.locator(".install");
   await expect(install.locator("code")).toHaveText("bun add @kitlangton/rolling-number");
-  const inset = () => install.locator(".install-highlight").evaluate((element) => Number(/inset\(\S+ \S+ \S+ (\S+)px/.exec(getComputedStyle(element).clipPath)![1]));
+  const inset = () => install.locator(".segmented-highlight").evaluate((element) => Number(/inset\(\S+ \S+ \S+ (\S+)px/.exec(getComputedStyle(element).clipPath)![1]));
   expect(await inset()).toBeCloseTo(0, 0);
   await page.evaluate(() => {
     const animate = Element.prototype.animate;

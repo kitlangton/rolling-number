@@ -36,6 +36,39 @@ function readInset(element: HTMLElement): { left: number; right: number } | unde
   return match ? { right: Number(match[1]), left: Number(match[2]) } : undefined;
 }
 
+/**
+ * Segmented control with a sliding pill. The pill is an overlay of bright label
+ * copies clipped to the selected segment, so each label turns white exactly as the
+ * pill passes underneath. Slides run on the shared spring and resume from the
+ * drawn clip when interrupted.
+ */
+function Segmented<T extends string>({ options, value, onChange, label, duration, reduced, format = (option) => option }: {
+  options: readonly T[]; value: T; onChange: (value: T, animated: boolean) => void; label: string; duration: number; reduced: boolean; format?: (option: T) => string;
+}) {
+  const group = useRef<HTMLDivElement>(null);
+  const highlight = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+  useLayoutEffect(() => {
+    const element = group.current, overlay = highlight.current;
+    const target = element?.querySelector<HTMLElement>("button[aria-pressed='true']");
+    if (!element || !overlay || !target) return;
+    const from = readInset(overlay);
+    for (const animation of overlay.getAnimations()) animation.cancel();
+    const first = !started.current;
+    started.current = true;
+    const clip = (left: number, right: number) => `inset(0px ${right}px 0px ${left}px round 6px)`;
+    const to = { left: target.offsetLeft, right: element.offsetWidth - target.offsetLeft - target.offsetWidth };
+    const start = from ?? to;
+    overlay.animate([{ clipPath: clip(start.left, start.right) }, { clipPath: clip(to.left, to.right) }], { duration: reduced || first ? 0 : duration, easing: springEasing(duration), fill: "forwards" });
+  }, [value, duration, reduced]);
+  return (
+    <div ref={group} className="segmented" role="group" aria-label={label}>
+      {options.map((option) => <button key={option} aria-pressed={value === option} onClick={(event) => onChange(option, event.detail > 0)}>{format(option)}</button>)}
+      <div ref={highlight} className="segmented-highlight" aria-hidden="true">{options.map((option) => <span key={option}>{format(option)}</span>)}</div>
+    </div>
+  );
+}
+
 /** Height/opacity reveal on the shared spring; the panel is inert and hidden once closed. */
 function Disclosure({ open, duration, reduced, id, children }: { open: boolean; duration: number; reduced: boolean; id: string; children: ReactNode }) {
   const wrap = useRef<HTMLDivElement>(null);
@@ -71,40 +104,25 @@ function Install({ duration, reduced }: { duration: number; reduced: boolean }) 
   const [manager, setManager] = useState<PackageManager>("bun");
   const [copied, copy] = useCopy();
   const command = installCommands[manager];
-  const managers = useRef<HTMLDivElement>(null);
-  const highlight = useRef<HTMLDivElement>(null);
   const code = useRef<HTMLElement>(null);
   const started = useRef(false);
   useLayoutEffect(() => {
-    const group = managers.current, overlay = highlight.current, box = code.current;
-    if (!group || !overlay || !box) return;
-    const target = group.querySelector<HTMLElement>("button[aria-pressed='true']");
-    if (!target) return;
-    // Read the rendered geometry first (an interruption point), then release the
-    // previous effects to read the natural target geometry.
-    const inset = readInset(overlay);
+    const box = code.current;
+    if (!box) return;
+    // Read the rendered width first (an interruption point), then release the
+    // previous effect to read the natural target width.
     const rendered = box.getBoundingClientRect().width;
-    for (const animation of [...overlay.getAnimations(), ...box.getAnimations()]) animation.cancel();
+    for (const animation of box.getAnimations()) animation.cancel();
     const width = box.getBoundingClientRect().width;
     const first = !started.current;
     started.current = true;
-    const options = { duration: reduced || first ? 0 : duration, easing: springEasing(duration), fill: "forwards" as const };
-    const clip = (left: number, right: number) => `inset(0px ${right}px 0px ${left}px round 6px)`;
-    const to = { left: target.offsetLeft, right: group.offsetWidth - target.offsetLeft - target.offsetWidth };
-    const from = inset ?? to;
-    // The overlay holds bright copies of the labels; clipping it to the pill turns each
-    // label white exactly as the pill passes underneath.
-    overlay.animate([{ clipPath: clip(from.left, from.right) }, { clipPath: clip(to.left, to.right) }], options);
-    if (options.duration) box.animate([{ width: `${rendered}px` }, { width: `${width}px` }], options);
+    if (first || reduced) return;
+    box.animate([{ width: `${rendered}px` }, { width: `${width}px` }], { duration, easing: springEasing(duration), fill: "forwards" });
   }, [manager, duration, reduced]);
-  const names = Object.keys(installCommands) as PackageManager[];
   return (
     <section className="install" aria-label="Install">
       <div className="install-command">
-        <div ref={managers} className="install-managers" role="group" aria-label="Package manager">
-          {names.map((name) => <button key={name} aria-pressed={manager === name} onClick={() => setManager(name)}>{name}</button>)}
-          <div ref={highlight} className="install-highlight" aria-hidden="true">{names.map((name) => <span key={name}>{name}</span>)}</div>
-        </div>
+        <Segmented options={Object.keys(installCommands) as PackageManager[]} value={manager} onChange={setManager} label="Package manager" duration={duration} reduced={reduced} />
         <code ref={code}><span key={manager} className="install-text" data-animated={!reduced}>{command}</span></code>
         <button className="quiet" aria-label="Copy install command" onClick={() => copy(command)}>{copied ? "Copied" : "Copy"}</button>
       </div>
@@ -246,7 +264,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
         <h2>Invoice</h2>
         <div className="invoice-body"><FileGraphic /><div><strong>INV–0042</strong><span className="mini-label">Design services</span></div></div>
         <div className="invoice-total"><span className="mini-label">Total</span><div className="example-number"><RollingNumber {...shared} value={1987.65} format={{ style: "currency", currency: currencies[currencyIndex.value]! }} animated={!reduced && currencyIndex.animated} /></div></div>
-        <div className="currency-switch" role="group" aria-label="Invoice currency">{currencies.map((code, index) => <button key={code} aria-pressed={currencyIndex.value === index} onClick={(event) => setCurrencyIndex({ value: index, animated: event.detail > 0 })}>{code}</button>)}</div>
+        <div className="currency-switch"><Segmented options={currencies} value={currencies[currencyIndex.value]!} onChange={(code, animated) => setCurrencyIndex({ value: currencies.indexOf(code), animated })} label="Invoice currency" duration={duration} reduced={reduced} /></div>
       </article>
       <article className="example mini-app audience-app">
         <h2>Audience</h2>
