@@ -6,7 +6,7 @@ export default defineConfig({
   optimizeDeps: {
     // Prebundle the browser fixture's SSR entry too, avoiding a dependency
     // discovery reload in the middle of the first hydration test.
-    include: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client", "react-dom/server", "number-flow"],
+    include: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client", "react-dom/server", "number-flow", "solid-js", "solid-js/web"],
   },
   build: {
     outDir: "../site",

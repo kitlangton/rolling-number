@@ -67,11 +67,11 @@ export function model(value: Value, options: FormatOptions = {}): Model {
         tokens.push({ key: `digit:${place}`, text: digit, digit: Number(digit), place });
       }
     } else if (part.type === "group") {
-      tokens.push({ key: `group:${integerPlace}`, text: part.value });
+      tokens.push({ key: `group:${integerPlace}:${part.value}`, text: part.value });
     } else {
       const occurrence = occurrences.get(part.type) ?? 0;
       occurrences.set(part.type, occurrence + 1);
-      tokens.push({ key: `${part.type}:${occurrence}`, text: part.value });
+      tokens.push({ key: `${part.type}:${occurrence}:${part.value}`, text: part.value });
     }
   }
   return { text, tokens, rollable, signature, magnitude: `${integer.replace(/^0+(?=\d)/u, "")}.${fraction}` };

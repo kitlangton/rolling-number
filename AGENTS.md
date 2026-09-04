@@ -1,6 +1,6 @@
 # Rolling Number
 
-- This repository owns an original, small rolling-number animation library, its React adapter, browser demo, and reproducible benchmarks.
+- This repository owns an original, small rolling-number animation library, its React and Solid adapters, browser demo, and reproducible benchmarks.
 - Read `CONTEXT.md` and `docs/research.md` before changing rendering or number semantics.
 - Use Bun. Run Vitest through `bun run test`, not `bun test`.
 - Keep formatting and transition math pure and tested separately from DOM measurement and animation.

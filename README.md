@@ -3,8 +3,8 @@
 **Numbers that move without losing their place.**
 
 A small, original TypeScript library for interruptible rolling numbers. Native
-browser animation playback, a framework-independent DOM API, and a thin React
-adapter. MIT licensed. No runtime dependencies in the DOM core.
+browser animation playback, a framework-independent DOM API, and thin React and
+Solid adapters. MIT licensed. No runtime dependencies in the DOM core.
 
 ## Install
 
@@ -24,8 +24,10 @@ bun install
 bun run dev
 ```
 
-The demo includes rapid reversals, prices, large integers, typography controls,
-locale changes and reduced motion. Nothing needs a remote font or an API key.
+The main number steadily increases. Shuffle changes its magnitude without switching
+formats; Options offers currencies, percentages and decimals. The demo also includes
+prices, large integers, typography controls, locale changes and reduced motion.
+Nothing needs a remote font or an API key.
 
 ## React
 
@@ -49,6 +51,26 @@ can still produce different formatted text. Hydration warnings are not suppresse
 
 React 18 and 19 are supported. React is an optional peer dependency; vanilla users
 do not need to install it. The React entrypoint preserves its `use client` boundary.
+
+## Solid
+
+```tsx
+import { createSignal } from 'solid-js'
+import { RollingNumber } from '@kitlangton/rolling-number/solid'
+import '@kitlangton/rolling-number/styles.css'
+
+function Balance() {
+  const [value, setValue] = createSignal(1234.56)
+  return <RollingNumber value={value()} locales="en-US" format={{ style: 'currency', currency: 'USD' }} />
+}
+```
+
+Solid 1.9+ is supported. Pass reactive props normally; the adapter forwards changes
+to the same DOM controller and destroys it on cleanup. Use Solid's `class` and
+`ref` props. Server rendering keeps readable text, and hydration adopts it without
+an initial roll. React and Solid are optional peers; each adapter imports only its
+own framework. The shipped Solid entry works in browser and server builds without
+a package-specific JSX transform.
 
 ## Vanilla DOM
 
@@ -91,7 +113,8 @@ not restart animations.
 The React component additionally accepts ordinary span attributes, including
 `className`, `style`, `aria-label`, and an element ref. It does not accept children
 or raw HTML. Set `animated={false}` for updates that should settle immediately.
-The demo animates typed numeric values while respecting reduced-motion preferences.
+Changes between supported formats animate digits, separators and symbols while
+respecting reduced-motion preferences.
 
 ## How it stays small and stable
 
@@ -155,9 +178,11 @@ See [the methodology](perf/method.md) and [research and design tradeoffs](docs/r
 Benchmarks are workload- and browser-specific. A smaller DOM or no per-frame
 JavaScript does not, on its own, prove smoother presented frames or universal speed.
 
-The [published local comparison](perf/results.md) measured **59.2% less main-thread
-work and 56.7% fewer retained elements** than NumberFlow 0.6.2 for 100 animated
-counters. It includes the slower cases, methodology and raw per-round data—not a
+The [published local comparison](perf/results.md) of commit `35155ca` measured
+**59.2% less main-thread work and 56.7% fewer retained elements** than NumberFlow
+0.6.2 for 100 animated counters in Chromium 151 on an Apple M2 Max. This baseline
+predates format-to-format transitions and the Solid adapter. It includes the
+slower cases, methodology and raw per-round data—not a
 claim that every workload or browser is faster.
 
 ## Development
@@ -171,10 +196,11 @@ bun run build:demo
 
 Tests cover formatting, exact bigint handling, interruption continuity, bounded
 cleanup, proportional fonts, reduced motion, hidden → visible transitions, and
-React hydration under StrictMode in Chromium, Firefox and WebKit.
+React hydration under StrictMode and Solid hydration/reactive cleanup in Chromium,
+Firefox and WebKit.
 
 The dark-only demo keeps the showcase and four interactive examples up front.
-Its eye mark uses independently timed look/digit-roll loops with vertical SVG blur,
+Its eye mark uses synchronized gaze and differently timed digit rolls with vertical SVG blur,
 and stops for reduced motion, hidden documents and offscreen state.
 
 `dist/` contains ESM and declarations plus an explicit stylesheet. There is no

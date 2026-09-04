@@ -27,6 +27,26 @@ test("rolls, interrupts, settles and bounds retained DOM", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("format changes retain digit places and animate symbol entry, replacement and exit", async ({ page }) => {
+  await page.evaluate(() => window.mountNumber({ value: 99.25, locales: "en-US", duration: 800 }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  const unit = await page.locator(".rn-slot[data-rn-key='digit:0']").elementHandle();
+  for (const options of [
+    { value: 12345.67, format: { style: "currency", currency: "USD" } },
+    { value: 8.5, format: { style: "currency", currency: "EUR" } },
+    { value: .42, format: { style: "percent" } },
+    { value: -7, format: { maximumFractionDigits: 0 } },
+  ] satisfies { value: number; format: Intl.NumberFormatOptions }[]) {
+    await page.evaluate((options) => window.testNumber.update(options), options);
+    await expect(page.locator("#number > .rn-value")).toHaveText(new Intl.NumberFormat("en-US", options.format).format(options.value));
+    await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBeGreaterThan(0);
+    expect(await unit?.evaluate((element) => element.isConnected)).toBe(true);
+  }
+  await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0);
+  await expect(page.locator(".rn-slot")).toHaveCount(2);
+  await expect(page.locator(".rn-face")).toHaveCount(2);
+});
+
 test("same formatted value does not restart animations", async ({ page }) => {
   await page.evaluate(() => window.mountNumber({ value: 1, duration: 600, format: { maximumFractionDigits: 0 } }));
   await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");

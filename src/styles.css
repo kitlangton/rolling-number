@@ -17,7 +17,8 @@
 }
 .rn-token { display: inline-block; padding: 0; border: 0; }
 .rn-root[data-rn-measuring] > .rn-value,
-.rn-react[data-rn-hydrated] > .rn-semantic {
+.rn-react[data-rn-hydrated] > .rn-semantic,
+.rn-solid[data-rn-hydrated] > .rn-semantic {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -61,6 +62,7 @@
 }
 .rn-reel, .rn-face { display: block; }
 .rn-face { text-align: center; white-space: pre; }
-.rn-react { display: inline-block; position: relative; white-space: pre; unicode-bidi: isolate; }
+.rn-react, .rn-solid { display: inline-block; position: relative; white-space: pre; unicode-bidi: isolate; }
 .rn-mount { display: inline-block; }
-.rn-react:not([data-rn-hydrated]) > .rn-mount { display: none; }
+.rn-react:not([data-rn-hydrated]) > .rn-mount,
+.rn-solid:not([data-rn-hydrated]) > .rn-mount { display: none; }

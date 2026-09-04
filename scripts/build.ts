@@ -2,13 +2,13 @@ import { copyFile, mkdir, rm } from "node:fs/promises";
 
 await rm("dist", { recursive: true, force: true });
 const result = await Bun.build({
-  entrypoints: ["src/index.ts", "src/react.tsx"],
+  entrypoints: ["src/index.ts", "src/react.tsx", "src/solid.ts"],
   outdir: "dist",
   format: "esm",
   target: "browser",
   splitting: true,
   minify: true,
-  external: ["react", "react/jsx-runtime"],
+  external: ["react", "react/jsx-runtime", "solid-js", "solid-js/web"],
 });
 if (!result.success) throw new AggregateError(result.logs, "Build failed");
 await mkdir("dist", { recursive: true });

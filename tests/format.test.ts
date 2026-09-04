@@ -24,7 +24,7 @@ describe("formatting", () => {
       expect(result.tokens.find((token) => token.key === "digit:0")?.place).toBe(0);
       expect(result.tokens.find((token) => token.key === "digit:-1")?.place).toBe(-1);
     }
-    expect(model(12345678, { locales: "hi-IN" }).tokens.filter((token) => token.key.startsWith("group")).map((token) => token.key)).toEqual(["group:7", "group:5", "group:3"]);
+    expect(model(12345678, { locales: "hi-IN" }).tokens.filter((token) => token.key.startsWith("group")).map((token) => token.key)).toEqual(["group:7:,", "group:5:,", "group:3:,"]);
   });
 
   it("handles negative zero and arbitrary bigint precision without coercion", () => {

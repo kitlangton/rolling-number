@@ -1,5 +1,5 @@
 import { StrictMode, useEffect, useRef, useState } from "react";
-import type { CSSProperties, MouseEvent } from "react";
+import type { CSSProperties } from "react";
 import { createRoot } from "react-dom/client";
 import { RollingNumber } from "../src/react";
 import { Eyes } from "./Eyes";
@@ -7,10 +7,23 @@ import "../src/styles.css";
 import "./demo.css";
 
 const repository = "https://github.com/kitlangton/rolling-number";
-const decimal: Intl.NumberFormatOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 const currency: Intl.NumberFormatOptions = { style: "currency", currency: "USD", maximumFractionDigits: 0 };
 const clock: Intl.NumberFormatOptions = { minimumIntegerDigits: 2, useGrouping: false };
 const localeOptions = [["en-US", "English"], ["de-DE", "Deutsch"], ["fr-FR", "Français"], ["hi-IN", "Hindi"], ["ja-JP", "日本語"], ["ar-EG", "العربية"], ["fa-IR", "فارسی"]];
+const showcaseFormats: { label: string; digits: number; format: Intl.NumberFormatOptions }[] = [
+  { label: "Integer", digits: 1, format: { maximumFractionDigits: 0 } },
+  { label: "US dollars", digits: 5, format: { style: "currency", currency: "USD" } },
+  { label: "Percent", digits: 2, format: { style: "percent", maximumFractionDigits: 1 } },
+  { label: "Decimal", digits: 6, format: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+  { label: "Euros", digits: 2, format: { style: "currency", currency: "EUR" } },
+  { label: "Pounds", digits: 4, format: { style: "currency", currency: "GBP", signDisplay: "always" } },
+];
+
+function randomValue(preset: (typeof showcaseFormats)[number]): number {
+  const floor = 10 ** (preset.digits - 1);
+  const value = Math.floor((floor + Math.random() * floor * 8) * 100) / 100;
+  return preset.format.style === "percent" ? value / 100 : value;
+}
 
 function Examples({ locale, duration, reduced }: { locale: string; duration: number; reduced: boolean }) {
   const [revenue, setRevenue] = useState({ value: 8240, animated: true });
@@ -67,8 +80,8 @@ function Examples({ locale, duration, reduced }: { locale: string; duration: num
 }
 
 function App() {
-  const [hero, setHero] = useState({ value: 1284.5, animated: true });
-  const [input, setInput] = useState("1284.50");
+  const [hero, setHero] = useState({ value: 1284.5, preset: 1 });
+  const shuffleIndex = useRef(0);
   const [locale, setLocale] = useState("en-US");
   const [duration, setDuration] = useState(500);
   const [reduced, setReduced] = useState(false);
@@ -76,40 +89,21 @@ function App() {
   const [font, setFont] = useState("sans");
   const [size, setSize] = useState(144);
   const [direction, setDirection] = useState<"auto" | "up" | "down">("auto");
-  const [stressing, setStressing] = useState(false);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const currentValue = useRef(1284.5);
-  const previousValue = useRef(9876.54);
   const staticLocale = locale === "ar-EG" || locale === "fa-IR";
-  useEffect(() => () => { if (timer.current !== null) clearInterval(timer.current); }, []);
-  function stopStress() {
-    if (timer.current !== null) clearInterval(timer.current);
-    timer.current = null;
-    setStressing(false);
-  }
-  function changeValue(value: number, animated: boolean) {
-    if (!Number.isFinite(value)) return;
-    previousValue.current = currentValue.current;
-    currentValue.current = value;
-    setHero({ value, animated });
-    setInput(value.toFixed(2));
-  }
-  function adjust(event: MouseEvent<HTMLButtonElement>, amount: number) {
-    stopStress();
-    changeValue(currentValue.current + amount, event.detail > 0);
-  }
-  function stress(event: MouseEvent<HTMLButtonElement>) {
-    if (stressing) { stopStress(); return; }
-    const animate = event.detail > 0;
-    const sequence = [9999.99, 10.01, 8765.43, 123.45, 999.99, 1000, 99.99, 100, -123.45, 0, 6789.12, 1284.5];
-    let index = 0;
-    setStressing(true);
-    changeValue(sequence[index++] ?? 0, animate);
-    timer.current = setInterval(() => {
-      const value = sequence[index++];
-      if (value === undefined) stopStress();
-      else changeValue(value, animate);
-    }, 90);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (document.hidden) return;
+      setHero((current) => {
+        const format = showcaseFormats[current.preset]!.format;
+        const step = format.style === "percent" ? .001 : format.maximumFractionDigits === 0 ? 1 : 1.37;
+        return { ...current, value: current.value + step };
+      });
+    }, 1200);
+    return () => clearInterval(timer);
+  }, []);
+  function shuffle() {
+    const digits = [1, 5, 2, 6][shuffleIndex.current++ % 4]!;
+    setHero((current) => ({ ...current, value: randomValue({ ...showcaseFormats[current.preset]!, digits }) }));
   }
   return (
     <div className="site-shell">
@@ -121,29 +115,16 @@ function App() {
       <main>
         <section className="playground" id="playground" aria-label="Interactive number playground">
           <div className={`number-stage font-${font} ${tabular ? "digits-tabular" : "digits-proportional"}`} style={{ "--number-scale": size / 144 } as CSSProperties}>
-            <div className="number-frame"><RollingNumber value={hero.value} locales={locale} format={decimal} duration={duration} animated={!reduced && hero.animated} direction={direction} /></div>
+            <div className="number-frame"><RollingNumber value={hero.value} locales={locale} format={showcaseFormats[hero.preset]!.format} duration={duration} animated={!reduced} direction={direction} /></div>
           </div>
           <div className="play-actions">
-            <div className="value-control">
-              <button className="icon-button" aria-label="Subtract one hundred" onClick={(event) => adjust(event, -100)}>−</button>
-              <label className="sr-only" htmlFor="number-value">Number value</label>
-              <input id="number-value" type="number" step="0.01" value={input} onChange={(event) => {
-                stopStress(); setInput(event.target.value);
-                const value = event.target.valueAsNumber;
-                if (Number.isFinite(value)) { previousValue.current = currentValue.current; currentValue.current = value; setHero({ value, animated: true }); }
-              }} onBlur={() => setInput(currentValue.current.toFixed(2))} />
-              <button className="icon-button" aria-label="Add one hundred" onClick={(event) => adjust(event, 100)}>+</button>
-            </div>
-            <div className="button-row">
-              <button className="primary" onClick={(event) => { stopStress(); const next = Math.round(Math.random() * 999999) / 100; changeValue(next === currentValue.current ? next + 1 : next, event.detail > 0); }}>Shuffle</button>
-              <button onClick={(event) => { stopStress(); changeValue(previousValue.current, event.detail > 0); }}>Reverse</button>
-              <button aria-pressed={stressing} onClick={stress}>{stressing ? "Stop" : "Stress test"}</button>
-            </div>
+            <button className="primary" onClick={() => shuffle()}>Shuffle</button>
           </div>
           <details className="settings-panel">
             <summary>Options</summary>
             <div className="settings">
-              <label>Locale<select id="locale" value={locale} onChange={(event) => { stopStress(); setLocale(event.target.value); setHero((value) => ({ ...value, animated: false })); }}>{localeOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+              <label>Format<select id="format" value={hero.preset} onChange={(event) => { const preset = Number(event.target.value); setHero({ preset, value: randomValue(showcaseFormats[preset]!) }); }}>{showcaseFormats.map((preset, index) => <option key={preset.label} value={index}>{preset.label}</option>)}</select></label>
+              <label>Locale<select id="locale" value={locale} onChange={(event) => setLocale(event.target.value)}>{localeOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label>Typeface<select id="typeface" value={font} onChange={(event) => setFont(event.target.value)}><option value="sans">Sans</option><option value="serif">Serif</option><option value="mono">Mono</option></select></label>
               <label>Duration<select id="duration" value={duration} onChange={(event) => setDuration(Number(event.target.value))}><option value="200">200 ms</option><option value="500">500 ms</option><option value="1000">1000 ms</option></select></label>
               <label>Direction<select id="direction" value={direction} onChange={(event) => { const value = event.target.value; if (value === "auto" || value === "up" || value === "down") setDirection(value); }}><option value="auto">Auto</option><option value="up">Up</option><option value="down">Down</option></select></label>

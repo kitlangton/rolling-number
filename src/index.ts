@@ -109,7 +109,7 @@ class Renderer implements Participant, RollingNumberController {
     const next = model(options.value, options); // Validate before changing any visible state.
     const unchanged = next.text === this.target.text && next.signature === this.target.signature;
     this.options = options;
-    this.reset ||= next.signature !== this.target.signature;
+    // Rollable formats share digit-place identities; symbols enter/exit by token key.
     this.target = next;
     if (!this.canAnimate()) { this.finish(); return; }
     if (unchanged && this.enhanced) return;

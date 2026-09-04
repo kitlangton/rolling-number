@@ -41,10 +41,6 @@ h1, h2, p { margin: 0; }
 .digits-tabular { font-variant-numeric: tabular-nums lining-nums; }
 .digits-proportional { font-variant-numeric: proportional-nums lining-nums; }
 .play-actions { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 24px; }
-.value-control, .button-row { display: flex; align-items: center; gap: 8px; }
-.icon-button { min-width: 40px; padding: 0; font-size: 19px; border-color: transparent; background: none; color: var(--muted); }
-.value-control input { width: 112px; min-height: 40px; border: 1px solid var(--line); background: transparent; border-radius: 7px; padding: 0 8px; text-align: center; font: 12px var(--mono); appearance: textfield; }
-.value-control input::-webkit-inner-spin-button, .value-control input::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .primary { color: #111; background: var(--ink); border-color: var(--ink); }
 .settings-panel { margin-top: 27px; }
 .settings-panel summary { width: fit-content; margin-inline: auto; color: var(--muted); font-size: 12px; padding: 10px; min-height: 36px; list-style: none; }
@@ -82,7 +78,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 @media (hover: hover) {
   button:not(:disabled):hover { background: #25282d; }
   .primary:hover { background: white !important; }
-  .quiet:hover, .icon-button:hover { background: none !important; color: var(--ink); }
+  .quiet:hover { background: none !important; color: var(--ink); }
   a:hover, summary:hover { color: var(--ink); }
 }
 @media (max-width: 640px) {
@@ -92,7 +88,6 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .site-header nav { gap: 18px; font-size: 12px; }
   .number-stage { min-height: 230px; font-size: calc(11.6vw * var(--number-scale)); }
   .play-actions { gap: 16px; }
-  .button-row { gap: 7px; }
   .settings { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 18px; }
   .examples { grid-template-columns: 1fr; }
   .example, .example:nth-child(even) { border-left: 0; padding: 25px 0; }

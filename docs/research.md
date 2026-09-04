@@ -74,6 +74,17 @@ New `text-box-trim` (Baseline August 2026) is useful for optical spacing, not a
 replacement for font metrics. `interpolate-size` is not yet broadly supported and
 does not make intrinsic width animation free of layout. Neither is required.
 
+## Framework boundaries and format changes
+
+React and Solid both own readable semantic text and a separate decorative mount.
+They delegate animation, measurement and lifecycle cleanup to `createRollingNumber`.
+Solid's adapter uses its native `Dynamic` primitive so one prebuilt entry supports
+client rendering and SSR without shipping uncompiled JSX or importing React.
+
+Supported format changes retain digit-place identities. Non-digit token keys also
+include their text, so currency and separator replacements fade out/in instead of
+snapping to a new glyph. Unsupported formats still settle to intact native text.
+
 ## Sources
 
 - [NumberFlow documentation](https://number-flow.barvian.me/)

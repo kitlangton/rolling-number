@@ -40,6 +40,19 @@ console.log('Clean consumer imports, bigint formatting and SSR passed');
   const adapter = await readFile(join(directory, "node_modules/@kitlangton/rolling-number/dist/react.js"), "utf8");
   if (!adapter.startsWith('"use client";')) throw new Error("Packed React entry lost its client boundary");
   console.log("Clean NodeNext declarations, stylesheet export and React client boundary passed");
+  run(["bun", "add", "solid-js@1.9.15"]);
+  await writeFile(join(directory, "solid-consumer.ts"), `
+import { createComponent } from 'solid-js';
+import { renderToString } from 'solid-js/web';
+import { RollingNumber } from '@kitlangton/rolling-number/solid';
+const html = renderToString(() => createComponent(RollingNumber, { value: 9007199254740993n, locales: 'en-US', class: 'balance' }));
+if (!html.includes('9,007,199,254,740,993') || !html.includes('rn-solid balance')) throw new Error('Packed Solid SSR failed');
+if (html.includes('data-rn-hydrated') || html.includes('rn-reel')) throw new Error('Solid SSR mounted the DOM core');
+console.log('Clean Solid consumer imports and SSR passed');
+`);
+  console.log(run(["bun", "run", "solid-consumer.ts"]));
+  run(["bunx", "tsc", "--noEmit", "--strict", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "solid-consumer.ts"]);
+  run(["bun", "build", "solid-consumer.ts", "--target", "browser", "--outfile", "solid-consumer.js"]);
   run(["bun", "add", "react@18.3.1", "react-dom@18.3.1", "@types/react@18", "@types/react-dom@18"]);
   verifyConsumer(18);
 } finally {

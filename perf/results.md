@@ -5,6 +5,9 @@ animations.** Production builds; one warmup and seven measured rounds per render
 alternating/rotating order. Apple M2 Max, macOS arm64, headless Chromium
 151.0.7922.34, Playwright 1.62.1. NumberFlow is pinned to 0.6.2.
 This capture uses the default linear reel-edge masks and the dark benchmark page.
+The measured source is commit `35155ca`, before format-to-format transitions and
+the Solid adapter were added. These are retained baseline measurements, not a new
+measurement of those additions. Use the commands below to measure the current tree.
 
 ## Animation enabled
 
@@ -38,7 +41,7 @@ a visual choice, not a performance optimization; `--rn-mask: none` opts out.
 
 This is a separate static-update workload, not an animation performance claim.
 
-## Package size
+## Package size at the measured revision
 
 The minified core entry plus shared chunk total **4569 bytes gzip** (about 4.46 KiB,
 compressed separately). The explicit stylesheet adds **622 bytes gzip**. The React
