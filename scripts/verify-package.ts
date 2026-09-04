@@ -11,6 +11,10 @@ function run(command: string[], cwd = directory): string {
   if (result.exitCode !== 0) throw new Error(`${command.join(" ")} failed:\n${result.stdout}\n${result.stderr}`);
   return result.stdout.toString().trim();
 }
+function verifyConsumer(version: number): void {
+  console.log(`React ${version}: ${run(["bun", "run", "consumer.tsx"])}`);
+  run(["bunx", "tsc", "--noEmit", "--strict", "--jsx", "react-jsx", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "consumer.tsx"]);
+}
 try {
   const artifact = join(directory, "package.tgz");
   run(["bun", "pm", "pack", "--ignore-scripts", "--filename", artifact], root);
@@ -29,14 +33,15 @@ if (!renderToString(<RollingNumber value={42} locales="en-US" />).includes('42')
 const acceptsDOM = (element: HTMLElement) => createRollingNumber(element, { value: 1 });
 console.log('Clean consumer imports, bigint formatting and SSR passed');
 `);
-  console.log(run(["bun", "run", "consumer.tsx"]));
-  run(["bunx", "tsc", "--noEmit", "--strict", "--jsx", "react-jsx", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "consumer.tsx"]);
+  verifyConsumer(19);
+  const stylesheet = run(["bun", "-e", "console.log(import.meta.resolve('@kitlangton/rolling-number/styles.css'))"]);
+  const css = await readFile(new URL(stylesheet), "utf8");
+  if (!css.includes(".rn-root") || !css.includes("mask-image")) throw new Error("Packed stylesheet is missing renderer styles");
   const adapter = await readFile(join(directory, "node_modules/@kitlangton/rolling-number/dist/react.js"), "utf8");
   if (!adapter.startsWith('"use client";')) throw new Error("Packed React entry lost its client boundary");
-  console.log("Clean NodeNext declarations and React client boundary passed");
+  console.log("Clean NodeNext declarations, stylesheet export and React client boundary passed");
   run(["bun", "add", "react@18.3.1", "react-dom@18.3.1", "@types/react@18", "@types/react-dom@18"]);
-  console.log(`React 18: ${run(["bun", "run", "consumer.tsx"])}`);
-  run(["bunx", "tsc", "--noEmit", "--strict", "--jsx", "react-jsx", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "consumer.tsx"]);
+  verifyConsumer(18);
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

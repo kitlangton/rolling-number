@@ -1,14 +1,10 @@
 .eyes { flex: none; color: var(--accent); overflow: visible; }
 .eye-digit { font: 650 12px ui-monospace, "SFMono-Regular", Consolas, monospace; }
-.eye-blink { transform-box: view-box; animation: eye-blink 10s linear infinite; }
-.eye-look { animation: eye-look 10s cubic-bezier(.4, 0, .2, 1) infinite; }
-.eye-sharp { animation: eye-roll 10s cubic-bezier(.22, .8, .22, 1) infinite, eye-focus 10s linear infinite; }
-.eye-smear { opacity: 0; animation: eye-roll 10s cubic-bezier(.22, .8, .22, 1) infinite, eye-smear 10s linear infinite; }
-
-@keyframes eye-blink {
-  0%, 4.5%, 7.5%, 80%, 85%, 100% { transform: scaleY(1); }
-  5.5%, 6.3%, 81.5%, 83.5% { transform: scaleY(.055); }
-}
+.eye-left { --eye-cycle: 9.4s; }
+.eye-right { --eye-cycle: 7.1s; }
+.eye-look { animation: eye-look var(--eye-cycle) cubic-bezier(.4, 0, .2, 1) infinite; }
+.eye-sharp { animation: eye-roll var(--eye-cycle) cubic-bezier(.22, .8, .22, 1) infinite, eye-focus var(--eye-cycle) linear infinite; }
+.eye-smear { opacity: 0; animation: eye-roll var(--eye-cycle) cubic-bezier(.22, .8, .22, 1) infinite, eye-smear var(--eye-cycle) linear infinite; }
 @keyframes eye-look {
   0%, 10%, 40%, 100% { transform: translate(0, 0); }
   16%, 20% { transform: translate(-1.5px, -3px); }
@@ -18,21 +14,21 @@
   37% { transform: translate(-1.5px, -3px); }
 }
 @keyframes eye-roll {
-  0%, 43% { transform: translateY(0); }
-  51%, 57% { transform: translateY(-26px); }
-  64%, 69% { transform: translateY(-52px); }
-  76%, 82% { transform: translateY(-78px); }
-  82.01%, 100% { transform: translateY(0); }
+  0%, 38% { transform: translateY(0); }
+  47%, 52% { transform: translateY(-26px); }
+  60%, 65% { transform: translateY(-52px); }
+  73%, 80% { transform: translateY(-78px); }
+  91%, 100% { transform: translateY(-104px); }
 }
 @keyframes eye-smear {
-  0%, 43%, 52%, 57%, 65%, 69%, 77%, 100% { opacity: 0; }
-  46%, 49%, 60%, 62%, 72%, 74% { opacity: .8; }
+  0%, 38%, 48%, 52%, 61%, 65%, 74%, 80%, 92%, 100% { opacity: 0; }
+  41%, 45%, 55%, 58%, 68%, 71%, 84%, 88% { opacity: .8; }
 }
 @keyframes eye-focus {
-  0%, 43%, 52%, 57%, 65%, 69%, 77%, 100% { opacity: 1; }
-  46%, 49%, 60%, 62%, 72%, 74% { opacity: .4; }
+  0%, 38%, 48%, 52%, 61%, 65%, 74%, 80%, 92%, 100% { opacity: 1; }
+  41%, 45%, 55%, 58%, 68%, 71%, 84%, 88% { opacity: .4; }
 }
-.eyes[data-paused="true"] :is(.eye-blink, .eye-look, .eye-reel) { animation: none; }
+.eyes[data-paused="true"] :is(.eye-look, .eye-reel) { animation: none; }
 @media (prefers-reduced-motion: reduce) {
-  .eyes :is(.eye-blink, .eye-look, .eye-reel) { animation: none; }
+  .eyes :is(.eye-look, .eye-reel) { animation: none; }
 }

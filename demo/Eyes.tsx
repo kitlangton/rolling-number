@@ -39,9 +39,10 @@ export function Eyes({ reduced = false }: { reduced?: boolean }) {
           {(index === 0 ? ["0", "8", "3"] : ["1", "6", "9"]).map((digit, row) => (
             <text key={row} x={x + 5} y={16 + (row + 1) * 26} textAnchor="middle" dominantBaseline="central" fill="currentColor" className="eye-digit">{digit}</text>
           ))}
+          <g className="eye-look"><circle cx={x + 5} cy="120" r="1.8" fill="currentColor" /></g>
         </>;
         return (
-          <g key={x} className="eye-blink" style={{ transformOrigin: `${x + 5}px 16px` }}>
+          <g key={x} className={`eye-shell ${index === 0 ? "eye-left" : "eye-right"}`}>
             <rect x={x} y="3" width="10" height="26" rx="5" stroke="currentColor" strokeWidth="1.8" />
             <g clipPath={`url(#${id}-clip-${index})`}>
               <g className="eye-reel eye-smear" filter={`url(#${id}-blur)`}>{glyphs}</g>

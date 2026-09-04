@@ -6,8 +6,14 @@ A small, original TypeScript library for interruptible rolling numbers. Native
 browser animation playback, a framework-independent DOM API, and a thin React
 adapter. MIT licensed. No runtime dependencies in the DOM core.
 
-> Initial development version. **Not published to npm yet.** The package name is
-> `@kitlangton/rolling-number`; the unscoped name belongs to another project.
+## Install
+
+```sh
+bun add @kitlangton/rolling-number
+```
+
+Or use `npm install @kitlangton/rolling-number`. The unscoped name belongs to
+another project. Import the stylesheet alongside either the DOM or React entrypoint.
 
 ## Try it
 
@@ -84,8 +90,8 @@ not restart animations.
 
 The React component additionally accepts ordinary span attributes, including
 `className`, `style`, `aria-label`, and an element ref. It does not accept children
-or raw HTML. For rapidly repeated keyboard input, set `animated={false}` for that
-update rather than making the interface chase each keypress.
+or raw HTML. Set `animated={false}` for updates that should settle immediately.
+The demo animates typed numeric values while respecting reduced-motion preferences.
 
 ## How it stays small and stable
 
@@ -168,7 +174,7 @@ cleanup, proportional fonts, reduced motion, hidden → visible transitions, and
 React hydration under StrictMode in Chromium, Firefox and WebKit.
 
 The dark-only demo keeps the showcase and four interactive examples up front.
-Its eye mark uses a native blink/look/digit-roll loop with vertical SVG blur,
+Its eye mark uses independently timed look/digit-roll loops with vertical SVG blur,
 and stops for reduced motion, hidden documents and offscreen state.
 
 `dist/` contains ESM and declarations plus an explicit stylesheet. There is no

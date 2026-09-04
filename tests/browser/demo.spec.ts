@@ -13,32 +13,61 @@ test("keeps the dark showcase and functional examples without marketing sections
   await expect(examples.nth(3).locator(".rn-semantic")).toHaveText("9,007,199,254,740,994");
 });
 
-test("eyes blink, look, blur vertically, turn into numbers and blink back", async ({ page }) => {
+test("typed values animate and still respect reduced motion", async ({ page }) => {
+  await page.goto("/");
+  const number = page.locator(".number-frame .rn-root");
+  await expect(number).toHaveAttribute("data-rn-ready", "");
+  await page.getByLabel("Number value").fill("1233");
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("1,233.00");
+  await expect.poll(() => number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.getByLabel("Number value").fill("4567");
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("4,567.00");
+  expect(await number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
+});
+
+test("fixed eye capsules roll at independent rates without blinking or squishing", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".eyes")).toHaveAttribute("data-paused", "false");
   await expect.poll(() => page.locator(".eyes").evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
   const frame = (time: number) => page.locator(".eyes").evaluate((element, time) => {
     for (const animation of element.getAnimations({ subtree: true })) { animation.pause(); animation.currentTime = time; }
-    const transform = (selector: string) => new DOMMatrix(getComputedStyle(element.querySelector(selector)!).transform);
-    return {
-      lid: transform(".eye-blink").d,
-      pupilX: transform(".eye-look").e,
-      pupilY: transform(".eye-look").f,
-      reelY: transform(".eye-sharp").f,
-      smear: Number(getComputedStyle(element.querySelector(".eye-smear")!).opacity),
-    };
+    return [...element.querySelectorAll(".eye-shell")].map((shell) => ({
+      scale: new DOMMatrix(getComputedStyle(shell).transform).d,
+      height: shell.querySelector("rect")!.getBoundingClientRect().height,
+      reelY: new DOMMatrix(getComputedStyle(shell.querySelector(".eye-sharp")!).transform).f,
+      smear: Number(getComputedStyle(shell.querySelector(".eye-smear")!).opacity),
+      duration: parseFloat(getComputedStyle(shell.querySelector(".eye-sharp")!).animationDuration),
+    }));
   }, time);
-  expect((await frame(600)).lid).toBeLessThan(.1);
-  const look = await frame(1800);
-  expect(look.lid).toBe(1);
-  expect(Math.abs(look.pupilX) + Math.abs(look.pupilY)).toBeGreaterThan(2);
-  expect((await frame(4800)).smear).toBeGreaterThan(.5);
+  // Engines differ on whether SVG bounds include the stroke; compare within each engine.
+  const initial = await frame(0);
+  for (const time of [600, 1800, 4200, 6000, 8200, 10000]) {
+    for (const [index, eye] of (await frame(time)).entries()) {
+      expect(eye.scale).toBe(1);
+      expect(eye.height).toBeCloseTo(initial[index]!.height, 1);
+    }
+  }
+  const different = await frame(6000);
+  expect(different[0]?.duration).toBe(9.4);
+  expect(different[1]?.duration).toBe(7.1);
+  expect(different[0]?.reelY).not.toBe(different[1]?.reelY);
+  expect((await frame(4200))[0]?.smear).toBeGreaterThan(.5);
   await expect(page.locator("feGaussianBlur")).toHaveAttribute("stdDeviation", "0 1.1");
-  expect((await frame(6600)).reelY).toBeCloseTo(-52, 1);
-  expect((await frame(8200)).lid).toBeLessThan(.1);
-  const end = await frame(9000);
-  expect(end.lid).toBe(1);
-  expect(end.reelY).toBe(0);
+  const seams = await page.locator(".eyes").evaluate((element) => [...element.querySelectorAll(".eye-shell")].map((shell) => {
+    const period = parseFloat(getComputedStyle(shell.querySelector(".eye-sharp")!).animationDuration) * 1000;
+    const visiblePupil = (time: number) => {
+      for (const animation of shell.getAnimations({ subtree: true })) { animation.pause(); animation.currentTime = time; }
+      const bounds = shell.querySelector("rect")!.getBoundingClientRect();
+      const center = bounds.y + bounds.height / 2;
+      return [...shell.querySelectorAll(".eye-sharp circle")].map((circle) => {
+        const box = circle.getBoundingClientRect();
+        return box.y + box.height / 2;
+      }).sort((a, b) => Math.abs(a - center) - Math.abs(b - center))[0] ?? Infinity;
+    };
+    return Math.abs(visiblePupil(period - .01) - visiblePupil(period + .01));
+  }));
+  for (const delta of seams) expect(delta).toBeLessThan(.1);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator(".eyes")).toHaveAttribute("data-paused", "true");
   expect(await page.locator(".eyes").evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);

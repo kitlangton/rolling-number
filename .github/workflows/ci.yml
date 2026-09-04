@@ -15,7 +15,7 @@ jobs:
           bun-version: 1.4.0
       - run: bun install --frozen-lockfile
       - run: bun run check
-      - run: bun run test:package
+      - run: bun run scripts/verify-package.ts
       - run: bunx playwright install --with-deps chromium firefox webkit
       - run: bun run test:browser
       - run: bun run build:demo

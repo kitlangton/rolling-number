@@ -130,7 +130,7 @@ function App() {
               <input id="number-value" type="number" step="0.01" value={input} onChange={(event) => {
                 stopStress(); setInput(event.target.value);
                 const value = event.target.valueAsNumber;
-                if (Number.isFinite(value)) { previousValue.current = currentValue.current; currentValue.current = value; setHero({ value, animated: false }); }
+                if (Number.isFinite(value)) { previousValue.current = currentValue.current; currentValue.current = value; setHero({ value, animated: true }); }
               }} onBlur={() => setInput(currentValue.current.toFixed(2))} />
               <button className="icon-button" aria-label="Add one hundred" onClick={(event) => adjust(event, 100)}>+</button>
             </div>
