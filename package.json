@@ -1,0 +1,61 @@
+{
+  "name": "@kitlangton/rolling-number",
+  "version": "0.1.0",
+  "description": "Interruptible, locale-aware rolling numbers for the web.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Kit Langton",
+  "files": ["dist", "LICENSE", "README.md"],
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "sideEffects": ["**/*.css"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kitlangton/rolling-number.git"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "test:browser": "playwright test",
+    "build": "bun run scripts/build.ts && tsc -p tsconfig.build.json",
+    "build:demo": "vite build",
+    "bench": "bun run scripts/bench.ts",
+    "test:package": "bun run build && bun run scripts/verify-package.ts",
+    "check": "bun run typecheck && bun run test && bun run build",
+    "prepack": "bun run build"
+  },
+  "devDependencies": {
+    "@number-flow/react": "0.6.2",
+    "@playwright/test": "^1.62.1",
+    "@types/bun": "^1.4.1",
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "number-flow": "0.6.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
+  }
+}

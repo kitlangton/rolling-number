@@ -1,0 +1,50 @@
+.rn-root {
+  display: inline-block;
+  position: relative;
+  white-space: pre;
+  unicode-bidi: isolate;
+  vertical-align: baseline;
+}
+.rn-root > .rn-measure,
+.rn-root > .rn-visual { display: none; }
+.rn-root[data-rn-measuring] > .rn-measure {
+  display: inline-flex;
+  position: relative;
+  visibility: hidden;
+  white-space: pre;
+  padding: 0;
+  border: 0;
+}
+.rn-token { display: inline-block; padding: 0; border: 0; }
+.rn-root[data-rn-measuring] > .rn-value,
+.rn-react[data-rn-hydrated] > .rn-semantic {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.rn-root[data-rn-ready] > .rn-visual {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.rn-slot {
+  position: absolute;
+  left: 0;
+  overflow: hidden;
+  /* Space for italic overhang without changing the measured advance width. */
+  box-sizing: content-box;
+  padding-inline: 0.15em;
+  margin-inline-start: -0.15em;
+}
+.rn-reel, .rn-face { display: block; }
+.rn-face { text-align: center; white-space: pre; }
+.rn-react { display: inline-block; position: relative; white-space: pre; unicode-bidi: isolate; }
+.rn-mount { display: inline-block; }
+.rn-react:not([data-rn-hydrated]) > .rn-mount { display: none; }

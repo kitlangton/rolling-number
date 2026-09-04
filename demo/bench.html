@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rolling Number · browser benchmark</title>
+    <style>
+      :root { font-family: system-ui, sans-serif; color: #20252b; background: #f6f7f8; }
+      * { box-sizing: border-box; }
+      body { max-width: 1248px; margin: 24px auto; padding: 0 24px; }
+      h1 { margin: 0 0 8px; font-size: 24px; }
+      p { max-width: 100ch; margin: 8px 0; line-height: 1.5; }
+      a { color: inherit; }
+      form { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+      label { display: grid; gap: 5px; font-size: 13px; }
+      input, select, button { font: inherit; padding: 7px 10px; }
+      input[type="number"] { width: 90px; }
+      button { cursor: pointer; }
+      #bench-stage {
+        display: grid;
+        grid-template-columns: repeat(10, minmax(0, 1fr));
+        gap: 8px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 24px;
+        font-weight: 400;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+      }
+      .bench-counter {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        min-width: 0;
+        height: 48px;
+        padding: 0 6px;
+        background: white;
+      }
+      .bench-value { display: inline-block; line-height: 1; }
+      #bench-output { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+      details { margin: 20px 0; }
+      @media (max-width: 800px) { #bench-stage { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+    </style>
+  </head>
+  <body>
+    <h1>Browser benchmark</h1>
+    <p>Same values, font, container widths, and requested 500 ms motion. Different rendering strategies—not identical visual output. <a href="./">Back to demo</a>.</p>
+    <p>The automated runner builds this page for production and measures Chromium main-thread task time through update flushing and settlement. The controls below are a visual workload preview, not a performance claim.</p>
+    <form id="bench-controls">
+      <label>Renderer
+        <select name="kind">
+          <option value="plain">Plain formatted text</option>
+          <option value="number-flow">NumberFlow 0.6.2</option>
+          <option value="rolling-number" selected>Rolling Number</option>
+        </select>
+      </label>
+      <label>Counters <input name="count" type="number" min="1" max="10000" value="100" /></label>
+      <label>Motion <select name="animated"><option value="1">On</option><option value="0">Off</option></select></label>
+      <button type="submit">Mount</button>
+      <button type="button" id="bench-play">Play workload</button>
+      <button type="button" id="bench-clear">Clear</button>
+    </form>
+    <div id="bench-stage" aria-label="Benchmark counters"></div>
+    <details>
+      <summary>Comparison caveats</summary>
+      <p>Plain text is a non-animated lower-bound reference. NumberFlow uses full directional digit wheels and accumulated effects; Rolling Number uses bounded travel and replacement spring motion. Initial spin/layout easing is matched to the sampled zero-velocity spring where possible; interruption velocity, travel, fades, and layout behavior can differ.</p>
+      <p>Both animated renderers receive the same requested duration. Offscreen pausing is disabled for Rolling Number; NumberFlow does not test viewport intersection. This workload keeps the document visible and measures all mounted counters, including those below the viewport at larger counts.</p>
+      <p>rAF intervals are main-thread callback intervals, not compositor-frame measurements. Mounting, update submission, settlement, and element counts are separate metrics. Shadow-root descendants are included in element counts; text nodes and CSS pseudo-elements are not.</p>
+    </details>
+    <pre id="bench-output" aria-live="polite">Ready. Run the automated benchmark for CDP measurements.</pre>
+    <script type="module" src="./bench.ts"></script>
+  </body>
+</html>
