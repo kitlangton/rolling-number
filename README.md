@@ -88,11 +88,22 @@ import { RollingText } from '@kitlangton/rolling-number/react'
 
 `RollingText` (also exported from `/solid`, and `createRollingText` from the DOM
 core) treats each character as a wheel. Characters in `charset` (default:
-space, A–Z, 0–9 and common punctuation, exported as `FLAP_CHARSET`) roll forward
-through the wheel like a departure board; other glyphs crossfade in place. Words
-of different length open and close width with the same layout spring as numbers.
-Wheels always advance, so a change from `Z` to `A` travels through the blank
-rather than backwards. See the live board at
+space, A–Z, 0–9 and common punctuation, exported as `FLAP_CHARSET`) advance
+through the wheel like a departure board; other glyphs crossfade in place. Pass an
+array to give each position its own drum, e.g. digit drums for a time and letter
+drums for a destination. Words of different length open and close width with the
+same layout spring as numbers. Wheels always advance, so a change from `Z` to `A`
+travels through the blank rather than backwards.
+
+`mode="flap"` (numbers too) replaces the gliding reel with real split-flap
+mechanics: one card per face hinges at the slot's midline, the top half of the
+current face falls, then the bottom half of the next lands, at a mechanical
+45–110 ms cadence derived from `duration`. Only the cards a change travels
+through are created, and they are removed on settle, so a slot never holds more
+than one revolution of cards. New characters flap in from the blank face.
+`--rn-crease` sets the visible hinge gap. Motion blur does not apply in this mode.
+`stagger="start"` or `"end"` sweeps a row left to right or right to left, for
+in-place changes as well as new characters. See the live board at
 [rolling.kitlangton.dev/board.html](https://rolling.kitlangton.dev/board.html).
 
 ## Vanilla DOM
@@ -166,9 +177,10 @@ See [the scoped blur-cost measurement](perf/blur-cost.md) for its overhead and l
   CSS can tint or weight a number by direction without any JavaScript.
 - `--rn-blur` (default `1`) scales the optional motion blur per counter; set it on
   the host or any ancestor. It is read during measurement, never during playback.
-- `--rn-mask` and `--rn-edge-fade` control the reel's soft top and bottom edges.
-- Wheel slots carry `data-rn-wheel`; symbol slots do not. The board demo uses
-  this to draw a split line only across rolling characters.
+- `--rn-mask` and `--rn-edge-fade` control the reel's soft top and bottom edges;
+  `--rn-crease` is the hinge gap between split-flap halves (default `1px`).
+- Wheel slots carry `data-rn-wheel` (and `data-rn-flap` in flap mode); symbol
+  slots do not.
 
 ## How it stays small and stable
 

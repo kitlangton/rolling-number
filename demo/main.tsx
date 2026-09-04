@@ -298,7 +298,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
       </article>
       <article className="example mini-app board-teaser">
         <h2>Departures</h2>
-        <div className="teaser-body"><span className="teaser-text"><RollingText {...shared} text={teaser} stagger="start" duration={Math.max(duration, 700)} animated={!reduced} /></span></div>
+        <div className="teaser-body"><span className="teaser-text"><RollingText {...shared} text={teaser} mode="flap" stagger="start" duration={Math.max(duration, 700)} animated={!reduced} /></span></div>
         <div className="example-actions"><a className="mini-button" href="./board.html">Open the split-flap board <span aria-hidden="true">→</span></a></div>
       </article>
     </section>

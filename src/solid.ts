@@ -6,7 +6,7 @@ type SpanProps = Omit<JSX.HTMLAttributes<HTMLSpanElement>, "children" | "innerHT
 export type RollingNumberProps = RollingNumberOptions & SpanProps;
 export type RollingTextProps = RollingTextOptions & SpanProps;
 
-const motionKeys = ["duration", "animated", "motionBlur", "direction", "pauseOffscreen", "stagger"] as const satisfies readonly (keyof MotionOptions)[];
+const motionKeys = ["duration", "animated", "motionBlur", "direction", "pauseOffscreen", "stagger", "mode"] as const satisfies readonly (keyof MotionOptions)[];
 
 /** Solid owns semantic text; the same DOM core owns only the decorative mount. */
 function rolling<Options extends MotionOptions>(

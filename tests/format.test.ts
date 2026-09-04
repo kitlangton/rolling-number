@@ -19,10 +19,10 @@ describe("formatting", () => {
   });
 
   it("keeps place identity through carries and changing fraction lengths", () => {
-    for (const value of [99.1, 100.12, 9.001, 12345678.99]) {
+    for (const [value, units, tenths] of [[99.1, "9", "1"], [100.12, "0", "1"], [9.001, "9", "0"], [12345678.99, "8", "9"]] as const) {
       const result = model(value, { locales: "hi-IN", format: { maximumFractionDigits: 3 } });
-      expect(result.tokens.find((token) => token.key === "digit:0")?.place).toBe(0);
-      expect(result.tokens.find((token) => token.key === "digit:-1")?.place).toBe(-1);
+      expect(result.tokens.find((token) => token.key === "digit:0")).toMatchObject({ identity: "digit:0", text: units });
+      expect(result.tokens.find((token) => token.key === "digit:-1")).toMatchObject({ identity: "digit:-1", text: tenths });
     }
     expect(model(12345678, { locales: "hi-IN" }).tokens.filter((token) => token.key.startsWith("group")).map((token) => token.key)).toEqual(["group:7:,", "group:5:,", "group:3:,"]);
   });
@@ -71,4 +71,12 @@ it("models text as per-character wheels with symbols crossfading in place", asyn
   expect(emoji.tokens[1]).not.toHaveProperty("index");
   expect(textModel("abc", { charset: "abc" }).tokens.every((token) => token.wheel?.length === 3)).toBe(true);
   expect(textModel("שלום").rollable).toBe(false);
+});
+
+it("gives each position its own drum when charset is an array", async () => {
+  const { textModel } = await import("../src/format");
+  const clock = textModel("09:15", { charset: ["0123456789", "0123456789", ":", "0123456789", "0123456789"] });
+  expect(clock.tokens.map((token) => token.wheel?.length)).toEqual([10, 10, 1, 10, 10]);
+  // Positions beyond the array reuse the last drum.
+  expect(textModel("ABC", { charset: ["A", "ABC"] }).tokens.map((token) => token.wheel?.length)).toEqual([1, 3, 3]);
 });

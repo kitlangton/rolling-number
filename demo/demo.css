@@ -110,9 +110,8 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .scrub-control input { width: 100%; }
 .teaser-body { flex: 1; display: flex; align-items: center; }
 .teaser-text { font: 500 clamp(22px, 2.6vw, 30px) var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #e6e2d6; }
-.teaser-text .rn-slot[data-rn-wheel]::after { content: ""; position: absolute; left: .15em; right: .27em; top: 50%; height: 1px; background: rgba(0, 0, 0, .55); pointer-events: none; }
-.teaser-text .rn-face { background: linear-gradient(#191c21, #191c21) 0 0 / calc(100% - .12em) 100% no-repeat; border-radius: .1em; }
-.teaser-text .rn-root { --rn-blur: 1.5; }
+.teaser-text .rn-root { --rn-crease: 1.5px; }
+.teaser-text .rn-face { background: linear-gradient(#1b1e24, #171a1f) 0 0 / calc(100% - .12em) 100% no-repeat; border-radius: .1em; }
 /* Trend is exposed by the engine as data-rn-trend; the weather number warms or cools with it. */
 .weather-app .rn-root { transition: color calc(var(--duration) * .65) var(--spring); }
 .weather-app .rn-root[data-rn-trend="up"] { color: #f0dcc0; }

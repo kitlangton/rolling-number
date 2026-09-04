@@ -14,7 +14,6 @@ export interface Token {
   wheel?: readonly string[];
   /** Position of `text` on the wheel. */
   index?: number;
-  place?: number;
 }
 
 export const DIGITS: readonly string[] = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
@@ -31,7 +30,7 @@ export interface Model {
 const formatters = new Map<string, Intl.NumberFormat>();
 const bidi = /[\u0590-\u08ff\u200e\u200f\u202a-\u202e\u2066-\u2069\ufb1d-\ufeff]/u;
 
-export function formatter(options: FormatOptions = {}): Intl.NumberFormat {
+function formatter(options: FormatOptions = {}): Intl.NumberFormat {
   const locales = Intl.getCanonicalLocales(options.locales);
   const format = Object.fromEntries(Object.entries(options.format ?? {}).sort(([a], [b]) => a.localeCompare(b)));
   const key = JSON.stringify([locales, format]);
@@ -71,7 +70,7 @@ export function model(value: Value, options: FormatOptions = {}): Model {
       for (const digit of part.value) {
         const place = part.type === "integer" ? --integerPlace : fractionPlace--;
         const identity = `digit:${place}`;
-        tokens.push({ key: identity, identity, text: digit, wheel: DIGITS, index: Number(digit), place });
+        tokens.push({ key: identity, identity, text: digit, wheel: DIGITS, index: Number(digit) });
       }
     } else if (part.type === "group") {
       const identity = `group:${integerPlace}`;
@@ -99,8 +98,12 @@ export function direction(previous: Model, next: Model): -1 | 0 | 1 {
 }
 
 export interface TextOptions {
-  /** Characters that roll through a wheel, in wheel order. Others crossfade in place. */
-  charset?: string | undefined;
+  /**
+   * Characters that roll through a wheel, in wheel order; others crossfade in place.
+   * An array gives each character position its own wheel, like a board with digit
+   * drums for times and letter drums for destinations. Default: FLAP_CHARSET.
+   */
+  charset?: string | readonly string[] | undefined;
 }
 
 /** Split-flap style board default: space, A–Z, digits, then common punctuation. */
@@ -124,10 +127,11 @@ function segment(text: string): string[] {
 
 /** One token per grapheme; identity is the character position so words retarget in place. */
 export function textModel(text: string, options: TextOptions = {}): Model {
-  const wheel = wheelFor(options.charset ?? FLAP_CHARSET);
+  const charset = options.charset ?? FLAP_CHARSET;
   const rollable = !bidi.test(text);
   if (!rollable) return { text, tokens: [], rollable, signature: "text", magnitude: "" };
   const tokens = segment(text).map((glyph, position): Token => {
+    const wheel = wheelFor(typeof charset === "string" ? charset : charset[position] ?? charset.at(-1) ?? FLAP_CHARSET);
     const identity = `char:${position}`;
     const index = wheel.indexOf(glyph);
     return index >= 0 ? { key: identity, identity, text: glyph, wheel, index } : { key: `${identity}:${glyph}`, identity, text: glyph };

@@ -343,3 +343,45 @@ test("hydrates React under StrictMode, updates, and unmounts", async ({ page }) 
   await expect(page.locator("#fixture")).toBeEmpty();
   expect(errors).toEqual([]);
 });
+
+test("flap mode hinges bounded half cards, resumes from a mid-flip interruption and cleans up", async ({ page }) => {
+  await page.goto("/test.html");
+  await page.waitForFunction(() => window.ready);
+  await page.evaluate(() => window.mountNumber({ value: 8, mode: "flap", direction: "up", duration: 700, locales: "en-US" }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  await page.evaluate(async () => {
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (...args) {
+      const animation = animate.apply(this, args);
+      animation.pause(); animation.currentTime = 0;
+      return animation;
+    };
+    window.testNumber.update({ value: 1 });
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+  });
+  const slot = page.locator("[data-rn-key='digit:0']");
+  await expect(slot).toHaveAttribute("data-rn-flap", "");
+  // 8 → 1 going up is three steps (8, 9, 0 → 1): two statics plus two cards each.
+  // The static top shows the final face; waiting tops stack so the current face paints last.
+  await expect(slot.locator(".rn-flap")).toHaveCount(8);
+  expect(await slot.locator(".rn-flap-top").evaluateAll((cards) => cards.map((card) => card.textContent))).toEqual(["1", "0", "9", "8"]);
+  expect(await slot.locator(".rn-flap-bottom").evaluateAll((cards) => cards.map((card) => card.textContent))).toEqual(["8", "9", "0", "1"]);
+  const cadence = await slot.locator(".rn-flap-top").last().evaluate((card) => card.getAnimations()[0]!.effect!.getComputedTiming().duration as number * 2);
+  expect(cadence).toBeGreaterThanOrEqual(45);
+  expect(cadence).toBeLessThanOrEqual(110);
+  // Advance into the second card, then retarget: the sequence restarts from the nearer face.
+  await page.evaluate((cadence) => { for (const animation of document.getAnimations()) animation.currentTime = cadence * 1.4; }, cadence);
+  await page.evaluate(async () => {
+    window.testNumber.update({ value: 3 });
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+  });
+  const tops = await slot.locator(".rn-flap-top").evaluateAll((cards) => cards.map((card) => card.textContent));
+  expect(tops[tops.length - 1]).toBe("9");
+  expect(tops.length).toBeLessThanOrEqual(6);
+  await page.evaluate(() => window.testNumber.finish());
+  await expect(slot.locator(".rn-flap")).toHaveCount(0);
+  await expect(page.locator("#number > .rn-value")).toHaveText("3");
+  expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
+});

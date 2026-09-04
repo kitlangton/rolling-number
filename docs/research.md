@@ -196,3 +196,21 @@ numbers.
 
 `stagger` exposes the existing cascade with explicit orders; `data-rn-trend` and
 `--rn-blur` expose state the renderer already had, read only at measurement time.
+
+## Split-flap mode
+
+The first board demo glided letters through a reel, which reads as an odometer, not
+a Solari board. `mode: "flap"` models the mechanism instead: each step is one card
+hinged at the midline, built from two absolutely positioned half-face copies (the
+top half of the current face falls 0 → -90°, then the bottom half of the next face
+lands 90° → 0 with a small settle), with brightness falling off as a card turns
+away. Paint order is DOM order: landed bottoms stack upward, waiting tops stack
+downward, so the current face always paints last without 3D sorting. The slot's
+existing vertical clip acts as the bezel. A reference implementation
+(daformat/react-split-flap-display) renders the entire drum for every slot as
+permanent 3D flaps; here only the cards a change travels through exist, bounded by
+one revolution, and they are removed on settle. Interruption samples the logical
+wheel position from a linear motion at the card cadence and resumes from the
+nearer face. Explicit `stagger` orders also sweep across in-place changes, since a
+board row runs along its length; the default outward cascade still applies only to
+new places so numbers keep their existing feel.

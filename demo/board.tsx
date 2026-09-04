@@ -11,6 +11,8 @@ interface Departure { time: string; destination: string; platform: number; statu
 const destinations = ["EDINBURGH", "GLASGOW", "MANCHESTER", "BRISTOL", "CARDIFF", "NEWCASTLE", "YORK", "OXFORD", "LEEDS", "PENZANCE", "ABERDEEN", "INVERNESS", "NORWICH", "BRIGHTON", "LIVERPOOL"];
 const statuses = ["ON TIME", "ON TIME", "ON TIME", "DELAYED", "BOARDING", "EXP 5 MIN", "CANCELLED"];
 const rows = 6;
+/** Real boards carry different drums in different places: digit drums for times. */
+const timeDrums = ["0123456789", "0123456789", ":", "0123456789", "0123456789"];
 
 function pad(value: number): string { return String(value).padStart(2, "0"); }
 
@@ -71,7 +73,7 @@ function Board() {
     }, 2600);
     return () => clearInterval(timer);
   }, [paused, seed]);
-  const shared = useMemo(() => ({ duration, animated: !reduced, motionBlur: true, stagger: "start" as const }), [reduced]);
+  const shared = useMemo(() => ({ duration, animated: !reduced, mode: "flap" as const, stagger: "start" as const }), [reduced]);
   return (
     <div className="site-shell board-shell">
       <a className="skip-link" href="#board">Skip to board</a>
@@ -94,7 +96,7 @@ function Board() {
             <tbody>
               {board.map((row, index) => (
                 <tr key={index} data-status={row.status}>
-                  <td><RollingText {...shared} text={row.time} /></td>
+                  <td><RollingText {...shared} text={row.time} charset={timeDrums} /></td>
                   <td><RollingText {...shared} text={row.destination.padEnd(12)} /></td>
                   <td><RollingNumber {...shared} stagger="outward" value={row.platform} /></td>
                   <td><RollingText {...shared} text={row.status.padEnd(9)} /></td>
@@ -108,9 +110,9 @@ function Board() {
           <button className="quiet muted" onClick={() => { setSeed((current) => current + 7); setBoard((current) => depart(current, seed + 7)); }}>Next departure</button>
           <label className="board-toggle"><input type="checkbox" checked={reduced} onChange={(event) => setReduced(event.target.checked)} />Reduce motion</label>
         </div>
-        <p className="board-note">Each character is a wheel. Letters roll forward through a shared charset, mixed glyphs crossfade in place, and words cascade from the left like a real board. Built with <code>RollingText</code> from <code>@kitlangton/rolling-number</code>.</p>
+        <p className="board-note">Each character is a drum of hinged cards. A change flips only the cards it travels through, forward, at a mechanical cadence, and the row sweeps from the left. Times use digit drums; destinations use letter drums. Built with <code>RollingText mode="flap"</code> from <code>@kitlangton/rolling-number</code>.</p>
       </main>
-      <footer className="site-footer"><code>{"<RollingText text={destination} stagger=\"start\" />"}</code><a href="./llms.txt">llms.txt</a><a href={`${repository}/blob/main/LICENSE`}>MIT</a></footer>
+      <footer className="site-footer"><code>{"<RollingText text={destination} mode=\"flap\" stagger=\"start\" />"}</code><a href="./llms.txt">llms.txt</a><a href={`${repository}/blob/main/LICENSE`}>MIT</a></footer>
     </div>
   );
 }

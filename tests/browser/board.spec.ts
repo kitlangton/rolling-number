@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("the departure board rolls letters forward through a wheel and cascades from the left", async ({ page }) => {
+test("the departure board hinges real split-flap cards forward and cascades from the left", async ({ page }) => {
   await page.goto("/board.html");
   const board = page.locator(".board");
   await expect(board.locator("tbody tr")).toHaveCount(6);
@@ -16,31 +16,39 @@ test("the departure board rolls letters forward through a wheel and cascades fro
       return animation;
     };
   });
-  const before = await board.locator("tbody tr").nth(1).locator("td").nth(1).locator(".rn-semantic").textContent();
+  // Rows shift up on departure; pick a row whose successor shows a different destination.
+  const names = await board.locator("tbody tr td:nth-child(2) .rn-semantic").allTextContents();
+  const row = names.findIndex((name, index) => index < names.length - 1 && names[index + 1] !== name);
+  expect(row).toBeGreaterThanOrEqual(0);
+  const before = names[row + 1]!;
   await page.getByRole("button", { name: "Next departure" }).click();
-  const cell = board.locator("tbody tr").first().locator("td").nth(1);
-  await expect(cell.locator(".rn-semantic")).toHaveText(before!);
+  const cell = board.locator("tbody tr").nth(row).locator("td").nth(1);
+  await expect(cell.locator(".rn-semantic")).toHaveText(before);
   await expect.poll(() => cell.locator(".rn-face").count()).toBeGreaterThan(12);
-  const wheels = await cell.locator(".rn-slot[data-rn-wheel]").evaluateAll((slots) => slots.map((slot) => ({
-    faces: slot.querySelectorAll(".rn-face").length,
-    masked: getComputedStyle(slot).maskImage !== "none",
-    // Every wheel that changed rolls downward (forward) — never backwards.
-    forward: [...slot.querySelectorAll<HTMLElement>(".rn-reel")].every((reel) => {
-      const keyframes = reel.getAnimations().flatMap((animation) => (animation.effect as KeyframeEffect).getKeyframes().map((frame) => String(frame.transform)));
-      if (keyframes.length < 2) return true;
-      const first = Number(/-?[\d.]+/.exec(keyframes[0]!)?.[0]);
-      const last = Number(/-?[\d.]+/.exec(keyframes.at(-1)!)?.[0]);
-      return last <= first;
-    }),
-  })));
-  expect(wheels.length).toBe(12);
-  expect(wheels.every((wheel) => wheel.masked && wheel.forward)).toBe(true);
-  expect(wheels.some((wheel) => wheel.faces > 1)).toBe(true);
-  // stagger="start": later characters are held longer than earlier ones.
-  const delays = await cell.locator(".rn-slot[data-rn-wheel]").evaluateAll((slots) => slots.map((slot) => Math.max(0, ...slot.getAnimations({ subtree: true }).map((animation) => Number(animation.effect!.getComputedTiming().duration)))));
-  const changed = delays.filter((delay) => delay > 0);
+  const slots = await cell.locator(".rn-slot[data-rn-wheel]").evaluateAll((slots) => slots.map((slot) => {
+    const cards = [...slot.querySelectorAll<HTMLElement>(".rn-flap")];
+    const hinges = cards.flatMap((card) => card.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getKeyframes().map((frame) => String(frame.transform))));
+    return {
+      flap: slot.hasAttribute("data-rn-flap"),
+      masked: getComputedStyle(slot).maskImage !== "none",
+      cards: cards.length,
+      // Every card hinges about X: tops fall 0 → -90°, bottoms land 90° → 0.
+      hinged: hinges.every((frames) => /rotateX\(0deg\)/.test(frames[0]!) && /rotateX\(-90deg\)/.test(frames.at(-1)!) || /rotateX\(90deg\)/.test(frames[0]!) && /rotateX\(0deg\)/.test(frames.at(-1)!)),
+      halves: cards.every((card) => card.classList.contains("rn-flap-top") || card.classList.contains("rn-flap-bottom")),
+      // Bounded: two statics plus two cards per step, never more than one revolution.
+      bounded: cards.length <= 2 + 2 * 44,
+    };
+  }));
+  expect(slots.length).toBe(12);
+  expect(slots.every((slot) => slot.flap && !slot.masked && slot.hinged && slot.halves && slot.bounded)).toBe(true);
+  expect(slots.some((slot) => slot.cards > 2)).toBe(true);
+  // stagger="start": later characters begin their sequence later.
+  const starts = await cell.locator(".rn-slot[data-rn-wheel]").evaluateAll((slots) => slots.map((slot) => Math.min(Infinity, ...slot.querySelectorAll(".rn-flap-top").length ? [...slot.querySelectorAll(".rn-flap-top")].map((card) => Number(card.getAnimations()[0]?.effect?.getComputedTiming().delay ?? Infinity)) : [Infinity])));
+  const changed = starts.filter((delay) => Number.isFinite(delay));
   expect(changed.length).toBeGreaterThan(1);
+  expect(changed.at(-1)!).toBeGreaterThan(changed[0]!);
   await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
+  await expect.poll(() => cell.locator(".rn-flap").count()).toBe(0);
   await expect.poll(() => cell.locator(".rn-face").count()).toBe(12);
   expect(await cell.locator(".rn-face").evaluateAll((faces) => faces.map((face) => face.textContent).join(""))).toBe(before);
 });

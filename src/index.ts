@@ -4,6 +4,7 @@ import { collapsePositions, entryRanks, type Stagger } from "./layout.js";
 import { Scheduler, type Participant } from "./scheduler.js";
 import { Track } from "./track.js";
 import { ReelBlur } from "./blur.js";
+import { buildFlaps, flapCadence, flapMotion } from "./flap.js";
 
 export { formatValue, FLAP_CHARSET } from "./format.js";
 export type { Value, Locales } from "./format.js";
@@ -21,6 +22,12 @@ export interface MotionOptions {
   pauseOffscreen?: boolean | undefined;
   /** Order in which new glyphs cascade in. Default: "outward" from retained glyphs. */
   stagger?: Stagger | undefined;
+  /**
+   * "roll" (default) glides a wheel of faces through the slot. "flap" hinges one
+   * card per face at the midline like a split-flap board; new glyphs flap in from
+   * the wheel's blank face and motion blur does not apply.
+   */
+  mode?: "roll" | "flap" | undefined;
 }
 
 export interface RollingNumberOptions extends FormatOptions, MotionOptions {
@@ -242,6 +249,7 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     element.className = "rn-slot";
     element.dataset.rnKey = token.key;
     if (token.index !== undefined) element.dataset.rnWheel = "";
+    if (this.options.mode === "flap") element.dataset.rnFlap = "";
     const reel = this.host.ownerDocument.createElement("span");
     reel.className = "rn-reel";
     element.append(reel);
@@ -260,6 +268,7 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
   private rest(column: Column): void {
     this.blur?.remove(column.reel);
     column.reel.replaceChildren();
+    column.reel.style.removeProperty("height");
     this.face(column, column.token.text);
     if (column.token.index === undefined) column.roll.set(1, scale);
     else column.roll.set(column.token.index, () => "translateY(0px)");
@@ -295,6 +304,7 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     this.measurementPending = false;
     const animate = this.enhanced && !this.reset;
     const duration = animate ? this.options.duration ?? 500 : 0;
+    const flap = this.options.mode === "flap";
     const trend = this.options.direction === "up" ? 1 : this.options.direction === "down" ? -1 : this.source.direction(this.displayed, this.target);
     if (this.target.text !== this.displayed.text) this.host.dataset.rnTrend = trend > 0 ? "up" : trend < 0 ? "down" : "none";
     const previous = new Map([...this.columns].map(([key, column]) => {
@@ -309,8 +319,15 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     // New glyphs cascade outward from the digits already on screen (symbols such as
     // a retained currency sign do not anchor it); the whole cascade stays inside a
     // fraction of the duration so it still reads as one update, not typing.
-    const ranks = entryRanks(this.target.tokens.map((token) => token.index !== undefined && this.columns.has(token.key) && !this.columns.get(token.key)!.exiting), this.options.stagger);
-    const span = Math.max(0, ...this.target.tokens.map((token, index) => this.columns.has(token.key) ? 0 : ranks[index]! - 1));
+    // "outward" staggers only new places; explicit "start"/"end" also sweep across
+    // wheels that change in place, the way a board runs along a row.
+    const sweep = this.options.stagger === "start" || this.options.stagger === "end";
+    const moving = this.target.tokens.map((token) => {
+      const column = this.columns.get(token.key);
+      return !column || column.exiting || (sweep && token.index !== undefined && column.token.text !== token.text);
+    });
+    const ranks = entryRanks(this.target.tokens.map((token, index) => token.index !== undefined && !moving[index]), this.options.stagger);
+    const span = Math.max(0, ...this.target.tokens.map((_, index) => moving[index] ? ranks[index]! - 1 : 0));
     const step = Math.min(duration * .045, duration * .3 / Math.max(1, span));
     for (const [index, token] of this.target.tokens.entries()) {
       const size = geometry.get(token.key);
@@ -343,9 +360,23 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
       column.height = size.height;
       column.width = size.width;
       if (!animate || resized) this.finishEntry(column);
-      if (!fresh && !resized && changed && token.index !== undefined && token.wheel && column.token.index !== undefined && duration) {
+      // New flap cards start on the wheel's blank face (or its first face) and flap to the target.
+      if (fresh && flap && token.wheel && duration) column.roll.set(Math.max(0, token.wheel.indexOf(" ")), () => "translateY(0px)");
+      if (flap && !resized && (changed || fresh) && token.index !== undefined && token.wheel && duration && column.roll.read().position !== token.index) {
         const current = column.roll.read();
-        const motion = spring(current.position, rollTarget(current.position, token.index, trend, token.wheel.length), current.velocity, duration);
+        // A card mid-flip snaps to whichever face is nearer; the sequence resumes from there.
+        const from = Math.round(current.position);
+        const to = rollTarget(from, token.index, trend, token.wheel.length);
+        const cadence = flapCadence(duration);
+        this.blur?.remove(column.reel);
+        buildFlaps(column.reel, token.wheel, from, to, size.height, cadence, delay);
+        column.token = token;
+        const active = column;
+        column.roll.play(delayed(flapMotion(from, to, cadence), delay), () => "translateY(0px)", () => this.rest(active));
+      } else if (!fresh && !resized && changed && token.index !== undefined && token.wheel && column.token.index !== undefined && duration) {
+        const current = column.roll.read();
+        const target = rollTarget(current.position, token.index, trend, token.wheel.length);
+        const motion = sweep ? delayed(spring(current.position, target, current.velocity, duration), delay) : spring(current.position, target, current.velocity, duration);
         const start = Math.floor(Math.min(...motion.points));
         const end = Math.ceil(Math.max(...motion.points));
         // A new roll takes over the blend; entry completion must not cancel it.
@@ -365,7 +396,7 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
         column.token = token;
         this.rest(column);
       }
-      if (fresh && duration && token.index !== undefined) this.enter(column, duration, delay);
+      if (fresh && duration && token.index !== undefined && !flap) this.enter(column, duration, delay);
       if (replacement && duration && (fresh || reentered)) {
         const current = column.roll.read();
         const active = column;
@@ -425,8 +456,6 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     this.visible = visible;
     if (visible || this.options.pauseOffscreen !== false) this.refresh();
   }
-
-  preferenceChanged(): void { this.refresh(); }
 
   finish(): void {
     if (this.destroyed) return;
