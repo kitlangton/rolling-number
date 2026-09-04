@@ -1,6 +1,7 @@
 node_modules/
 dist/
 site/
+.wrangler/
 test-results/
 playwright-report/
 *.tgz

@@ -60,7 +60,7 @@
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
 }
-.rn-reel, .rn-face { display: block; }
+.rn-enter, .rn-reel, .rn-face { display: block; }
 .rn-face { text-align: center; white-space: pre; }
 .rn-react, .rn-solid { display: inline-block; position: relative; white-space: pre; unicode-bidi: isolate; }
 .rn-mount { display: inline-block; }

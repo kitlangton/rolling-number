@@ -9,21 +9,8 @@ import "./demo.css";
 const repository = "https://github.com/kitlangton/rolling-number";
 const currency: Intl.NumberFormatOptions = { style: "currency", currency: "USD", maximumFractionDigits: 0 };
 const clock: Intl.NumberFormatOptions = { minimumIntegerDigits: 2, useGrouping: false };
+const milliseconds: Intl.NumberFormatOptions = { style: "unit", unit: "millisecond", unitDisplay: "short", maximumFractionDigits: 0 };
 const localeOptions = [["en-US", "English"], ["de-DE", "Deutsch"], ["fr-FR", "Français"], ["hi-IN", "Hindi"], ["ja-JP", "日本語"], ["ar-EG", "العربية"], ["fa-IR", "فارسی"]];
-const showcaseFormats: { label: string; digits: number; format: Intl.NumberFormatOptions }[] = [
-  { label: "Integer", digits: 1, format: { maximumFractionDigits: 0 } },
-  { label: "US dollars", digits: 5, format: { style: "currency", currency: "USD" } },
-  { label: "Percent", digits: 2, format: { style: "percent", maximumFractionDigits: 1 } },
-  { label: "Decimal", digits: 6, format: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-  { label: "Euros", digits: 2, format: { style: "currency", currency: "EUR" } },
-  { label: "Pounds", digits: 4, format: { style: "currency", currency: "GBP", signDisplay: "always" } },
-];
-
-function randomValue(preset: (typeof showcaseFormats)[number]): number {
-  const floor = 10 ** (preset.digits - 1);
-  const value = Math.floor((floor + Math.random() * floor * 8) * 100) / 100;
-  return preset.format.style === "percent" ? value / 100 : value;
-}
 
 function Examples({ locale, duration, reduced }: { locale: string; duration: number; reduced: boolean }) {
   const [revenue, setRevenue] = useState({ value: 8240, animated: true });
@@ -80,8 +67,7 @@ function Examples({ locale, duration, reduced }: { locale: string; duration: num
 }
 
 function App() {
-  const [hero, setHero] = useState({ value: 1284.5, preset: 1 });
-  const shuffleIndex = useRef(0);
+  const [elapsed, setElapsed] = useState(0);
   const [locale, setLocale] = useState("en-US");
   const [duration, setDuration] = useState(500);
   const [reduced, setReduced] = useState(false);
@@ -91,20 +77,18 @@ function App() {
   const [direction, setDirection] = useState<"auto" | "up" | "down">("auto");
   const staticLocale = locale === "ar-EG" || locale === "fa-IR";
   useEffect(() => {
-    const timer = setInterval(() => {
+    const start = performance.now();
+    const tick = () => {
       if (document.hidden) return;
-      setHero((current) => {
-        const format = showcaseFormats[current.preset]!.format;
-        const step = format.style === "percent" ? .001 : format.maximumFractionDigits === 0 ? 1 : 1.37;
-        return { ...current, value: current.value + step };
-      });
-    }, 1200);
-    return () => clearInterval(timer);
+      setElapsed(Math.floor(performance.now() - start));
+    };
+    const timer = setInterval(tick, 100);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
   }, []);
-  function shuffle() {
-    const digits = [1, 5, 2, 6][shuffleIndex.current++ % 4]!;
-    setHero((current) => ({ ...current, value: randomValue({ ...showcaseFormats[current.preset]!, digits }) }));
-  }
   return (
     <div className="site-shell">
       <a className="skip-link" href="#playground">Skip to showcase</a>
@@ -115,15 +99,11 @@ function App() {
       <main>
         <section className="playground" id="playground" aria-label="Interactive number playground">
           <div className={`number-stage font-${font} ${tabular ? "digits-tabular" : "digits-proportional"}`} style={{ "--number-scale": size / 144 } as CSSProperties}>
-            <div className="number-frame"><RollingNumber value={hero.value} locales={locale} format={showcaseFormats[hero.preset]!.format} duration={duration} animated={!reduced} direction={direction} /></div>
-          </div>
-          <div className="play-actions">
-            <button className="primary" onClick={() => shuffle()}>Shuffle</button>
+            <div className="number-frame" role="timer" aria-live="off"><span className="sr-only">Time on this page: </span><RollingNumber value={elapsed} locales={locale} format={milliseconds} duration={duration} animated={!reduced} direction={direction} /></div>
           </div>
           <details className="settings-panel">
             <summary>Options</summary>
             <div className="settings">
-              <label>Format<select id="format" value={hero.preset} onChange={(event) => { const preset = Number(event.target.value); setHero({ preset, value: randomValue(showcaseFormats[preset]!) }); }}>{showcaseFormats.map((preset, index) => <option key={preset.label} value={index}>{preset.label}</option>)}</select></label>
               <label>Locale<select id="locale" value={locale} onChange={(event) => setLocale(event.target.value)}>{localeOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label>Typeface<select id="typeface" value={font} onChange={(event) => setFont(event.target.value)}><option value="sans">Sans</option><option value="serif">Serif</option><option value="mono">Mono</option></select></label>
               <label>Duration<select id="duration" value={duration} onChange={(event) => setDuration(Number(event.target.value))}><option value="200">200 ms</option><option value="500">500 ms</option><option value="1000">1000 ms</option></select></label>

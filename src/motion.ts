@@ -9,6 +9,17 @@ export interface Sample {
   velocity: number;
 }
 
+/** Let horizontal space open before a new glyph rises through its fixed viewport. */
+export function entrance(height: number, duration: number): Motion {
+  return {
+    target: 0, duration,
+    points: Array.from({ length: 49 }, (_, index) => {
+      const progress = Math.max(0, Math.min(1, (index / 48 - .12) / .76));
+      return height * (1 - progress * progress * (3 - 2 * progress));
+    }),
+  };
+}
+
 /** Critically damped spring, sampled once for native WAAPI playback. */
 export function spring(from: number, target: number, velocity: number, duration: number): Motion {
   if (duration <= 0) return { points: [target, target], duration: 0, target };

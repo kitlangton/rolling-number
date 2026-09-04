@@ -13,39 +13,27 @@ test("keeps the dark showcase and functional examples without marketing sections
   await expect(examples.nth(3).locator(".rn-semantic")).toHaveText("9,007,199,254,740,994");
 });
 
-test("shuffle varies widths without switching formats and the showcase ticks upward", async ({ page }) => {
+test("the showcase measures elapsed milliseconds rather than inventing increments", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-04T12:00:00Z") });
   await page.clock.pauseAt(new Date("2026-09-04T12:00:01Z"));
-  await page.addInitScript(() => { Math.random = () => .4; });
   await page.goto("/");
-  await page.clock.runFor(100);
+  await page.clock.runFor(32);
   const number = page.locator(".number-frame .rn-root");
   await expect(number).toHaveAttribute("data-rn-ready", "");
-  await expect(page.locator(".play-actions button")).toHaveCount(1);
-  await expect(page.locator("#number-value, .value-control")).toHaveCount(0);
-  const widths: number[] = [];
-  for (const text of ["$4.20", "$42,000.00", "$42.00", "$420,000.00"]) {
-    await page.getByRole("button", { name: "Shuffle", exact: true }).click();
-    await page.clock.runFor(32);
-    await expect(page.locator(".number-frame .rn-semantic")).toHaveText(text);
-    await expect.poll(() => number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
-    widths.push(await number.evaluate((element) => element.getBoundingClientRect().width));
-  }
-  expect(Math.max(...widths) / Math.min(...widths)).toBeGreaterThan(2);
-  await page.clock.runFor(1200);
-  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("$420,001.37");
-  await page.getByText("Options", { exact: true }).click();
-  await page.locator("#format").selectOption("2");
-  await page.clock.runFor(32);
-  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("42%");
+  await expect(page.locator("#number-value, .value-control, .play-actions")).toHaveCount(0);
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("0 ms");
+  await page.clock.runFor(1000);
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("1,000 ms");
+  await expect.poll(() => number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
+  await page.clock.fastForward(9000);
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("10,032 ms");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.getByRole("button", { name: "Shuffle", exact: true }).click();
-  await page.clock.runFor(32);
-  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("4.2%");
+  await page.clock.fastForward(1000);
+  await expect(page.locator(".number-frame .rn-semantic")).toHaveText("11,032 ms");
   expect(await number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
 });
 
-test("eyes share their gaze while fixed capsules roll digits at faster, different rates", async ({ page }) => {
+test("eyes share their gaze and spin together as a smooth jackpot without squishing", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".eyes")).toHaveAttribute("data-paused", "false");
   await expect.poll(() => page.locator(".eyes").evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
@@ -69,22 +57,18 @@ test("eyes share their gaze while fixed capsules roll digits at faster, differen
       expect(eye.height).toBeCloseTo(initial[index]!.height, 1);
     }
   }
-  for (const time of [0, 600, 1200, 1900, 5400, 6600, 13900]) {
+  for (const time of [0, 600, 1200, 1900, 2640, 3000, 3600, 4200, 5100, 5900, 6600, 13900]) {
     const eyes = await frame(time);
     expect(eyes[0]?.pupilX).toBeCloseTo(eyes[1]!.pupilX, 4);
     expect(eyes[0]?.pupilY).toBeCloseTo(eyes[1]!.pupilY, 4);
     expect(eyes[0]?.reelY).toBeCloseTo(eyes[1]!.reelY, 4);
   }
-  const different = await frame(3600);
-  expect(different[0]?.duration).toBe(6);
-  expect(different[1]?.duration).toBe(6);
-  expect(different[0]?.reelY).not.toBe(different[1]?.reelY);
-  // Left digits travel one row in 240ms; the right takes 180ms.
-  expect((await frame(3120))[0]?.reelY).toBeCloseTo(-26, 1);
-  expect((await frame(3360))[0]?.reelY).toBeCloseTo(-52, 1);
-  expect((await frame(2880))[1]?.reelY).toBeCloseTo(-26, 1);
-  expect((await frame(3060))[1]?.reelY).toBeCloseTo(-52, 1);
-  expect((await frame(2520))[0]?.smear).toBeGreaterThan(.5);
+  const rolling = await frame(3000);
+  expect(rolling[0]?.duration).toBe(6);
+  expect(rolling[0]?.reelY).toBeLessThan(-26);
+  expect(rolling[0]?.reelY).toBeGreaterThan(-182);
+  expect((await frame(4200))[0]?.reelY).toBeCloseTo(-182, 1);
+  expect((await frame(2640))[0]?.smear).toBeGreaterThan(.5);
   await expect(page.locator("feGaussianBlur")).toHaveAttribute("stdDeviation", "0 1.1");
   const seams = await page.locator(".eyes").evaluate((element) => [...element.querySelectorAll(".eye-shell")].map((shell) => {
     const period = parseFloat(getComputedStyle(shell.querySelector(".eye-sharp")!).animationDuration) * 1000;

@@ -34,12 +34,13 @@ export function Eyes({ reduced = false }: { reduced?: boolean }) {
         {[3, 19].map((x, index) => <clipPath id={`${id}-clip-${index}`} key={x}><rect x={x + 1} y="4" width="8" height="24" rx="4" /></clipPath>)}
       </defs>
       {[3, 19].map((x, index) => {
+        const digits = index === 0 ? ["0", "2", "7", "1", "4", "8", "3"] : ["1", "9", "3", "8", "2", "6", "9"];
         const glyphs = <>
           <g className="eye-look"><circle cx={x + 5} cy="16" r="1.8" fill="currentColor" /></g>
-          {(index === 0 ? ["0", "8", "3"] : ["1", "6", "9"]).map((digit, row) => (
+          {digits.map((digit, row) => (
             <text key={row} x={x + 5} y={16 + (row + 1) * 26} textAnchor="middle" dominantBaseline="central" fill="currentColor" className="eye-digit">{digit}</text>
           ))}
-          <g className="eye-look"><circle cx={x + 5} cy="120" r="1.8" fill="currentColor" /></g>
+          <g className="eye-look"><circle cx={x + 5} cy={16 + (digits.length + 1) * 26} r="1.8" fill="currentColor" /></g>
         </>;
         return (
           <g key={x} className={`eye-shell ${index === 0 ? "eye-left" : "eye-right"}`}>

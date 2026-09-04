@@ -1,4 +1,5 @@
 export interface Participant {
+  stage(): (() => void) | undefined;
   measure(): (() => void) | undefined;
   refresh(): void;
   visibility(visible: boolean): void;
@@ -71,7 +72,10 @@ export class Scheduler {
       this.frame = 0;
       const pending = [...this.pending];
       this.pending.clear();
-      // All reads precede all writes, including across independent React roots.
+      // Capture old positions before any intrinsic-width writes, across all adapters.
+      const stages = pending.map((member) => member.stage());
+      for (const stage of stages) stage?.();
+      // Measure target positions as a second batch, then start native playback.
       const commits = pending.map((member) => member.measure());
       for (const commit of commits) commit?.();
     });

@@ -1,5 +1,6 @@
 import { direction, model, type FormatOptions, type Model, type Token, type Value } from "./format.js";
-import { numeral, rollTarget, spring } from "./motion.js";
+import { entrance, numeral, rollTarget, spring } from "./motion.js";
+import { collapsePositions } from "./layout.js";
 import { Scheduler, type Participant } from "./scheduler.js";
 import { Track } from "./track.js";
 
@@ -37,6 +38,8 @@ interface Column {
   opacity: Track;
   exiting: boolean;
   height: number;
+  width: number;
+  entry?: { element: HTMLSpanElement; track: Track } | undefined;
 }
 
 const mounted = new WeakSet<HTMLElement>();
@@ -67,6 +70,7 @@ class Renderer implements Participant, RollingNumberController {
   private reset = true;
   private measurementPending = false;
   private hadClass: boolean;
+  private previousLeft: number | undefined;
 
   constructor(private host: HTMLElement, options: RollingNumberOptions) {
     validate(options);
@@ -120,6 +124,17 @@ class Renderer implements Participant, RollingNumberController {
   private prepare(): void {
     if (!this.canAnimate()) { this.finish(); return; }
     this.measurementPending = true;
+    this.scheduler?.enqueue(this);
+  }
+
+  stage(): (() => void) | undefined {
+    if (this.destroyed) return;
+    if (!this.canAnimate()) return () => this.finish();
+    this.previousLeft = this.enhanced && !this.reset ? this.measurement.getBoundingClientRect().left : undefined;
+    return () => this.stageMeasurement();
+  }
+
+  private stageMeasurement(): void {
     const keys = new Set(this.target.tokens.map((token) => token.key));
     for (const [key, node] of this.measures) {
       if (keys.has(key)) continue;
@@ -143,7 +158,6 @@ class Renderer implements Participant, RollingNumberController {
       previous = node;
     }
     this.host.dataset.rnMeasuring = "";
-    this.scheduler?.enqueue(this);
   }
 
   measure(): (() => void) | undefined {
@@ -169,7 +183,8 @@ class Renderer implements Participant, RollingNumberController {
       this.sizes.set(node, size);
       geometry.set(key, { ...size, x: (rect.left - bounds.left) / scaleX, y: (rect.top - bounds.top) / scaleY });
     }
-    return () => this.commit(geometry);
+    const originShift = this.previousLeft === undefined ? 0 : (this.previousLeft - bounds.left) / scaleX;
+    return () => this.commit(geometry, originShift);
   }
 
   private makeColumn(token: Token): Column {
@@ -180,7 +195,7 @@ class Renderer implements Participant, RollingNumberController {
     reel.className = "rn-reel";
     element.append(reel);
     this.visual.append(element);
-    return { token, element, reel, x: new Track(element, "transform"), opacity: new Track(element, "opacity"), roll: new Track(reel, "transform"), exiting: false, height: 0 };
+    return { token, element, reel, x: new Track(element, "transform"), opacity: new Track(element, "opacity"), roll: new Track(reel, "transform"), exiting: false, height: 0, width: 0 };
   }
 
   private face(column: Column, text: string): void {
@@ -197,23 +212,45 @@ class Renderer implements Participant, RollingNumberController {
     column.roll.set(column.token.digit ?? 0, () => "translateY(0px)");
   }
 
-  private commit(geometry: Map<string, Geometry>): void {
+  private finishEntry(column: Column): void {
+    if (!column.entry) return;
+    column.entry.track.cancel();
+    column.entry.element.replaceWith(column.reel);
+    column.entry = undefined;
+  }
+
+  private enter(column: Column, duration: number): void {
+    const element = this.host.ownerDocument.createElement("span");
+    element.className = "rn-enter";
+    column.reel.replaceWith(element);
+    element.append(column.reel);
+    const track = new Track(element, "transform");
+    column.entry = { element, track };
+    track.play(entrance(column.height, duration), (y) => `translateY(${y}px)`, () => this.finishEntry(column));
+  }
+
+  private commit(geometry: Map<string, Geometry>, originShift: number): void {
     if (this.destroyed) return;
     this.measurementPending = false;
     const animate = this.enhanced && !this.reset;
     const duration = animate ? this.options.duration ?? 500 : 0;
     const trend = this.options.direction === "up" ? 1 : this.options.direction === "down" ? -1 : direction(this.displayed, this.target);
-    const retained = new Set<string>();
+    const previous = new Map([...this.columns].map(([key, column]) => {
+      const sample = column.x.read();
+      return [key, { ...sample, x: sample.position, width: column.width }];
+    }));
+    const starts = collapsePositions(this.target.tokens.map((token) => token.key), previous);
+    const oldOrder = [...previous.keys()].sort((a, b) => previous.get(a)!.x - previous.get(b)!.x);
+    const exits = collapsePositions(oldOrder, geometry);
     for (const token of this.target.tokens) {
       const size = geometry.get(token.key);
       if (!size) continue;
-      retained.add(token.key);
       let column = this.columns.get(token.key);
       const fresh = !column;
       if (!column) {
         column = this.makeColumn(token);
         this.columns.set(token.key, column);
-        column.x.set(size.x, translate);
+        column.x.set(animate ? (starts.get(token.key) ?? size.x) + originShift : size.x, translate);
         column.opacity.set(animate ? 0 : 1, opacity);
       }
       const changed = column.token.text !== token.text;
@@ -223,13 +260,15 @@ class Renderer implements Participant, RollingNumberController {
       column.element.style.width = `${size.width}px`;
       column.element.style.height = `${size.height}px`;
       column.element.style.top = `${size.y}px`;
-      const x = column.x.read();
-      column.x.play(spring(x.position, size.x, x.velocity, duration), translate);
+      const x = previous.get(token.key);
+      column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
       if (fresh || reentered || !animate) {
         const alpha = column.opacity.read();
         column.opacity.play(spring(alpha.position, 1, alpha.velocity, duration), opacity);
       }
       column.height = size.height;
+      column.width = size.width;
+      if (!animate || resized) this.finishEntry(column);
       if (!fresh && !resized && changed && token.digit !== undefined && column.token.digit !== undefined && duration) {
         const current = column.roll.read();
         const motion = spring(current.position, rollTarget(current.position, token.digit, trend), current.velocity, duration);
@@ -244,9 +283,13 @@ class Renderer implements Participant, RollingNumberController {
         column.token = token;
         this.rest(column);
       }
+      if (fresh && duration) this.enter(column, duration);
     }
     for (const [key, column] of this.columns) {
-      if (retained.has(key) || column.exiting) continue;
+      if (geometry.has(key)) continue;
+      const x = previous.get(key)!;
+      column.x.play(spring(x.position + originShift, exits.get(key) ?? x.position, x.velocity, duration), translate);
+      if (column.exiting) continue;
       column.exiting = true;
       const alpha = column.opacity.read();
       column.opacity.play(spring(alpha.position, 0, alpha.velocity, duration * 0.65), opacity, () => {
@@ -262,6 +305,7 @@ class Renderer implements Participant, RollingNumberController {
   }
 
   private removeColumn(column: Column): void {
+    this.finishEntry(column);
     column.x.cancel();
     column.roll.cancel();
     column.opacity.cancel();

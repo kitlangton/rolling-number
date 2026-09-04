@@ -24,10 +24,9 @@ bun install
 bun run dev
 ```
 
-The main number steadily increases. Shuffle changes its magnitude without switching
-formats; Options offers currencies, percentages and decimals. The demo also includes
-prices, large integers, typography controls, locale changes and reduced motion.
-Nothing needs a remote font or an API key.
+The main number shows elapsed milliseconds since opening the page. The demo also
+includes prices, large integers, typography controls, locale changes and reduced
+motion. Nothing needs a remote font or an API key.
 
 ## React
 
@@ -146,7 +145,10 @@ without changing the measurement or animation:
 ```
 
 **The host adopts its target intrinsic width immediately; internal glyphs glide
-to their target positions.** This does not animate arbitrary surrounding siblings
+to their target positions.** The renderer captures the previous and next origins
+in shared measurement batches, keeping existing glyphs continuous in left-, center-
+and right-aligned layouts. New glyphs rise from below after space starts opening.
+This does not animate arbitrary surrounding siblings
 or promise zero layout shift. Reserve space with CSS `min-width` when a stable
 surrounding layout matters. Ancestor axis-aligned scaling is supported; rotated or
 skewed ancestors, vertical writing and per-digit typography are not a v0.1 contract.
@@ -200,9 +202,15 @@ React hydration under StrictMode and Solid hydration/reactive cleanup in Chromiu
 Firefox and WebKit.
 
 The dark-only demo keeps the showcase and four interactive examples up front.
-Its eye mark uses synchronized gaze and differently timed digit rolls with vertical SVG blur,
+Its eye mark uses synchronized gaze and a paired jackpot roll with vertical SVG blur,
 and stops for reduced motion, hidden documents and offscreen state.
 
 `dist/` contains ESM and declarations plus an explicit stylesheet. There is no
 automatic global style injection, custom-element registration, or server-side DOM
 access. See [LICENSE](LICENSE).
+
+### Website deployment
+
+`bun run deploy` builds the showcase and benchmark, then deploys static assets to
+Cloudflare Workers at [rolling.kitlangton.dev](https://rolling.kitlangton.dev).
+Wrangler uses the operator's Cloudflare login; no credentials belong in the repo.

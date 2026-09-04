@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rolling-number-site",
+  "compatibility_date": "2026-09-04",
+  "workers_dev": false,
+  "routes": [{ "pattern": "rolling.kitlangton.dev", "custom_domain": true }],
+  "assets": { "directory": "./site" }
+}

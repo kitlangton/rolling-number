@@ -47,6 +47,47 @@ test("format changes retain digit places and animate symbol entry, replacement a
   await expect(page.locator(".rn-face")).toHaveCount(2);
 });
 
+for (const alignment of ["left", "center", "right"] as const) {
+  test(`large width changes preserve visible positions and reveal new digits from below (${alignment})`, async ({ page }) => {
+    await page.evaluate((alignment) => {
+      document.getElementById("fixture")!.style.textAlign = alignment;
+      window.mountNumber({ value: 23, locales: "en-US", format: { style: "currency", currency: "USD" }, duration: 600 });
+    }, alignment);
+    await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+    const state = () => page.evaluate(() => Object.fromEntries([...document.querySelectorAll<HTMLElement>(".rn-slot")].map((element) => [element.dataset.rnKey!, element.getBoundingClientRect().x])));
+    const before = await state();
+    await page.evaluate(async () => {
+      const animate = Element.prototype.animate;
+      Element.prototype.animate = function (...args) {
+        const animation = animate.apply(this, args);
+        animation.pause(); animation.currentTime = 0;
+        return animation;
+      };
+      window.testNumber.update({ value: 5823823 });
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+    });
+    const start = await state();
+    for (const key of Object.keys(before)) expect(Math.abs(start[key]! - before[key]!)).toBeLessThan(.5);
+    const entrance = await page.locator(".rn-slot[data-rn-key='digit:6']").evaluate((slot) => ({
+      viewportBottom: slot.getBoundingClientRect().bottom,
+      glyphTop: slot.querySelector(".rn-face")!.getBoundingClientRect().top,
+    }));
+    expect(entrance.glyphTop).toBeGreaterThanOrEqual(entrance.viewportBottom - .5);
+    await page.evaluate(() => { for (const animation of document.getAnimations()) animation.currentTime = 240; });
+    const interrupted = await state();
+    await page.evaluate(async () => {
+      window.testNumber.update({ value: 42 });
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+    });
+    const reversed = await state();
+    for (const key of Object.keys(interrupted)) expect(Math.abs(reversed[key]! - interrupted[key]!)).toBeLessThan(.5);
+    await page.evaluate(() => window.testNumber.finish());
+    expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
+  });
+}
+
 test("same formatted value does not restart animations", async ({ page }) => {
   await page.evaluate(() => window.mountNumber({ value: 1, duration: 600, format: { maximumFractionDigits: 0 } }));
   await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");

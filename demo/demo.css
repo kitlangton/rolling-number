@@ -34,14 +34,13 @@ h1, h2, p { margin: 0; }
 .site-header nav a { display: inline-flex; align-items: center; min-height: 44px; gap: 6px; }
 .playground { padding: 10px 0 32px; }
 .number-stage { display: flex; justify-content: center; align-items: center; min-height: 290px; padding: 36px 0; font-size: calc(clamp(3.5rem, 12.4vw, 9rem) * var(--number-scale)); font-weight: 450; line-height: 1.25; letter-spacing: -.065em; }
-.number-frame { max-width: 100%; padding: .05em .08em .12em; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.number-frame { display: flex; justify-content: safe center; width: 100%; max-width: 100%; padding: .05em .08em .12em; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.number-frame > .rn-react { flex-shrink: 0; }
 .number-frame::-webkit-scrollbar, .example-number::-webkit-scrollbar { display: none; }
 .font-serif { font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
 .font-mono { font-family: var(--mono); }
 .digits-tabular { font-variant-numeric: tabular-nums lining-nums; }
 .digits-proportional { font-variant-numeric: proportional-nums lining-nums; }
-.play-actions { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 24px; }
-.primary { color: #111; background: var(--ink); border-color: var(--ink); }
 .settings-panel { margin-top: 27px; }
 .settings-panel summary { width: fit-content; margin-inline: auto; color: var(--muted); font-size: 12px; padding: 10px; min-height: 36px; list-style: none; }
 .settings-panel summary::-webkit-details-marker { display: none; }
@@ -77,7 +76,6 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .site-footer code { margin-right: auto; font-family: var(--mono); color: #b0b2b6; }
 @media (hover: hover) {
   button:not(:disabled):hover { background: #25282d; }
-  .primary:hover { background: white !important; }
   .quiet:hover { background: none !important; color: var(--ink); }
   a:hover, summary:hover { color: var(--ink); }
 }
@@ -87,7 +85,6 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .brand h1 { font-size: 18px; }
   .site-header nav { gap: 18px; font-size: 12px; }
   .number-stage { min-height: 230px; font-size: calc(11.6vw * var(--number-scale)); }
-  .play-actions { gap: 16px; }
   .settings { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 18px; }
   .examples { grid-template-columns: 1fr; }
   .example, .example:nth-child(even) { border-left: 0; padding: 25px 0; }

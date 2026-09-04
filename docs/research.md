@@ -57,8 +57,13 @@ Reel viewports now use a simple top/bottom linear alpha mask for softer entry an
 exit edges. `--rn-edge-fade` controls its extent; `--rn-mask: none` retains hard
 clipping. The current benchmark includes the mask rather than reusing the initial
 unmasked measurements. This is a visual tradeoff, not a claim that masks are free.
-Real width is adopted at update time, while glyph positions animate. Arbitrary
-surrounding inline siblings do **not** continuously reflow without layout work.
+Real width is adopted during the scheduled measurement batch. Each batch reads
+the old origins, writes measurement tokens, reads target geometry, then starts
+native playback. This compensates for centering/right-alignment changes without
+reading layout during playback. New glyphs share retained insertion edges and
+rise through their masks after horizontal space starts opening. A temporary entry
+wrapper is removed on completion or cleanup. Arbitrary surrounding inline siblings
+do **not** continuously reflow without layout work.
 
 ResizeObserver tracks intrinsic measurement boxes and individual tokens, not a
 fixed-width host. Font events and an explicit `refresh()` handle additional
