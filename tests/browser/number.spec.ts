@@ -40,6 +40,41 @@ test("same formatted value does not restart animations", async ({ page }) => {
   expect(stable).toBe(true);
 });
 
+test("native playback does not read geometry each frame", async ({ page }) => {
+  await page.evaluate(() => window.mountNumber({ value: 1, duration: 800 }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  await page.evaluate(() => window.testNumber.update({ value: 8 }));
+  await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBeGreaterThan(0);
+  const reads = await page.evaluate(async () => {
+    const original = Element.prototype.getBoundingClientRect;
+    let count = 0;
+    Element.prototype.getBoundingClientRect = function () { count++; return original.call(this); };
+    try {
+      for (let frame = 0; frame < 8; frame++) await new Promise(requestAnimationFrame);
+      return count;
+    } finally { Element.prototype.getBoundingClientRect = original; }
+  });
+  expect(reads).toBe(0);
+});
+
+test("uses compact native keyframes and retains a legacy easing fallback", async ({ page }) => {
+  await page.evaluate(() => window.mountNumber({ value: 1, duration: 800 }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  await page.evaluate(() => window.testNumber.update({ value: 8 }));
+  await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBeGreaterThan(0);
+  const frames = await page.evaluate(() => document.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getKeyframes().length));
+  expect(frames.every((count) => count === 2)).toBe(true);
+  await page.addInitScript(() => { CSS.supports = () => false; });
+  await page.reload();
+  await page.waitForFunction(() => window.ready);
+  await page.evaluate(() => window.mountNumber({ value: 1, duration: 800 }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  await page.evaluate(() => window.testNumber.update({ value: 8 }));
+  await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBeGreaterThan(0);
+  const fallback = await page.evaluate(() => document.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getKeyframes().length));
+  expect(fallback.every((count) => count === 49)).toBe(true);
+});
+
 test("retargets from the visible wheel position without snapping", async ({ page }) => {
   await page.evaluate(() => window.mountNumber({ value: 1, duration: 500 }));
   await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
@@ -64,6 +99,12 @@ test("retargets from the visible wheel position without snapping", async ({ page
     return Math.max(...before.map((face) => Math.abs(face.y - (after.find((entry) => entry.text === face.text)?.y ?? Infinity))));
   });
   expect(delta).toBeLessThan(0.5);
+});
+
+test("opacity overshoot retains its non-linear clamped trajectory", async ({ page }) => {
+  const result = await page.evaluate(() => window.opacityProbe());
+  expect(result.expected).toBeLessThan(1);
+  expect(result.actual).toBeCloseTo(result.expected, 3);
 });
 
 test("invalid updates are atomic and finishing releases playback", async ({ page }) => {

@@ -34,6 +34,9 @@ console.log('Clean consumer imports, bigint formatting and SSR passed');
   const adapter = await readFile(join(directory, "node_modules/@kitlangton/rolling-number/dist/react.js"), "utf8");
   if (!adapter.startsWith('"use client";')) throw new Error("Packed React entry lost its client boundary");
   console.log("Clean NodeNext declarations and React client boundary passed");
+  run(["bun", "add", "react@18.3.1", "react-dom@18.3.1", "@types/react@18", "@types/react-dom@18"]);
+  console.log(`React 18: ${run(["bun", "run", "consumer.tsx"])}`);
+  run(["bunx", "tsc", "--noEmit", "--strict", "--jsx", "react-jsx", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "consumer.tsx"]);
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

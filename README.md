@@ -92,7 +92,9 @@ update rather than making the interface chase each keypress.
 - **One numeral per digit at rest.** During a roll, only a bounded travel strip
   exists; completion returns to one face. Huge value changes do not create huge reels.
 - **Native playback.** Critically damped spring trajectories are sampled once into
-  direct transform keyframes. No JavaScript animation-frame loop runs during playback.
+  a `linear()` easing between two direct transform keyframes where supported.
+  Explicit sampled keyframes remain the compatibility fallback. No JavaScript
+  animation-frame loop runs during playback.
 - **Interruptions replace, not accumulate.** A new target samples the current
   position and velocity; each property has one owning animation.
 - **Batched geometry.** Across counters, reads happen before animation writes.
@@ -116,7 +118,7 @@ skewed ancestors, vertical writing and per-digit typography are not a v0.1 contr
 
 All values use native Intl formatting, including bigint, negative zero, accounting
 signs, percentages and alternate grouping. **Rolling currently targets standard
-Latin-digit formats.** RTL scripts, non-Latin digits, compact/scientific/engineering
+Latin-digit formats in LTR layout.** RTL surroundings/scripts, non-Latin digits, compact/scientific/engineering
 notation, NaN and infinity render as intact static localized text. They are not
 silently transliterated or forced into LTR layout.
 
@@ -138,6 +140,11 @@ bun run bench
 See [the methodology](perf/method.md) and [research and design tradeoffs](docs/research.md).
 Benchmarks are workload- and browser-specific. A smaller DOM or no per-frame
 JavaScript does not, on its own, prove smoother presented frames or universal speed.
+
+The [published local comparison](perf/results.md) measured **55.7% less main-thread
+work and 56.7% fewer retained elements** than NumberFlow 0.6.2 for 100 animated
+counters. It includes the slower cases, methodology and raw per-round data—not a
+claim that every workload or browser is faster.
 
 ## Development
 

@@ -3,6 +3,8 @@ import { createRoot, hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { createRollingNumber, type RollingNumberController, type RollingNumberOptions } from "../src/index";
 import { RollingNumber } from "../src/react";
+import { Track } from "../src/track";
+import { sample, spring } from "../src/motion";
 import "../src/styles.css";
 
 declare global {
@@ -13,6 +15,7 @@ declare global {
     unmountReact(): void;
     mountRefProbe(): void;
     refProbe: { mounted: number; cleaned: number; nullCalls: number };
+    opacityProbe(): { expected: number; actual: number };
     ready: boolean;
   }
 }
@@ -46,5 +49,17 @@ window.mountRefProbe = () => {
     window.refProbe.mounted++;
     return () => { window.refProbe.cleaned++; };
   }} /></StrictMode>);
+};
+window.opacityProbe = () => {
+  const element = document.createElement("span");
+  fixture.append(element);
+  const motion = spring(1.03, 1, -4.5, 1000);
+  const track = new Track(element, "opacity");
+  track.play(motion, (value) => String(Math.max(0, Math.min(1, value))));
+  for (const animation of element.getAnimations()) { animation.pause(); animation.currentTime = 100; }
+  const result = { expected: sample(motion, 100).position, actual: Number(getComputedStyle(element).opacity) };
+  track.cancel();
+  element.remove();
+  return result;
 };
 window.ready = true;

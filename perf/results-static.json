@@ -1,0 +1,1243 @@
+{
+  "schemaVersion": 1,
+  "benchmark": "dom-carry-reversal-v1",
+  "recordedAt": "2026-09-04T16:53:40.059Z",
+  "versions": {
+    "rollingNumber": "0.1.0",
+    "numberFlow": "0.6.2",
+    "playwright": "1.62.1",
+    "vite": "8.2.2",
+    "browser": "151.0.7922.34",
+    "bun": "1.4.0"
+  },
+  "build": {
+    "mode": "production",
+    "entryHtmlSha256": "82917fe6453b4dafa71dfdcc80753d00805b5a190ed804aa3182316456b76e0c"
+  },
+  "environment": {
+    "production": true,
+    "numberFlowCanAnimate": true,
+    "visible": true,
+    "reducedMotion": false,
+    "devicePixelRatio": 1,
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "font": "normal 400 24px/24px Arial, Helvetica, sans-serif",
+    "fontVariantNumeric": "tabular-nums",
+    "numberFlowEasing": "linear(0,0.018910248401316054,0.0660757738827048,0.1302001786566408,0.20323661773702328,0.27956508368818334,0.3553642070645723,0.4281335076199889,0.49633172576650175,0.5591044703208307,0.6160803797139542,0.6672196594170714,0.7127025048163542,0.75284776444893,0.7880544156272822,0.8187601488034444,0.8454126954952396,0.8684505713585104,0.8882907071839568,0.9053210581598647,0.9198967564051186,0.9323387354469173,0.9429340329542664,0.9519371891388022,0.9595723180054871,0.9660355489174117,0.9714976259335882,0.9761065192238958,0.9799899520854091,0.9832577829443769,0.9860042075123491,0.98830976449489,0.9902431408563948,0.9918627810956498,0.9932183104005554,0.9943517847703811,0.9952987828537434,0.9960893548230971,0.9967488434421551,0.9972985918382312,0.9977565515534179,0.9981378033500027,0.9984550020801214,0.9987187557613483,0.9989379478710443,0.9991200108093179,0.9992711574985295,0.9993965771935083,1)",
+    "format": {
+      "minimumFractionDigits": 2,
+      "maximumFractionDigits": 2
+    },
+    "locale": "en-US",
+    "headless": true,
+    "os": {
+      "platform": "darwin",
+      "release": "25.5.0",
+      "arch": "arm64"
+    },
+    "cpu": {
+      "model": "Apple M2 Max",
+      "logicalCount": 12
+    },
+    "systemMemoryBytes": 103079215104,
+    "cpuThrottling": "none requested"
+  },
+  "settings": {
+    "rounds": 7,
+    "warmupRounds": 1,
+    "count": 100,
+    "duration": 1200,
+    "hz": 6,
+    "animationDuration": 500,
+    "animated": false,
+    "headless": true,
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "settleDuration": 600,
+    "initialValue": 999.98,
+    "sequence": [
+      999.99,
+      1000,
+      999.99,
+      1000.01,
+      999.98,
+      1000,
+      1000.01,
+      999.99
+    ]
+  },
+  "methodology": {
+    "primary": "CDP Performance.TaskDuration delta after mount, through scheduled updates, rAF flushes, and natural settlement; milliseconds of renderer main-thread task time, not wall time",
+    "mount": "Separate CDP delta around mount through two rAF callbacks; synchronous mount timing is diagnostic only",
+    "layoutAndStyle": "CDP LayoutDuration/RecalcStyleDuration deltas reported separately; these are components of task work and must not be added to it",
+    "raf": "Main-thread requestAnimationFrame callback intervals across workload and settlement; NOT compositor frames, FPS, or dropped-frame counts",
+    "elements": "All element descendants of the shared stage, including open shadow roots and common counter hosts; excludes stage itself, text nodes, pseudo-elements, and detached nodes",
+    "ordering": "One warmup per renderer excluded from summaries; measured rounds alternate forward/reverse order and rotate the first renderer every pair of rounds; same page; explicit garbage collection between samples outside measured windows",
+    "scheduling": "Fixed 6 Hz by default, first update at time zero, all scheduled updates submitted; lateness recorded rather than dropping delayed work",
+    "statistics": "Per-renderer medians, min/max, and interpolated p25/p75 across measured rounds; rAF summaries summarize each round's median/p95"
+  },
+  "caveats": [
+    "Plain text is a non-animated lower-bound reference, not an equivalent animation implementation.",
+    "NumberFlow uses full directional wheels and accumulated effects; Rolling Number uses bounded travel and replacement springs. Equal target values and requested durations do not imply identical visuals.",
+    "NumberFlow spin/layout easing matches the zero-velocity sampled spring; interruption velocity, travel distance, opacity timing, and layout paths may differ.",
+    "NumberFlow's normal ungrouped DOM API is the baseline; no framework wrappers or custom cross-instance batching are added.",
+    "Rolling Number offscreen pausing is disabled; NumberFlow checks element dimensions rather than viewport intersection. Large counts can extend below the viewport.",
+    "CDP task time includes the benchmark scheduler and rAF observer as well as library work. The plain-text run exposes this common overhead.",
+    "This is a warm steady-state update benchmark plus a separate warm mount measurement, not a cold-load, bundle-size, memory-leak, accessibility, or visual-quality test.",
+    "Results characterize this workload, count, browser, environment, and versions only; no universal speed advantage is implied."
+  ],
+  "summaries": {
+    "plain": {
+      "mount": {
+        "taskMs": {
+          "samples": 7,
+          "median": 1.6409999999997815,
+          "p25": 1.6099999999998615,
+          "p75": 1.7504999999999882,
+          "min": 1.567000000000096,
+          "max": 1.827000000000023
+        },
+        "layoutMs": {
+          "samples": 7,
+          "median": 0.3269999999999662,
+          "p25": 0.31749999999999834,
+          "p75": 0.3409999999999802,
+          "min": 0.29800000000002047,
+          "max": 0.38800000000005497
+        },
+        "recalcStyleMs": {
+          "samples": 7,
+          "median": 0.15300000000001424,
+          "p25": 0.14299999999999036,
+          "p75": 0.15899999999999248,
+          "min": 0.13499999999999623,
+          "max": 0.18699999999999273
+        },
+        "layoutCount": {
+          "samples": 7,
+          "median": 1,
+          "p25": 1,
+          "p75": 1,
+          "min": 1,
+          "max": 1
+        },
+        "recalcStyleCount": {
+          "samples": 7,
+          "median": 1,
+          "p25": 1,
+          "p75": 1,
+          "min": 1,
+          "max": 1
+        },
+        "synchronousMountMs": {
+          "samples": 7,
+          "median": 0.10000002384185791,
+          "p25": 0.10000002384185791,
+          "p75": 0.19999992847442627,
+          "min": 0.10000002384185791,
+          "max": 0.20000004768371582
+        },
+        "mountThroughFlushMs": {
+          "samples": 7,
+          "median": 11.899999976158142,
+          "p25": 8.25,
+          "p75": 12.150000035762787,
+          "min": 4.5,
+          "max": 12.900000095367432
+        }
+      },
+      "updateThroughSettlement": {
+        "taskMs": {
+          "samples": 7,
+          "median": 21.011000000000113,
+          "p25": 20.85349999999997,
+          "p75": 22.126999999999786,
+          "min": 19.925000000000026,
+          "max": 23.331000000000213
+        },
+        "layoutMs": {
+          "samples": 7,
+          "median": 2.84300000000004,
+          "p25": 2.828999999999998,
+          "p75": 2.866499999999994,
+          "min": 2.7539999999999787,
+          "max": 2.932000000000018
+        },
+        "recalcStyleMs": {
+          "samples": 7,
+          "median": 0.4530000000000367,
+          "p25": 0.4274999999999973,
+          "p75": 0.4820000000000102,
+          "min": 0.39300000000000446,
+          "max": 0.49399999999999444
+        },
+        "layoutCount": {
+          "samples": 7,
+          "median": 8,
+          "p25": 8,
+          "p75": 8,
+          "min": 8,
+          "max": 8
+        },
+        "recalcStyleCount": {
+          "samples": 7,
+          "median": 8,
+          "p25": 8,
+          "p75": 8,
+          "min": 8,
+          "max": 8
+        }
+      },
+      "elapsedMs": {
+        "samples": 7,
+        "median": 1832,
+        "p25": 1831.050000011921,
+        "p75": 1832.300000011921,
+        "min": 1829.3000000715256,
+        "max": 1832.6999999284744
+      },
+      "rafIntervalMedianMs": {
+        "samples": 7,
+        "median": 8.300000000000182,
+        "p25": 8.299999999999272,
+        "p75": 8.30000000000291,
+        "min": 8.299999999999272,
+        "max": 8.30000000000291
+      },
+      "rafIntervalP95Ms": {
+        "samples": 7,
+        "median": 9.099999999998545,
+        "p25": 9.054999999999245,
+        "p75": 9.099999999998545,
+        "min": 9,
+        "max": 9.099999999998726
+      },
+      "maxUpdateLatenessMs": {
+        "samples": 7,
+        "median": 0.8333333333330302,
+        "p25": 0.500000000001819,
+        "p75": 0.949999988079071,
+        "min": 0.16666666666787933,
+        "max": 1.600000023841858
+      },
+      "mountedElementsIncludingShadowDOM": {
+        "samples": 7,
+        "median": 200,
+        "p25": 200,
+        "p75": 200,
+        "min": 200,
+        "max": 200
+      },
+      "settledElementsIncludingShadowDOM": {
+        "samples": 7,
+        "median": 200,
+        "p25": 200,
+        "p75": 200,
+        "min": 200,
+        "max": 200
+      }
+    },
+    "number-flow": {
+      "mount": {
+        "taskMs": {
+          "samples": 7,
+          "median": 27.74499999999991,
+          "p25": 27.089999999999836,
+          "p75": 28.43499999999993,
+          "min": 26.559999999999917,
+          "max": 28.92899999999998
+        },
+        "layoutMs": {
+          "samples": 7,
+          "median": 5.620999999999987,
+          "p25": 5.458500000000004,
+          "p75": 5.68300000000005,
+          "min": 5.193999999999976,
+          "max": 5.751999999999979
+        },
+        "recalcStyleMs": {
+          "samples": 7,
+          "median": 6.162000000000001,
+          "p25": 6.063000000000013,
+          "p75": 6.278499999999992,
+          "min": 5.896999999999986,
+          "max": 6.496000000000002
+        },
+        "layoutCount": {
+          "samples": 7,
+          "median": 1,
+          "p25": 1,
+          "p75": 1,
+          "min": 1,
+          "max": 1
+        },
+        "recalcStyleCount": {
+          "samples": 7,
+          "median": 1,
+          "p25": 1,
+          "p75": 1,
+          "min": 1,
+          "max": 1
+        },
+        "synchronousMountMs": {
+          "samples": 7,
+          "median": 9.700000047683716,
+          "p25": 9.549999952316284,
+          "p75": 10.050000071525574,
+          "min": 9.299999952316284,
+          "max": 10.599999904632568
+        },
+        "mountThroughFlushMs": {
+          "samples": 7,
+          "median": 26.100000023841858,
+          "p25": 25.44999998807907,
+          "p75": 26.800000071525574,
+          "min": 25.100000023841858,
+          "max": 27.09999990463257
+        }
+      },
+      "updateThroughSettlement": {
+        "taskMs": {
+          "samples": 7,
+          "median": 275.4950000000003,
+          "p25": 273.34149999999977,
+          "p75": 277.00350000000003,
+          "min": 268.84700000000004,
+          "max": 278.5179999999999
+        },
+        "layoutMs": {
+          "samples": 7,
+          "median": 106.21899999999995,
+          "p25": 105.56900000000002,
+          "p75": 106.89700000000002,
+          "min": 104.35799999999995,
+          "max": 108.16200000000003
+        },
+        "recalcStyleMs": {
+          "samples": 7,
+          "median": 55.185999999999986,
+          "p25": 54.11200000000001,
+          "p75": 56.21299999999998,
+          "min": 53.809,
+          "max": 57.13200000000002
+        },
+        "layoutCount": {
+          "samples": 7,
+          "median": 1208,
+          "p25": 1208,
+          "p75": 1208,
+          "min": 1208,
+          "max": 1208
+        },
+        "recalcStyleCount": {
+          "samples": 7,
+          "median": 1208,
+          "p25": 1208,
+          "p75": 1208,
+          "min": 1208,
+          "max": 1208
+        }
+      },
+      "elapsedMs": {
+        "samples": 7,
+        "median": 1841,
+        "p25": 1838.9999999403954,
+        "p75": 1845.8999999761581,
+        "min": 1837,
+        "max": 1847.9000000953674
+      },
+      "rafIntervalMedianMs": {
+        "samples": 7,
+        "median": 8.300000000001091,
+        "p25": 8.300000000000182,
+        "p75": 8.30000000000291,
+        "min": 8.299999999999272,
+        "max": 8.30000000000291
+      },
+      "rafIntervalP95Ms": {
+        "samples": 7,
+        "median": 9.169999999999344,
+        "p25": 9.100000000002183,
+        "p75": 9.199999999998772,
+        "min": 9.075000000001637,
+        "max": 9.200000000000728
+      },
+      "maxUpdateLatenessMs": {
+        "samples": 7,
+        "median": 0.9666666189841635,
+        "p25": 0.7833333214130107,
+        "p75": 1.1333333452557781,
+        "min": 0.6666666666642413,
+        "max": 1.4666666189823445
+      },
+      "mountedElementsIncludingShadowDOM": {
+        "samples": 7,
+        "median": 6700,
+        "p25": 6700,
+        "p75": 6700,
+        "min": 6700,
+        "max": 6700
+      },
+      "settledElementsIncludingShadowDOM": {
+        "samples": 7,
+        "median": 6700,
+        "p25": 6700,
+        "p75": 6700,
+        "min": 6700,
+        "max": 6700
+      }
+    },
+    "rolling-number": {
+      "mount": {
+        "taskMs": {
+          "samples": 7,
+          "median": 3.4929999999997463,
+          "p25": 3.410000000000024,
+          "p75": 3.5595000000000487,
+          "min": 3.3080000000000886,
+          "max": 3.689999999999971
+        },
+        "layoutMs": {
+          "samples": 7,
+          "median": 0.5200000000000204,
+          "p25": 0.5145000000000011,
+          "p75": 0.5299999999999749,
+          "min": 0.5010000000000847,
+          "max": 0.5359999999999809
+        },
+        "recalcStyleMs": {
+          "samples": 7,
+          "median": 0.40600000000001746,
+          "p25": 0.4039999999999877,
+          "p75": 0.4170000000000007,
+          "min": 0.3949999999999787,
+          "max": 0.4370000000000207
+        },
+        "layoutCount": {
+          "samples": 7,
+          "median": 2,
+          "p25": 2,
+          "p75": 2,
+          "min": 2,
+          "max": 2
+        },
+        "recalcStyleCount": {
+          "samples": 7,
+          "median": 2,
+          "p25": 2,
+          "p75": 2,
+          "min": 2,
+          "max": 2
+        },
+        "synchronousMountMs": {
+          "samples": 7,
+          "median": 1.6999999284744263,
+          "p25": 1.5999999642372131,
+          "p75": 1.7000000476837158,
+          "min": 1.5999999046325684,
+          "max": 1.899999976158142
+        },
+        "mountThroughFlushMs": {
+          "samples": 7,
+          "median": 5.399999976158142,
+          "p25": 4.050000011920929,
+          "p75": 12.300000011920929,
+          "min": 3.1999999284744263,
+          "max": 12.899999976158142
+        }
+      },
+      "updateThroughSettlement": {
+        "taskMs": {
+          "samples": 7,
+          "median": 30.25499999999992,
+          "p25": 29.97999999999995,
+          "p75": 32.12349999999997,
+          "min": 28.693999999999996,
+          "max": 33.37900000000005
+        },
+        "layoutMs": {
+          "samples": 7,
+          "median": 3.0179999999999927,
+          "p25": 2.9990000000000014,
+          "p75": 3.0505000000000115,
+          "min": 2.922000000000091,
+          "max": 3.1849999999999934
+        },
+        "recalcStyleMs": {
+          "samples": 7,
+          "median": 0.5249999999999977,
+          "p25": 0.515500000000016,
+          "p75": 0.5664999999999976,
+          "min": 0.4669999999999952,
+          "max": 0.7159999999999944
+        },
+        "layoutCount": {
+          "samples": 7,
+          "median": 8,
+          "p25": 8,
+          "p75": 8,
+          "min": 8,
+          "max": 8
+        },
+        "recalcStyleCount": {
+          "samples": 7,
+          "median": 8,
+          "p25": 8,
+          "p75": 8,
+          "min": 8,
+          "max": 8
+        }
+      },
+      "elapsedMs": {
+        "samples": 7,
+        "median": 1831.2000000476837,
+        "p25": 1830.800000011921,
+        "p75": 1831.4999999403954,
+        "min": 1823.1000000238419,
+        "max": 1831.7000000476837
+      },
+      "rafIntervalMedianMs": {
+        "samples": 7,
+        "median": 8.299999999999272,
+        "p25": 8.299999999999272,
+        "p75": 8.300000000002001,
+        "min": 8.299999999999272,
+        "max": 8.30000000000291
+      },
+      "rafIntervalP95Ms": {
+        "samples": 7,
+        "median": 9.100000000000364,
+        "p25": 9.099999999999454,
+        "p75": 9.105000000003564,
+        "min": 9,
+        "max": 9.199999999997454
+      },
+      "maxUpdateLatenessMs": {
+        "samples": 7,
+        "median": 0.6000000238418579,
+        "p25": 0.48333330949208175,
+        "p75": 1.1166666547451314,
+        "min": 0.4666666189841635,
+        "max": 1.4000000953674316
+      },
+      "mountedElementsIncludingShadowDOM": {
+        "samples": 7,
+        "median": 500,
+        "p25": 500,
+        "p75": 500,
+        "min": 500,
+        "max": 500
+      },
+      "settledElementsIncludingShadowDOM": {
+        "samples": 7,
+        "median": 500,
+        "p25": 500,
+        "p75": 500,
+        "min": 500,
+        "max": 500
+      }
+    }
+  },
+  "sourceTreeSha256": "2539209e9a871e3f22d54ae8cab0ec8ebf9609385cb74eeebb257995c936223c",
+  "samples": [
+    {
+      "kind": "plain",
+      "round": 0,
+      "order": 0,
+      "mount": {
+        "synchronousMountMs": 0.10000002384185791,
+        "mountThroughFlushMs": 12.900000095367432,
+        "taskMs": 1.6079999999999983,
+        "layoutMs": 0.32199999999998896,
+        "recalcStyleMs": 0.13799999999999923,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 19.925000000000026,
+        "layoutMs": 2.932000000000018,
+        "recalcStyleMs": 0.39300000000000446,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "number-flow",
+      "round": 0,
+      "order": 1,
+      "mount": {
+        "synchronousMountMs": 10.599999904632568,
+        "mountThroughFlushMs": 27.09999990463257,
+        "taskMs": 28.92899999999998,
+        "layoutMs": 5.620999999999987,
+        "recalcStyleMs": 6.162000000000001,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 276.422,
+        "layoutMs": 105.769,
+        "recalcStyleMs": 56.95799999999999,
+        "layoutCount": 1208,
+        "recalcStyleCount": 1208
+      },
+      "mounted": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "rolling-number",
+      "round": 0,
+      "order": 2,
+      "mount": {
+        "synchronousMountMs": 1.7000000476837158,
+        "mountThroughFlushMs": 3.600000023841858,
+        "taskMs": 3.535000000000066,
+        "layoutMs": 0.5159999999999887,
+        "recalcStyleMs": 0.4049999999999887,
+        "layoutCount": 2,
+        "recalcStyleCount": 2
+      },
+      "updateThroughSettlement": {
+        "taskMs": 28.693999999999996,
+        "layoutMs": 3.0179999999999927,
+        "recalcStyleMs": 0.5249999999999977,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "rolling-number",
+      "round": 1,
+      "order": 0,
+      "mount": {
+        "synchronousMountMs": 1.7000000476837158,
+        "mountThroughFlushMs": 12.400000095367432,
+        "taskMs": 3.3929999999999794,
+        "layoutMs": 0.5130000000000134,
+        "recalcStyleMs": 0.4029999999999867,
+        "layoutCount": 2,
+        "recalcStyleCount": 2
+      },
+      "updateThroughSettlement": {
+        "taskMs": 29.915000000000024,
+        "layoutMs": 2.9939999999999967,
+        "recalcStyleMs": 0.5090000000000094,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "number-flow",
+      "round": 1,
+      "order": 1,
+      "mount": {
+        "synchronousMountMs": 10.200000047683716,
+        "mountThroughFlushMs": 26.90000009536743,
+        "taskMs": 28.749999999999943,
+        "layoutMs": 5.501999999999951,
+        "recalcStyleMs": 6.496000000000002,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 278.5179999999999,
+        "layoutMs": 108.16200000000003,
+        "recalcStyleMs": 55.185999999999986,
+        "layoutCount": 1208,
+        "recalcStyleCount": 1208
+      },
+      "mounted": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "plain",
+      "round": 1,
+      "order": 2,
+      "mount": {
+        "synchronousMountMs": 0.10000002384185791,
+        "mountThroughFlushMs": 4.5,
+        "taskMs": 1.827000000000023,
+        "layoutMs": 0.3349999999999742,
+        "recalcStyleMs": 0.18699999999999273,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 20.802999999999905,
+        "layoutMs": 2.83300000000003,
+        "recalcStyleMs": 0.40800000000001946,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "number-flow",
+      "round": 2,
+      "order": 0,
+      "mount": {
+        "synchronousMountMs": 9.299999952316284,
+        "mountThroughFlushMs": 25.100000023841858,
+        "taskMs": 26.559999999999917,
+        "layoutMs": 5.193999999999976,
+        "recalcStyleMs": 5.896999999999986,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 274.764,
+        "layoutMs": 106.96600000000001,
+        "recalcStyleMs": 54.035000000000025,
+        "layoutCount": 1208,
+        "recalcStyleCount": 1208
+      },
+      "mounted": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "rolling-number",
+      "round": 2,
+      "order": 1,
+      "mount": {
+        "synchronousMountMs": 1.5999999046325684,
+        "mountThroughFlushMs": 3.1999999284744263,
+        "taskMs": 3.427000000000069,
+        "layoutMs": 0.5200000000000204,
+        "recalcStyleMs": 0.41800000000002946,
+        "layoutCount": 2,
+        "recalcStyleCount": 2
+      },
+      "updateThroughSettlement": {
+        "taskMs": 33.37900000000005,
+        "layoutMs": 3.062000000000009,
+        "recalcStyleMs": 0.6079999999999974,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "plain",
+      "round": 2,
+      "order": 2,
+      "mount": {
+        "synchronousMountMs": 0.20000004768371582,
+        "mountThroughFlushMs": 12.300000071525574,
+        "taskMs": 1.7529999999998935,
+        "layoutMs": 0.3469999999999862,
+        "recalcStyleMs": 0.15899999999996473,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 21.011000000000113,
+        "layoutMs": 2.84300000000004,
+        "recalcStyleMs": 0.49399999999999444,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "plain",
+      "round": 3,
+      "order": 0,
+      "mount": {
+        "synchronousMountMs": 0.19999992847442627,
+        "mountThroughFlushMs": 11.899999976158142,
+        "taskMs": 1.567000000000096,
+        "layoutMs": 0.3130000000000077,
+        "recalcStyleMs": 0.15300000000001424,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 20.904000000000032,
+        "layoutMs": 2.7539999999999787,
+        "recalcStyleMs": 0.4870000000000152,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "rolling-number",
+      "round": 3,
+      "order": 1,
+      "mount": {
+        "synchronousMountMs": 1.5999999046325684,
+        "mountThroughFlushMs": 12.899999976158142,
+        "taskMs": 3.3080000000000886,
+        "layoutMs": 0.5010000000000847,
+        "recalcStyleMs": 0.4370000000000207,
+        "layoutCount": 2,
+        "recalcStyleCount": 2
+      },
+      "updateThroughSettlement": {
+        "taskMs": 33.30500000000014,
+        "layoutMs": 3.1849999999999934,
+        "recalcStyleMs": 0.7159999999999944,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "number-flow",
+      "round": 3,
+      "order": 2,
+      "mount": {
+        "synchronousMountMs": 9.900000095367432,
+        "mountThroughFlushMs": 26.700000047683716,
+        "taskMs": 28.119999999999923,
+        "layoutMs": 5.724000000000062,
+        "recalcStyleMs": 6.357999999999975,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 277.585,
+        "layoutMs": 106.82800000000003,
+        "recalcStyleMs": 57.13200000000002,
+        "layoutCount": 1208,
+        "recalcStyleCount": 1208
+      },
+      "mounted": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "rolling-number",
+      "round": 4,
+      "order": 0,
+      "mount": {
+        "synchronousMountMs": 1.600000023841858,
+        "mountThroughFlushMs": 4.5,
+        "taskMs": 3.689999999999971,
+        "layoutMs": 0.5299999999999194,
+        "recalcStyleMs": 0.3949999999999787,
+        "layoutCount": 2,
+        "recalcStyleCount": 2
+      },
+      "updateThroughSettlement": {
+        "taskMs": 30.9419999999998,
+        "layoutMs": 3.039000000000014,
+        "recalcStyleMs": 0.5249999999999977,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "plain",
+      "round": 4,
+      "order": 1,
+      "mount": {
+        "synchronousMountMs": 0.10000002384185791,
+        "mountThroughFlushMs": 11.5,
+        "taskMs": 1.7480000000000828,
+        "layoutMs": 0.38800000000005497,
+        "recalcStyleMs": 0.15900000000002024,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 23.331000000000213,
+        "layoutMs": 2.866999999999953,
+        "recalcStyleMs": 0.4770000000000052,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "number-flow",
+      "round": 4,
+      "order": 2,
+      "mount": {
+        "synchronousMountMs": 9.700000047683716,
+        "mountThroughFlushMs": 26.100000023841858,
+        "taskMs": 27.74499999999991,
+        "layoutMs": 5.751999999999979,
+        "recalcStyleMs": 6.1990000000000105,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 275.4950000000003,
+        "layoutMs": 106.21899999999995,
+        "recalcStyleMs": 55.46799999999996,
+        "layoutCount": 1208,
+        "recalcStyleCount": 1208
+      },
+      "mounted": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "number-flow",
+      "round": 5,
+      "order": 0,
+      "mount": {
+        "synchronousMountMs": 9.399999976158142,
+        "mountThroughFlushMs": 25.399999976158142,
+        "taskMs": 27.096999999999927,
+        "layoutMs": 5.642000000000036,
+        "recalcStyleMs": 5.989000000000022,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 271.9189999999996,
+        "layoutMs": 105.36900000000004,
+        "recalcStyleMs": 53.809,
+        "layoutCount": 1208,
+        "recalcStyleCount": 1208
+      },
+      "mounted": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "plain",
+      "round": 5,
+      "order": 1,
+      "mount": {
+        "synchronousMountMs": 0.10000002384185791,
+        "mountThroughFlushMs": 5,
+        "taskMs": 1.6409999999997815,
+        "layoutMs": 0.29800000000002047,
+        "recalcStyleMs": 0.13499999999999623,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 21.96499999999979,
+        "layoutMs": 2.8249999999999664,
+        "recalcStyleMs": 0.4469999999999752,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "rolling-number",
+      "round": 5,
+      "order": 2,
+      "mount": {
+        "synchronousMountMs": 1.6999999284744263,
+        "mountThroughFlushMs": 12.199999928474426,
+        "taskMs": 3.4929999999997463,
+        "layoutMs": 0.5300000000000304,
+        "recalcStyleMs": 0.40600000000001746,
+        "layoutCount": 2,
+        "recalcStyleCount": 2
+      },
+      "updateThroughSettlement": {
+        "taskMs": 30.044999999999877,
+        "layoutMs": 3.0040000000000067,
+        "recalcStyleMs": 0.4669999999999952,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "plain",
+      "round": 6,
+      "order": 0,
+      "mount": {
+        "synchronousMountMs": 0.19999992847442627,
+        "mountThroughFlushMs": 12,
+        "taskMs": 1.6119999999997248,
+        "layoutMs": 0.3269999999999662,
+        "recalcStyleMs": 0.14799999999998148,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 22.28899999999978,
+        "layoutMs": 2.866000000000035,
+        "recalcStyleMs": 0.4530000000000367,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "plain",
+        "count": 100,
+        "elementsIncludingShadowDOM": 200,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "number-flow",
+      "round": 6,
+      "order": 1,
+      "mount": {
+        "synchronousMountMs": 9.699999928474426,
+        "mountThroughFlushMs": 25.5,
+        "taskMs": 27.082999999999746,
+        "layoutMs": 5.415000000000059,
+        "recalcStyleMs": 6.137000000000004,
+        "layoutCount": 1,
+        "recalcStyleCount": 1
+      },
+      "updateThroughSettlement": {
+        "taskMs": 268.84700000000004,
+        "layoutMs": 104.35799999999995,
+        "recalcStyleMs": 54.188999999999986,
+        "layoutCount": 1208,
+        "recalcStyleCount": 1208
+      },
+      "mounted": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "number-flow",
+        "count": 100,
+        "elementsIncludingShadowDOM": 6700,
+        "activeAnimations": 0
+      }
+    },
+    {
+      "kind": "rolling-number",
+      "round": 6,
+      "order": 2,
+      "mount": {
+        "synchronousMountMs": 1.899999976158142,
+        "mountThroughFlushMs": 5.399999976158142,
+        "taskMs": 3.5840000000000316,
+        "layoutMs": 0.5359999999999809,
+        "recalcStyleMs": 0.41599999999997195,
+        "layoutCount": 2,
+        "recalcStyleCount": 2
+      },
+      "updateThroughSettlement": {
+        "taskMs": 30.25499999999992,
+        "layoutMs": 2.922000000000091,
+        "recalcStyleMs": 0.5220000000000224,
+        "layoutCount": 8,
+        "recalcStyleCount": 8
+      },
+      "mounted": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      },
+      "settled": {
+        "kind": "rolling-number",
+        "count": 100,
+        "elementsIncludingShadowDOM": 500,
+        "activeAnimations": 0
+      }
+    }
+  ]
+}

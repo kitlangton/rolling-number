@@ -47,3 +47,11 @@ property. Next hypothesis: preserving the same sampled trajectory as a CSS
 `linear()` easing between two transform keyframes reduces animation setup cost,
 without changing interruption sampling. Retain the 49-keyframe fallback for
 browsers without `linear()` support and the zero-distance/nonzero-velocity case.
+
+## Outcome
+
+Kept the compact **transform-only** representation after measurements and browser
+regressions. The final median was 1540.43 ms, versus 1822.67 ms for the corrected
+49-keyframe baseline. Compact opacity was rejected because clamping makes its
+mapping non-linear. See [results and limitations](results.md) for the final matched
+NumberFlow comparison, static workload, environment, spread and data files.

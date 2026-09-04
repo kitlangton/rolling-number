@@ -50,6 +50,9 @@ unimplemented promised features.
 The hybrid spring stores the exact sampled trajectory used by WAAPI and samples
 position/velocity at interruption. It avoids custom-property animation and a
 JavaScript frame loop; that is not a universal guarantee of compositor-only work.
+The compact path uses two transform endpoints with a sampled `linear()` easing.
+Opacity retains explicit samples because clamping its overshoot is non-linear;
+interpolating two clamped endpoints would change the trajectory.
 Real width is adopted at update time, while glyph positions animate. Arbitrary
 surrounding inline siblings do **not** continuously reflow without layout work.
 
@@ -57,6 +60,11 @@ ResizeObserver tracks intrinsic measurement boxes and individual tokens, not a
 fixed-width host. Font events and an explicit `refresh()` handle additional
 invalidation. Ancestor axis-aligned scale is normalized during geometry reads;
 rotated/skewed ancestors and vertical writing are not part of the v0.1 contract.
+
+The review also found and regression-tested scheduled-update/ResizeObserver
+ordering, geometry recovery with offscreen pausing disabled, native-text fallback
+under inherited RTL layout, and React 19 callback-ref cleanup. Fast playback must
+not come from accidentally cancelling the animations being measured.
 
 New `text-box-trim` (Baseline August 2026) is useful for optical spacing, not a
 replacement for font metrics. `interpolate-size` is not yet broadly supported and
