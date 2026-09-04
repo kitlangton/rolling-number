@@ -260,3 +260,11 @@ test("rapid likes keep one rolling count and one replaced heart pop", async ({ p
   expect(await tile.locator(".heart svg").evaluate((element) => (element.getAnimations()[0]?.effect as KeyframeEffect | undefined)?.getTiming().easing ?? "linear(")).toMatch(/^linear\(/);
   await expect.poll(() => tile.locator(".rn-slot").count()).toBe(5);
 });
+
+test("hovering a segment brightens its label without painting a second pill", async ({ page }) => {
+  await page.goto("/");
+  const bun = page.locator(".install .segmented").getByRole("button", { name: "bun", exact: true });
+  await page.locator(".install .segmented").getByRole("button", { name: "npm", exact: true }).click();
+  await bun.hover();
+  expect(await bun.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+});

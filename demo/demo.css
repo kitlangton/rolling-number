@@ -179,6 +179,8 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 @media (prefers-reduced-motion: reduce) { .upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members { transition: none; } }
 @media (hover: hover) {
   button:not(:disabled):hover { background: #25282d; }
+  /* Segments never paint a hover background: it would merge with the sliding pill. */
+  .segmented button:hover { background: none; color: var(--ink); }
   .quiet:hover { background: none !important; color: var(--ink); }
   a:hover { color: var(--ink); }
 }
