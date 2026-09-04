@@ -35,6 +35,8 @@ for (const ssr of [false, true]) {
     await expect.poll(() => root.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
     await expect.poll(() => root.locator(".rn-smear").count()).toBeGreaterThan(0);
     await page.emulateMedia({ reducedMotion: "reduce" });
+    // WebKit can acknowledge emulation before delivering the media-query change.
+    await expect(root.locator(".rn-root")).not.toHaveAttribute("data-rn-ready", "");
     await page.evaluate(() => window.updateSolid({ value: 7 }));
     await expect(root.locator(".rn-semantic")).toHaveText("$7.00");
     expect(await root.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);

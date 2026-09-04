@@ -1,8 +1,10 @@
-import { StrictMode, useEffect, useRef, useState } from "react";
+import { StrictMode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { createRoot } from "react-dom/client";
 import { RollingNumber } from "../src/react";
 import { Eyes } from "./Eyes";
+import { Track } from "../src/track";
+import { spring } from "../src/motion";
 import "../src/styles.css";
 import "./demo.css";
 
@@ -12,20 +14,45 @@ const clock: Intl.NumberFormatOptions = { minimumIntegerDigits: 2, useGrouping: 
 const milliseconds: Intl.NumberFormatOptions = { style: "unit", unit: "millisecond", unitDisplay: "short", maximumFractionDigits: 0 };
 const localeOptions = [["en-US", "English"], ["de-DE", "Deutsch"], ["fr-FR", "Français"], ["hi-IN", "Hindi"], ["ja-JP", "日本語"], ["ar-EG", "العربية"], ["fa-IR", "فارسی"]];
 
-function Examples({ locale, duration, reduced }: { locale: string; duration: number; reduced: boolean }) {
+function Examples({ locale, duration, reduced, motionBlur }: { locale: string; duration: number; reduced: boolean; motionBlur: boolean }) {
   const [revenue, setRevenue] = useState({ value: 8240, animated: true });
   const [seconds, setSeconds] = useState({ value: 90, animated: true });
   const [running, setRunning] = useState(false);
   const [seats, setSeats] = useState({ value: 8, animated: true });
   const [large, setLarge] = useState({ value: 9007199254740993n, animated: true });
   const pointer = useRef(false);
+  const priceNumber = useRef<HTMLDivElement>(null);
+  const priceSuffix = useRef<HTMLSpanElement>(null);
+  const priceAnimated = useRef(true);
+  priceAnimated.current = seats.animated;
+  useLayoutEffect(() => {
+    if (!priceNumber.current || !priceSuffix.current || typeof ResizeObserver !== "function") return;
+    const track = new Track(priceSuffix.current, "transform");
+    const translate = (x: number) => `translateX(${x}px)`;
+    const media = matchMedia("(prefers-reduced-motion: reduce)");
+    let previousWidth: number | undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      const width = entry.contentRect.width;
+      const previous = previousWidth;
+      previousWidth = width;
+      if (previous === undefined || previous === width) return;
+      if (reduced || media.matches || !priceAnimated.current) { track.set(0, translate); return; }
+      const current = track.read();
+      track.play(spring(current.position + previous - width, 0, current.velocity, duration), translate);
+    });
+    const preference = () => { if (media.matches) track.set(0, translate); };
+    observer.observe(priceNumber.current);
+    media.addEventListener("change", preference);
+    return () => { observer.disconnect(); track.cancel(); media.removeEventListener("change", preference); };
+  }, [duration, reduced]);
   useEffect(() => {
     if (!running) return;
     const timer = setInterval(() => setSeconds((current) => ({ value: Math.max(0, current.value - 1), animated: true })), 1000);
     return () => clearInterval(timer);
   }, [running]);
   useEffect(() => { if (seconds.value === 0) setRunning(false); }, [seconds.value]);
-  const shared = { locales: locale, duration };
+  const shared = { locales: locale, duration, motionBlur };
   return (
     <section id="examples" className="examples" aria-label="Examples">
       <article className="example">
@@ -46,7 +73,7 @@ function Examples({ locale, duration, reduced }: { locale: string; duration: num
       </article>
       <article className="example">
         <h2>Pricing</h2>
-        <div className="price"><div className="example-number"><RollingNumber {...shared} value={seats.value * 12} format={currency} animated={!reduced && seats.animated} /></div><span>/ month</span></div>
+        <div className="price"><div ref={priceNumber} className="example-number"><RollingNumber {...shared} value={seats.value * 12} format={currency} animated={!reduced && seats.animated} /></div><span ref={priceSuffix}>/ month</span></div>
         <div className="seat-control">
           <label htmlFor="seats">Seats <output>{seats.value}</output></label>
           <input id="seats" type="range" min="1" max="24" value={seats.value}
@@ -115,7 +142,7 @@ function App() {
           </details>
           {staticLocale && <p className="locale-note">This locale uses native text without rolling.</p>}
         </section>
-        <Examples locale={locale} duration={duration} reduced={reduced} />
+        <Examples locale={locale} duration={duration} reduced={reduced} motionBlur={motionBlur} />
       </main>
       <footer className="site-footer"><code>{"<RollingNumber value={value} />"}</code><a href="./bench.html">Benchmarks</a><a href={`${repository}/blob/main/LICENSE`}>MIT</a></footer>
     </div>

@@ -97,6 +97,17 @@ envelope crossfades sharp and vertically blurred copies under the same reel
 transform. A static SVG Gaussian kernel uses zero horizontal deviation; native
 opacity playback controls the blend without a JavaScript frame loop. Copies and
 effects are bounded to one pair per moving reel and removed at settlement.
+Entrances use a delayed critically damped ease-out: horizontal room opens first,
+then the glyph rises decisively and settles gently. Their blur envelope uses
+vertical speed in rows/second with a lower onset than full digit rolls. If a new
+roll interrupts an entrance, it takes over blur ownership so the older entry's
+cleanup cannot cancel the new blend.
+
+The demo's `/ month` text is deliberately outside the numeric formatter. A scoped
+ResizeObserver supplies its number-box width delta to the same sampled spring;
+native translation preserves the suffix's screen position during width changes
+and reversals. This is explicit demo layout coordination, not a promise that the
+core automatically animates arbitrary siblings.
 
 The elapsed-millisecond demo samples at 33 ms rather than 100 ms. The previous
 cadence aliased the tens/ones places into nearly constant values. The counter still

@@ -14,8 +14,9 @@ export function entrance(height: number, duration: number): Motion {
   return {
     target: 0, duration,
     points: Array.from({ length: 49 }, (_, index) => {
-      const progress = Math.max(0, Math.min(1, (index / 48 - .12) / .76));
-      return height * (1 - progress * progress * (3 - 2 * progress));
+      if (index === 48) return 0;
+      const progress = Math.max(0, Math.min(1, (index / 48 - .14) / .86));
+      return height * (1 + 10 * progress) * Math.exp(-10 * progress);
     }),
   };
 }
@@ -37,7 +38,7 @@ export function spring(from: number, target: number, velocity: number, duration:
 }
 
 /** Blend into a vertical smear as reel speed rises from 4 to 24 rows/second. */
-export function blurEnvelope(motion: Motion, from = 0): Motion {
+export function blurEnvelope(motion: Motion, from = 0, fullSpeed = 24): Motion {
   if (motion.duration <= 0) return { points: [0, 0], duration: 0, target: 0 };
   const step = motion.duration / (motion.points.length - 1) / 1000;
   return {
@@ -46,7 +47,8 @@ export function blurEnvelope(motion: Motion, from = 0): Motion {
       if (index === 0) return Math.max(0, Math.min(1, from));
       if (index === points.length - 1) return 0;
       const speed = Math.abs((points[index + 1]! - points[index - 1]!) / (2 * step));
-      return Math.max(0, Math.min(1, (speed - 4) / 20));
+      const onset = fullSpeed / 6;
+      return Math.max(0, Math.min(1, (speed - onset) / (fullSpeed - onset)));
     }),
   };
 }

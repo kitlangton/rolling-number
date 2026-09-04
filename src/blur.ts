@@ -43,9 +43,9 @@ export class ReelBlur {
     return `url("#${this.filter.id}")`;
   }
 
-  apply(reel: HTMLElement, motion: Motion, height: number, from: number): void {
-    const envelope = blurEnvelope(motion, from);
-    if (envelope.points.every((point) => point === 0)) return;
+  apply(reel: HTMLElement, motion: Motion, height: number, from: number, kind: "roll" | "entry" = "roll"): boolean {
+    const envelope = blurEnvelope(motion, from, kind === "entry" ? 6 : 24);
+    if (envelope.points.every((point) => point === 0)) return false;
     const sharp = this.host.ownerDocument.createElement("span");
     sharp.className = "rn-sharp";
     sharp.append(...reel.childNodes);
@@ -58,6 +58,7 @@ export class ReelBlur {
     this.layers.set(reel, { sharp, sharpOpacity, smearOpacity });
     sharpOpacity.play(envelope, (amount) => String(1 - amount));
     smearOpacity.play(envelope, String);
+    return true;
   }
 
   remove(reel: HTMLElement): number {

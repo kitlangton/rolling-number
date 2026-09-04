@@ -42,7 +42,7 @@ interface Column {
   exiting: boolean;
   height: number;
   width: number;
-  entry?: { element: HTMLSpanElement; track: Track } | undefined;
+  entry?: { element: HTMLSpanElement; track: Track; blurred: boolean } | undefined;
 }
 
 const mounted = new WeakSet<HTMLElement>();
@@ -223,6 +223,7 @@ class Renderer implements Participant, RollingNumberController {
 
   private finishEntry(column: Column): void {
     if (!column.entry) return;
+    if (column.entry.blurred) this.blur?.remove(column.reel);
     column.entry.track.cancel();
     column.entry.element.replaceWith(column.reel);
     column.entry = undefined;
@@ -234,8 +235,14 @@ class Renderer implements Participant, RollingNumberController {
     column.reel.replaceWith(element);
     element.append(column.reel);
     const track = new Track(element, "transform");
-    column.entry = { element, track };
-    track.play(entrance(column.height, duration), (y) => `translateY(${y}px)`, () => this.finishEntry(column));
+    column.entry = { element, track, blurred: false };
+    const motion = entrance(column.height, duration);
+    if (this.options.motionBlur && column.token.text.trim()) {
+      this.blur ??= new ReelBlur(this.host);
+      const rows = { ...motion, points: motion.points.map((y) => y / column.height) };
+      column.entry.blurred = this.blur.apply(column.reel, rows, column.height, 0, "entry");
+    }
+    track.play(motion, (y) => `translateY(${y}px)`, () => this.finishEntry(column));
   }
 
   private commit(geometry: Map<string, Geometry>, originShift: number): void {
@@ -283,6 +290,8 @@ class Renderer implements Participant, RollingNumberController {
         const motion = spring(current.position, rollTarget(current.position, token.digit, trend), current.velocity, duration);
         const start = Math.floor(Math.min(...motion.points));
         const end = Math.ceil(Math.max(...motion.points));
+        // A new roll takes over the blend; entry completion must not cancel it.
+        if (column.entry) column.entry.blurred = false;
         const blur = this.blur?.remove(column.reel) ?? 0;
         column.reel.replaceChildren();
         for (let face = start; face <= end; face++) this.face(column, numeral(face));

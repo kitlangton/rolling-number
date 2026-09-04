@@ -120,8 +120,11 @@ For prominent counters, opt into `motionBlur`. Fast reels crossfade into a verti
 SVG blur, then sharpen as they slow down. Stable digits and punctuation stay sharp.
 The temporary duplicate reel and native opacity effects are removed on settlement;
 disabling the option clears active blur immediately. This adds paint/DOM work and
-is not a performance optimization. The hero enables it; normal counters default
-to no blur. Reduced motion disables the effect along with rolling.
+is not a performance optimization. The showcase and examples enable it; library
+counters default to no blur. Reduced motion disables the effect along with rolling.
+New glyphs can also smear vertically during their eased entrance; the blend clears
+at settlement.
+See [the scoped blur-cost measurement](perf/blur-cost.md) for its overhead and limits.
 
 ## How it stays small and stable
 

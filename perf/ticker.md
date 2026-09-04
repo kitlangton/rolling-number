@@ -9,6 +9,11 @@ Workload: one five-digit counter, 90 updates at 33 ms intervals, 500 ms motion,
 seven measured rounds. Vite development server, no framework wrapper or motion
 blur. Apple M2 Max, macOS arm64, Bun 1.4.0, headless Chromium 151.0.7922.34.
 
+The runner also accepts `BENCH_BLUR=compare` and `BENCH_FONT_SIZE=56` for an
+alternating on/off comparison. See [blur-cost.md](blur-cost.md). It now records a
+post-update DOM snapshot before the settlement window, so current run durations
+include one additional animation frame compared with the initial experiment below.
+
 ## Rejected: reuse geometry for previously measured equal-width glyphs
 
 Baseline: commit `01619e1`, source SHA-256

@@ -42,13 +42,44 @@ test("the showcase measures elapsed milliseconds rather than inventing increment
   expect(await number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
 });
 
-test("hero motion blur can be turned off without changing the examples", async ({ page }) => {
+test("one motion-blur toggle controls the hero and examples", async ({ page }) => {
   await page.goto("/");
   await expect.poll(() => page.locator(".number-frame .rn-smear").count()).toBeGreaterThan(0);
+  await page.getByRole("button", { name: /Add a sale/ }).click();
+  await expect.poll(() => page.locator("#examples article").first().locator(".rn-smear").count()).toBeGreaterThan(0);
   await page.locator("summary").click();
   await page.getByLabel("Motion blur", { exact: true }).uncheck();
   await expect(page.locator(".rn-smear, .rn-blur-defs")).toHaveCount(0);
   await expect(page.locator("#examples .rn-smear")).toHaveCount(0);
+});
+
+test("the price suffix follows width changes without snapping", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 1200 });
+  await page.goto("/");
+  const price = page.locator(".price");
+  await expect(price.locator(".rn-root")).toHaveAttribute("data-rn-ready", "");
+  const suffix = price.locator(":scope > span");
+  const before = await suffix.evaluate((element) => element.getBoundingClientRect().x);
+  await page.evaluate(() => {
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (...args) {
+      const animation = animate.apply(this, args);
+      animation.pause(); animation.currentTime = 0;
+      return animation;
+    };
+  });
+  const slider = page.locator("#seats");
+  const box = (await slider.boundingBox())!;
+  await slider.click({ position: { x: box.width - 1, y: box.height / 2 } });
+  await page.evaluate(async () => { await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame); });
+  await expect(price.locator(".rn-semantic")).toHaveText("$288");
+  expect(Math.abs(await suffix.evaluate((element) => element.getBoundingClientRect().x) - before)).toBeLessThan(.5);
+  await page.evaluate(() => { for (const animation of document.getAnimations()) animation.currentTime = 150; });
+  const interrupted = await suffix.evaluate((element) => element.getBoundingClientRect().x);
+  await slider.click({ position: { x: 1, y: box.height / 2 } });
+  await page.evaluate(async () => { await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame); });
+  await expect(price.locator(".rn-semantic")).toHaveText("$12");
+  expect(Math.abs(await suffix.evaluate((element) => element.getBoundingClientRect().x) - interrupted)).toBeLessThan(.5);
 });
 
 test("eyes share their gaze and spin together as a smooth jackpot without squishing", async ({ page }) => {
