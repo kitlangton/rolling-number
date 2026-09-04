@@ -61,11 +61,16 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .install-command { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 3px 3px 3px 3px; border: 1px solid #1f2227; border-radius: 9px; background: #0e1013; }
 .install-command code { font: 12px var(--mono); color: var(--ink); padding: 0 8px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
 .install-command .quiet { flex: none; }
-.install-managers { display: flex; gap: 2px; }
+.install-managers { position: relative; display: flex; gap: 2px; }
+.install-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 6px; background: #1e2227; }
+.install-managers button { position: relative; }
 .install-managers button { min-height: 30px; padding: 0 9px; font: 11px var(--mono); border-color: transparent; background: none; color: var(--muted); }
-.install-managers button[aria-pressed="true"] { color: var(--ink); background: #1e2227; }
+.install-managers button[aria-pressed="true"] { color: var(--ink); }
+.install-command code { display: block; box-sizing: border-box; }
+.install-text { display: inline-block; white-space: nowrap; }
+.install-text[data-animated="true"] { animation: install-fade 180ms ease-out; }
+@keyframes install-fade { from { opacity: 0; } }
 .install-command .quiet { min-height: 30px; padding: 0 10px 0 4px; font-size: 11px; }
-.install-agent { font-size: 12px; color: var(--muted); }
 .examples { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; }
 .example { position: relative; min-width: 0; padding: 20px; border: 1px solid #1f2227; border-radius: 13px; background: #111316; overflow: visible; }
 .shirt-graphic, .file-graphic, .weather-graphic, .ledger-graphic, .activity-graphic { color: var(--icon); }
@@ -118,10 +123,15 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .focus-dial .timer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; padding: 0; }
 .dial-progress { transition: stroke-dashoffset 500ms ease; }
 .avatar-stack { display: flex; align-items: center; min-height: 34px; margin-top: 6px; }
-.mini-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #111316; background: #1e2227; color: #8a9099; overflow: hidden; margin-right: -9px; }
+.mini-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #111316; background: #1e2227; color: #8a9099; overflow: hidden; margin-right: -9px; transition: width var(--duration) var(--spring), margin-right var(--duration) var(--spring), border-width var(--duration) var(--spring), transform var(--duration) var(--spring), opacity calc(var(--duration) * .65) var(--spring); }
+.mini-avatar[data-present="false"] { width: 0; margin-right: 0; border-width: 0; transform: scale(.4); opacity: 0; }
+.mini-avatar > svg { width: 30px; height: 30px; flex: none; }
+.extra-members { transition: opacity calc(var(--duration) * .65) var(--spring), transform var(--duration) var(--spring); }
+.extra-members[data-present="false"] { opacity: 0; transform: translateX(-6px); }
+.avatar-stack[data-animated="false"] :is(.mini-avatar, .extra-members) { transition: none; }
 .mini-avatar:nth-child(2n) { background: #262a30; }
 .mini-avatar:nth-child(3n) { background: #1a1d21; }
-.mini-avatar svg { width: 100%; height: 100%; }
+.mini-avatar { display: flex; align-items: center; justify-content: center; flex: none; }
 .extra-members { color: var(--muted); font-size: 11px; padding-left: 20px; }
 .team-app .price { margin-top: 2px; }
 .team-app .seat-control { justify-content: space-between; }
@@ -149,8 +159,8 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .activity-graphic { width: 100%; height: 46px; }
 .activity-graphic rect { transform-box: fill-box; transform-origin: center bottom; transition: transform 500ms ease-out; }
 .activity-graphic[data-animated="false"] rect { transition: none; }
-[data-reduced="true"] :is(.dial-progress, .upload-track > span, .activity-graphic rect) { transition: none; }
-@media (prefers-reduced-motion: reduce) { .dial-progress, .upload-track > span, .activity-graphic rect { transition: none; } }
+[data-reduced="true"] :is(.dial-progress, .upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members) { transition: none; }
+@media (prefers-reduced-motion: reduce) { .dial-progress, .upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members { transition: none; } }
 @media (hover: hover) {
   button:not(:disabled):hover { background: #25282d; }
   .quiet:hover { background: none !important; color: var(--ink); }

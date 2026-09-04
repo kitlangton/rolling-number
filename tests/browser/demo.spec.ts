@@ -153,22 +153,67 @@ test("number containers keep horizontal overflow visible rather than truncating"
   }
 });
 
-test("install row copies the command and an agent prompt, and the docs exist as Markdown", async ({ page, context, browserName }) => {
+test("install row slides its selection, animates the command width, copies, and links Markdown docs", async ({ page, context, browserName }) => {
   await page.goto("/");
   const install = page.locator(".install");
   await expect(install.locator("code")).toHaveText("bun add @kitlangton/rolling-number");
+  expect(await page.evaluate(() => document.querySelectorAll(".install-indicator, .install code").length)).toBe(2);
+  await page.evaluate(() => {
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (...args) {
+      const animation = animate.apply(this, args);
+      animation.pause(); animation.currentTime = 0;
+      return animation;
+    };
+  });
+  const before = await install.locator(".install-indicator").evaluate((element) => element.getBoundingClientRect().x);
+  const widthBefore = await install.locator("code").evaluate((element) => element.getBoundingClientRect().width);
   await install.getByRole("button", { name: "npm", exact: true }).click();
   await expect(install.locator("code")).toHaveText("npm install @kitlangton/rolling-number");
+  // Paused at the start, both the pill and the width still show the previous state.
+  expect(await install.locator(".install-indicator").evaluate((element) => element.getBoundingClientRect().x)).toBeCloseTo(before, 0);
+  expect(await install.locator("code").evaluate((element) => element.getBoundingClientRect().width)).toBeCloseTo(widthBefore, 0);
+  const animations = await install.evaluate((element) => element.getAnimations({ subtree: true }).map((animation) => (animation.effect as KeyframeEffect).getTiming().easing));
+  expect(animations.length).toBeGreaterThanOrEqual(2);
+  expect(animations.filter((easing) => easing?.startsWith("linear(")).length).toBeGreaterThanOrEqual(2);
+  await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
+  const target = await install.getByRole("button", { name: "npm", exact: true }).evaluate((element) => element.getBoundingClientRect());
+  const pill = await install.locator(".install-indicator").evaluate((element) => element.getBoundingClientRect());
+  expect(pill.x).toBeCloseTo(target.x, 0);
+  expect(pill.width).toBeCloseTo(target.width, 0);
+  expect(await page.locator("link[rel='alternate'][type='text/markdown']").getAttribute("href")).toBe("/index.md");
+  expect(await page.locator("footer a[href='./llms.txt']").count()).toBe(1);
   test.skip(browserName !== "chromium", "clipboard permissions are only scriptable in Chromium");
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await install.getByRole("button", { name: "Copy install command" }).click();
   await expect(install.getByRole("button", { name: "Copy install command" })).toHaveText("Copied");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("npm install @kitlangton/rolling-number");
-  await install.getByRole("button", { name: "Copy prompt for your agent" }).click();
-  const prompt = await page.evaluate(() => navigator.clipboard.readText());
-  expect(prompt).toContain("bun add @kitlangton/rolling-number");
-  expect(prompt).toContain("https://rolling.kitlangton.dev/llms.txt");
-  expect(prompt).toContain("@kitlangton/rolling-number/styles.css");
-  expect(await page.locator("link[rel='alternate'][type='text/markdown']").getAttribute("href")).toBe("/index.md");
-  expect(await page.locator("footer a[href='./llms.txt']").count()).toBe(1);
+});
+
+test("team avatars and the overflow count animate with the shared spring instead of popping", async ({ page }) => {
+  await page.goto("/");
+  const team = page.locator(".team-app");
+  await team.scrollIntoViewIfNeeded();
+  await expect(team.locator(".mini-avatar[data-present='true']")).toHaveCount(5);
+  await expect(team.locator(".extra-members")).toHaveAttribute("data-present", "true");
+  await expect(team.locator(".extra-members .rn-semantic")).toHaveText("3");
+  const slider = page.locator("#seats");
+  const box = (await slider.boundingBox())!;
+  await page.mouse.move(box.x + box.width * .3, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 1, box.y + box.height / 2, { steps: 2 });
+  await page.evaluate(() => { for (const animation of document.getAnimations()) animation.pause(); });
+  await page.mouse.up();
+  await expect(team.locator(".mini-avatar[data-present='false']")).toHaveCount(4);
+  const transitions = await team.locator(".mini-avatar[data-present='false']").first().evaluate((element) => element.getAnimations().map((animation) => (animation.effect as KeyframeEffect).getTiming().easing));
+  expect(transitions.length).toBeGreaterThan(0);
+  for (const easing of transitions) expect(easing).toMatch(/^linear\(/);
+  // Mid-transition the departing avatar is still partially visible.
+  await page.evaluate(() => { for (const animation of document.getAnimations()) { animation.pause(); animation.currentTime = 40; } });
+  const width = await team.locator(".mini-avatar[data-present='false']").first().evaluate((element) => element.getBoundingClientRect().width);
+  expect(width).toBeGreaterThan(0);
+  expect(width).toBeLessThan(34);
+  await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
+  await expect.poll(() => team.locator(".mini-avatar[data-present='false']").first().evaluate((element) => element.getBoundingClientRect().width)).toBe(0);
+  await expect(team.locator(".extra-members")).toHaveAttribute("data-present", "false");
 });

@@ -138,6 +138,7 @@ let server: PreviewServer | undefined;
 try {
   const referenceVersion = await packageVersion("number-flow");
   if (referenceVersion !== "0.6.2") throw new Error(`Expected number-flow@0.6.2, found ${referenceVersion}; update the comparison label and methodology before changing the baseline`);
+  process.env.ROLLING_NUMBER_BENCH = "1";
   await build({ root: resolve(root, "demo"), configFile: resolve(root, "vite.config.ts"), logLevel: "warn" });
   server = await preview({
     root: resolve(root, "demo"),

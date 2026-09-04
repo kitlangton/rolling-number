@@ -20,8 +20,7 @@ another project. Import the stylesheet alongside either the DOM or React entrypo
 The site serves these docs as Markdown: [rolling.kitlangton.dev/llms.txt](https://rolling.kitlangton.dev/llms.txt)
 indexes them, [rolling.kitlangton.dev/index.md](https://rolling.kitlangton.dev/index.md)
 is this README, and the page itself answers `Accept: text/markdown` with the same
-content. The showcase has a "Copy prompt for your agent" button with the install
-command, entrypoints and the few layout rules worth knowing.
+content.
 
 ## Try it
 
@@ -246,6 +245,6 @@ access. See [LICENSE](LICENSE).
 
 ### Website deployment
 
-`bun run deploy` builds the showcase and benchmark, then deploys static assets to
+`bun run deploy` builds the showcase, then deploys static assets to
 Cloudflare Workers at [rolling.kitlangton.dev](https://rolling.kitlangton.dev).
 Wrangler uses the operator's Cloudflare login; no credentials belong in the repo.

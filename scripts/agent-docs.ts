@@ -1,7 +1,7 @@
 // Emits agent-readable copies of the docs next to the built site: the README as
 // Markdown, an llms.txt index, and static-asset headers. Runs after `vite build`.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { agentPrompt, installCommands, packageName, repository, siteUrl } from "../demo/install";
+import { installCommands, packageName, repository, siteUrl } from "../demo/install";
 
 const site = new URL("../site/", import.meta.url);
 await mkdir(site, { recursive: true });
@@ -26,11 +26,7 @@ Install with \`${installCommands.bun}\` or \`${installCommands.npm}\`. Import \`
 
 - [Design context](${repository}/blob/main/CONTEXT.md): vocabulary for digit places, symbol roles and transitions
 - [Research notes](${repository}/blob/main/docs/research.md): renderer trade-offs and reference findings
-- [Benchmarks](${siteUrl}/bench.html): in-browser comparison; read perf/results.md for qualified numbers
-
-## Agent prompt
-
-${agentPrompt.split("\n").map((line) => line ? `> ${line}` : ">").join("\n")}
+- [Benchmark results](${repository}/blob/main/perf/results.md): qualified NumberFlow comparison; run "bun run bench" locally
 `;
 
 const headers = `/llms.txt

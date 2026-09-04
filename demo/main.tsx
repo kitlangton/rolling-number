@@ -5,43 +5,75 @@ import { RollingNumber } from "../src/react";
 import { Track } from "../src/track";
 import { spring } from "../src/motion";
 import { ActivityGraphic, AvatarGraphic, FileGraphic, LedgerGraphic, ShirtGraphic, WeatherGraphic } from "./MiniGraphics";
-import { agentPrompt, installCommands, repository } from "./install";
+import { installCommands, repository } from "./install";
 import "../src/styles.css";
 import "./demo.css";
 
 type PackageManager = keyof typeof installCommands;
 
+/** The same critically damped spring the digits use, as a native easing for width and position. */
+function springEasing(duration: number): string {
+  return `linear(${spring(0, 1, 0, duration).points.map((point) => point.toFixed(5)).join(",")})`;
+}
+
 /** Copies text and reports briefly; also readable by assistive technology through the status region. */
-function useCopy(): [string | undefined, (label: string, text: string) => void] {
-  const [copied, setCopied] = useState<string>();
+function useCopy(): [boolean, (text: string) => void] {
+  const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
-  return [copied, (label, text) => {
+  return [copied, (text) => {
     navigator.clipboard?.writeText(text).then(() => {
-      setCopied(label);
+      setCopied(true);
       clearTimeout(timer.current);
-      timer.current = setTimeout(() => setCopied(undefined), 1800);
-    }).catch(() => setCopied(undefined));
+      timer.current = setTimeout(() => setCopied(false), 1800);
+    }).catch(() => setCopied(false));
   }];
 }
 
-function Install() {
+function Install({ duration, reduced }: { duration: number; reduced: boolean }) {
   const [manager, setManager] = useState<PackageManager>("bun");
   const [copied, copy] = useCopy();
   const command = installCommands[manager];
+  const managers = useRef<HTMLDivElement>(null);
+  const indicator = useRef<HTMLSpanElement>(null);
+  const code = useRef<HTMLElement>(null);
+  const started = useRef(false);
+  useLayoutEffect(() => {
+    const group = managers.current, pill = indicator.current, box = code.current;
+    if (!group || !pill || !box) return;
+    const target = group.querySelector<HTMLElement>("button[aria-pressed='true']");
+    if (!target) return;
+    // Read the rendered geometry first (an interruption point), then release the
+    // previous effects to read the natural target geometry.
+    const pillRect = pill.getBoundingClientRect();
+    const pillFrom = pillRect.left - group.getBoundingClientRect().left;
+    const rendered = box.getBoundingClientRect().width;
+    for (const animation of [...pill.getAnimations(), ...box.getAnimations()]) animation.cancel();
+    const width = box.getBoundingClientRect().width;
+    const first = !started.current;
+    started.current = true;
+    const options = { duration: reduced || first ? 0 : duration, easing: springEasing(duration), fill: "forwards" as const };
+    pill.animate([
+      { transform: `translateX(${pillFrom}px)`, width: `${pillRect.width}px` },
+      { transform: `translateX(${target.offsetLeft}px)`, width: `${target.offsetWidth}px` },
+    ], options);
+    if (options.duration) box.animate([{ width: `${rendered}px` }, { width: `${width}px` }], options);
+  }, [manager, duration, reduced]);
   return (
     <section className="install" aria-label="Install">
       <div className="install-command">
-        <div className="install-managers" role="group" aria-label="Package manager">{(Object.keys(installCommands) as PackageManager[]).map((name) => <button key={name} aria-pressed={manager === name} onClick={() => setManager(name)}>{name}</button>)}</div>
-        <code>{command}</code>
-        <button className="quiet" aria-label="Copy install command" onClick={() => copy("command", command)}>{copied === "command" ? "Copied" : "Copy"}</button>
+        <div ref={managers} className="install-managers" role="group" aria-label="Package manager">
+          <span ref={indicator} className="install-indicator" aria-hidden="true" />
+          {(Object.keys(installCommands) as PackageManager[]).map((name) => <button key={name} aria-pressed={manager === name} onClick={() => setManager(name)}>{name}</button>)}
+        </div>
+        <code ref={code}><span key={manager} className="install-text" data-animated={!reduced}>{command}</span></code>
+        <button className="quiet" aria-label="Copy install command" onClick={() => copy(command)}>{copied ? "Copied" : "Copy"}</button>
       </div>
-      <button className="quiet install-agent" onClick={() => copy("prompt", agentPrompt)} aria-describedby="agent-prompt-hint">{copied === "prompt" ? "Prompt copied" : "Copy prompt for your agent"}</button>
-      <span id="agent-prompt-hint" className="sr-only">Copies setup instructions to paste into a coding agent such as Claude Code, Cursor or OpenCode. Docs are also available as Markdown at /llms.txt.</span>
       <output className="sr-only" aria-live="polite">{copied ? "Copied to clipboard" : ""}</output>
     </section>
   );
 }
+
 const currency: Intl.NumberFormatOptions = { style: "currency", currency: "USD", maximumFractionDigits: 0 };
 const clock: Intl.NumberFormatOptions = { minimumIntegerDigits: 2, useGrouping: false };
 const milliseconds: Intl.NumberFormatOptions = { style: "unit", unit: "millisecond", unitDisplay: "short", maximumFractionDigits: 0 };
@@ -117,7 +149,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
   useEffect(() => { if (seconds.value === 0) setRunning(false); }, [seconds.value]);
   const shared = { locales: locale, duration, motionBlur };
   return (
-    <section id="examples" className="examples" aria-label="Examples" data-reduced={reduced}>
+    <section id="examples" className="examples" aria-label="Examples" data-reduced={reduced} style={{ "--duration": `${duration}ms`, "--spring": springEasing(duration) } as CSSProperties}>
       <article className="example mini-app shop-app">
         <h2>Shop</h2>
         <div className="shop-product">
@@ -136,7 +168,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
       </article>
       <article className="example mini-app team-app">
         <h2>Team plan</h2>
-        <div className="avatar-stack" aria-hidden="true">{Array.from({ length: Math.min(seats.value, 5) }, (_, index) => <span className="mini-avatar" key={index}><AvatarGraphic /></span>)}{seats.value > 5 && <span className="extra-members">+{seats.value - 5}</span>}</div>
+        <div className="avatar-stack" aria-hidden="true" data-animated={!reduced && seats.animated}>{Array.from({ length: 5 }, (_, index) => <span className="mini-avatar" key={index} data-present={index < seats.value}><AvatarGraphic /></span>)}<span className="extra-members" data-present={seats.value > 5}>+<RollingNumber {...shared} value={Math.max(0, seats.value - 5)} animated={!reduced && seats.animated} /></span></div>
         <div className="price"><div ref={priceNumber} className="example-number"><RollingNumber {...shared} value={seats.value * 12} format={currency} animated={!reduced && seats.animated} /></div><span ref={priceSuffix}>/ month</span></div>
         <div className="seat-control">
           <label htmlFor="seats">Seats <output>{seats.value}</output></label>
@@ -238,10 +270,10 @@ function App() {
           </details>
           {staticLocale && <p className="locale-note">This locale uses native text without rolling.</p>}
         </section>
-        <Install />
+        <Install duration={duration} reduced={reduced} />
         <Examples locale={locale} duration={duration} reduced={reduced} motionBlur={motionBlur} />
       </main>
-      <footer className="site-footer"><code>{"<RollingNumber value={value} />"}</code><a href="./bench.html">Benchmarks</a><a href="./llms.txt">llms.txt</a><a href={`${repository}/blob/main/LICENSE`}>MIT</a></footer>
+      <footer className="site-footer"><code>{"<RollingNumber value={value} />"}</code><a href="./llms.txt">llms.txt</a><a href={`${repository}/blob/main/LICENSE`}>MIT</a></footer>
     </div>
   );
 }
