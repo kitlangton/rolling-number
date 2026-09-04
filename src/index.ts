@@ -65,6 +65,7 @@ class Renderer implements Participant, RollingNumberController {
   private destroyed = false;
   private visible = true;
   private reset = true;
+  private measurementPending = false;
   private hadClass: boolean;
 
   constructor(private host: HTMLElement, options: RollingNumberOptions) {
@@ -118,6 +119,7 @@ class Renderer implements Participant, RollingNumberController {
 
   private prepare(): void {
     if (!this.canAnimate()) { this.finish(); return; }
+    this.measurementPending = true;
     const keys = new Set(this.target.tokens.map((token) => token.key));
     for (const [key, node] of this.measures) {
       if (keys.has(key)) continue;
@@ -152,6 +154,8 @@ class Renderer implements Participant, RollingNumberController {
     const view = this.host.ownerDocument.defaultView;
     if (!view) return () => this.finish();
     const style = view.getComputedStyle(this.measurement);
+    // Splitting a bidi run into flex items changes its native visual ordering.
+    if (style.direction === "rtl") return () => this.finish();
     const width = parseFloat(style.width);
     const height = parseFloat(style.height);
     if (!width || !height || !bounds.width || !bounds.height) return () => this.finish();
@@ -195,6 +199,7 @@ class Renderer implements Participant, RollingNumberController {
 
   private commit(geometry: Map<string, Geometry>): void {
     if (this.destroyed) return;
+    this.measurementPending = false;
     const animate = this.enhanced && !this.reset;
     const duration = animate ? this.options.duration ?? 500 : 0;
     const trend = this.options.direction === "up" ? 1 : this.options.direction === "down" ? -1 : direction(this.displayed, this.target);
@@ -270,6 +275,9 @@ class Renderer implements Participant, RollingNumberController {
   }
 
   sizeChanged(element: Element, width: number, height: number): boolean {
+    // Value updates already have a measurement queued. RO delivery can precede
+    // that frame; treating our own writes as external resize would cancel motion.
+    if (this.measurementPending || !this.host.hasAttribute("data-rn-measuring")) return false;
     const previous = this.sizes.get(element);
     return !previous || Math.abs(previous.width - width) > 0.2 || Math.abs(previous.height - height) > 0.2;
   }
@@ -277,13 +285,14 @@ class Renderer implements Participant, RollingNumberController {
   visibility(visible: boolean): void {
     if (this.visible === visible) return;
     this.visible = visible;
-    if (this.options.pauseOffscreen !== false) this.refresh();
+    if (visible || this.options.pauseOffscreen !== false) this.refresh();
   }
 
   preferenceChanged(): void { this.refresh(); }
 
   finish(): void {
     if (this.destroyed) return;
+    this.measurementPending = false;
     for (const column of this.columns.values()) this.removeColumn(column);
     this.columns.clear();
     this.semantic.textContent = this.target.text;

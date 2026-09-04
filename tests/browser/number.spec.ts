@@ -92,6 +92,47 @@ test("recovers geometry when a hidden counter becomes visible", async ({ page })
   await expect(page.locator(".rn-face")).toHaveCount(2);
 });
 
+test("width changes from animation-frame callbacks still animate", async ({ page }) => {
+  await page.evaluate(() => window.mountNumber({ value: 99, duration: 1000 }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => {
+    window.testNumber.update({ value: 100 });
+    requestAnimationFrame(() => resolve());
+  })));
+  expect(await page.evaluate(() => document.getAnimations().length)).toBeGreaterThan(0);
+});
+
+test("keeps native text order in RTL surrounding layout", async ({ page }) => {
+  await page.evaluate(() => {
+    document.getElementById("fixture")!.dir = "rtl";
+    window.mountNumber({ value: -123, locales: "en-US" });
+  });
+  await page.evaluate(async () => { await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame); });
+  await expect(page.locator("#number")).not.toHaveAttribute("data-rn-ready", "");
+  await expect(page.locator("#number > .rn-value")).toBeVisible();
+  await expect(page.locator("#number > .rn-value")).toHaveText("-123");
+});
+
+test("reappearing counters recover even with offscreen pausing disabled", async ({ page }) => {
+  await page.evaluate(() => {
+    document.getElementById("fixture")!.style.display = "none";
+    window.mountNumber({ value: 42, pauseOffscreen: false });
+  });
+  await page.evaluate(async () => { await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame); });
+  await page.locator("#fixture").evaluate((element) => { element.style.display = "block"; });
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+});
+
+test("preserves React 19 callback-ref cleanup", async ({ page }) => {
+  await page.evaluate(() => window.mountRefProbe());
+  await expect(page.locator(".rn-react")).toHaveCount(1);
+  await page.evaluate(() => window.unmountReact());
+  const probe = await page.evaluate(() => window.refProbe);
+  expect(probe.mounted).toBeGreaterThan(0);
+  expect(probe.cleaned).toBe(probe.mounted);
+  expect(probe.nullCalls).toBe(0);
+});
+
 test("reduced motion changes settle immediately and remain accessible", async ({ page }) => {
   await page.evaluate(() => window.mountNumber({ value: 8, duration: 1000 }));
   await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");

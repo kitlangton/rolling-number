@@ -11,6 +11,8 @@ declare global {
     mountNumber(options: RollingNumberOptions): void;
     reactNumber(options: RollingNumberOptions, hydrate?: boolean): void;
     unmountReact(): void;
+    mountRefProbe(): void;
+    refProbe: { mounted: number; cleaned: number; nullCalls: number };
     ready: boolean;
   }
 }
@@ -36,4 +38,13 @@ window.reactNumber = (options, hydrate = false) => {
   if (!hydrate) react.render(element);
 };
 window.unmountReact = () => { react?.unmount(); react = undefined; };
+window.refProbe = { mounted: 0, cleaned: 0, nullCalls: 0 };
+window.mountRefProbe = () => {
+  react = createRoot(fixture);
+  react.render(<StrictMode><RollingNumber value={1} ref={(node) => {
+    if (!node) { window.refProbe.nullCalls++; return; }
+    window.refProbe.mounted++;
+    return () => { window.refProbe.cleaned++; };
+  }} /></StrictMode>);
+};
 window.ready = true;
