@@ -290,11 +290,7 @@ class Renderer implements Participant, RollingNumberController {
       column.element.style.height = `${size.height}px`;
       column.element.style.top = `${size.y}px`;
       const x = previous.get(token.key);
-      // A digit-only update must not restart horizontal motion already headed here.
-      // Refreshes still settle immediately; origin shifts still need compensation.
-      if (!duration || originShift || column.x.target !== size.x) {
-        column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
-      }
+      column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
       if (fresh || reentered || !animate) {
         const alpha = column.opacity.read();
         const fade = spring(alpha.position, 1, alpha.velocity, token.digit === undefined ? Math.min(duration, 180) : duration);
@@ -336,10 +332,7 @@ class Renderer implements Participant, RollingNumberController {
       const x = previous.get(key)!;
       const replacementKey = newSymbols.get(column.token.identity);
       const replacement = replacementKey ? geometry.get(replacementKey) : undefined;
-      const target = replacement?.x ?? exits.get(key) ?? x.position;
-      if (!duration || originShift || column.x.target !== target) {
-        column.x.play(spring(x.position + originShift, target, x.velocity, duration), translate);
-      }
+      column.x.play(spring(x.position + originShift, replacement?.x ?? exits.get(key) ?? x.position, x.velocity, duration), translate);
       if (column.exiting) continue;
       column.exiting = true;
       if (replacement && duration) {
