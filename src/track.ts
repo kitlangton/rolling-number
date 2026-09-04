@@ -20,8 +20,6 @@ export class Track {
 
   constructor(private element: HTMLElement, private property: "transform" | "opacity") {}
 
-  get target(): number { return this.value; }
-
   read(): Sample {
     const time = this.animation?.currentTime;
     return this.animation && this.motion

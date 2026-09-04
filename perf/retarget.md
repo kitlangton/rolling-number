@@ -23,9 +23,26 @@ settled tracks and in-flight tracks whose destination has not changed. Keeping
 those tracks avoids constructing redundant springs and replacing native effects.
 The original playback deadline should survive digit-only updates.
 
-`tests/browser/layout-continuity.spec.ts` fails against the baseline because the
-horizontal animation is replaced during same-width updates.
+A temporary browser probe confirmed that the horizontal animation is replaced
+during same-width updates. The candidate added a `Track.target` getter and
+skipped horizontal `play` calls unless duration was zero, the origin shifted, or
+the destination changed.
 
 ## Outcome
 
-Pending measurement. Keep only with measured benefit and browser regressions.
+**Discard.** Median task time fell to **1428.20 ms** (4.4%), but the candidate's
+**1337.06–1562.41 ms** range overlapped the baseline substantially. This is not a
+clear speed win. The implementation and temporary behavior-specific probe were
+removed, preserving the pre-existing stagger changes.
+
+Candidate source-tree SHA-256:
+`8c98f8c67a50ace1d9a7c36606d2fbe6f48a656cc56096c99c5bc388dc106f25`.
+Full local capture: `perf/retarget-after.local.json`.
+
+## Next experiment: redundant state attributes
+
+Setting `data-rn-measuring` and `data-rn-ready` to the same value on every commit
+may invalidate stylesheet selectors unnecessarily. Guard those two writes; do
+not change trajectories, measurement order, or glyph representation.
+
+Pending measurement against the same baseline, with horizontal playback restored.
