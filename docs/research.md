@@ -53,6 +53,10 @@ JavaScript frame loop; that is not a universal guarantee of compositor-only work
 The compact path uses two transform endpoints with a sampled `linear()` easing.
 Opacity retains explicit samples because clamping its overshoot is non-linear;
 interpolating two clamped endpoints would change the trajectory.
+Reel viewports now use a simple top/bottom linear alpha mask for softer entry and
+exit edges. `--rn-edge-fade` controls its extent; `--rn-mask: none` retains hard
+clipping. The current benchmark includes the mask rather than reusing the initial
+unmasked measurements. This is a visual tradeoff, not a claim that masks are free.
 Real width is adopted at update time, while glyph positions animate. Arbitrary
 surrounding inline siblings do **not** continuously reflow without layout work.
 

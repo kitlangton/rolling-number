@@ -108,6 +108,14 @@ update rather than making the interface chase each keypress.
 Fonts, size, weight, style and spacing are inherited. Proportional numerals work;
 `font-variant-numeric: tabular-nums` is optional, not a measurement substitute.
 
+Digit viewports have a linear alpha fade at their top and bottom edges. Tune it
+without changing the measurement or animation:
+
+```css
+.counter { --rn-edge-fade: 0.12em; } /* default */
+.counter--hard-clip { --rn-mask: none; } /* opt out of masking */
+```
+
 **The host adopts its target intrinsic width immediately; internal glyphs glide
 to their target positions.** This does not animate arbitrary surrounding siblings
 or promise zero layout shift. Reserve space with CSS `min-width` when a stable
@@ -141,7 +149,7 @@ See [the methodology](perf/method.md) and [research and design tradeoffs](docs/r
 Benchmarks are workload- and browser-specific. A smaller DOM or no per-frame
 JavaScript does not, on its own, prove smoother presented frames or universal speed.
 
-The [published local comparison](perf/results.md) measured **55.7% less main-thread
+The [published local comparison](perf/results.md) measured **59.2% less main-thread
 work and 56.7% fewer retained elements** than NumberFlow 0.6.2 for 100 animated
 counters. It includes the slower cases, methodology and raw per-round data—not a
 claim that every workload or browser is faster.
@@ -158,6 +166,10 @@ bun run build:demo
 Tests cover formatting, exact bigint handling, interruption continuity, bounded
 cleanup, proportional fonts, reduced motion, hidden → visible transitions, and
 React hydration under StrictMode in Chromium, Firefox and WebKit.
+
+The dark-only demo keeps the showcase and four interactive examples up front.
+Its eye mark uses a native blink/look/digit-roll loop with vertical SVG blur,
+and stops for reduced motion, hidden documents and offscreen state.
 
 `dist/` contains ESM and declarations plus an explicit stylesheet. There is no
 automatic global style injection, custom-element registration, or server-side DOM

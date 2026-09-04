@@ -42,6 +42,22 @@
   box-sizing: content-box;
   padding-inline: 0.15em;
   margin-inline-start: -0.15em;
+  -webkit-mask-image: var(--rn-mask, linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--rn-edge-fade, 0.12em),
+    #000 calc(100% - var(--rn-edge-fade, 0.12em)),
+    transparent
+  ));
+  mask-image: var(--rn-mask, linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--rn-edge-fade, 0.12em),
+    #000 calc(100% - var(--rn-edge-fade, 0.12em)),
+    transparent
+  ));
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 .rn-reel, .rn-face { display: block; }
 .rn-face { text-align: center; white-space: pre; }

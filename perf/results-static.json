@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "benchmark": "dom-carry-reversal-v1",
-  "recordedAt": "2026-09-04T16:53:40.059Z",
+  "recordedAt": "2026-09-04T17:13:08.922Z",
   "versions": {
     "rollingNumber": "0.1.0",
     "numberFlow": "0.6.2",
@@ -12,7 +12,7 @@
   },
   "build": {
     "mode": "production",
-    "entryHtmlSha256": "82917fe6453b4dafa71dfdcc80753d00805b5a190ed804aa3182316456b76e0c"
+    "entryHtmlSha256": "972fe6c1de1cd7aac70314b56e62c6860a14aeec476659613b1b980fc72b7ac9"
   },
   "environment": {
     "production": true,
@@ -97,27 +97,27 @@
       "mount": {
         "taskMs": {
           "samples": 7,
-          "median": 1.6409999999997815,
-          "p25": 1.6099999999998615,
-          "p75": 1.7504999999999882,
-          "min": 1.567000000000096,
-          "max": 1.827000000000023
+          "median": 1.6979999999997553,
+          "p25": 1.6329999999999956,
+          "p75": 1.7355000000000842,
+          "min": 1.414999999999944,
+          "max": 1.8890000000002516
         },
         "layoutMs": {
           "samples": 7,
-          "median": 0.3269999999999662,
-          "p25": 0.31749999999999834,
-          "p75": 0.3409999999999802,
-          "min": 0.29800000000002047,
-          "max": 0.38800000000005497
+          "median": 0.3149999999999542,
+          "p25": 0.30600000000002847,
+          "p75": 0.3390000000000337,
+          "min": 0.2969999999999917,
+          "max": 0.3660000000000052
         },
         "recalcStyleMs": {
           "samples": 7,
-          "median": 0.15300000000001424,
-          "p25": 0.14299999999999036,
-          "p75": 0.15899999999999248,
-          "min": 0.13499999999999623,
-          "max": 0.18699999999999273
+          "median": 0.14199999999997548,
+          "p25": 0.13899999999998636,
+          "p75": 0.14999999999999042,
+          "min": 0.13099999999999223,
+          "max": 0.15300000000001424
         },
         "layoutCount": {
           "samples": 7,
@@ -145,37 +145,37 @@
         },
         "mountThroughFlushMs": {
           "samples": 7,
-          "median": 11.899999976158142,
-          "p25": 8.25,
-          "p75": 12.150000035762787,
-          "min": 4.5,
-          "max": 12.900000095367432
+          "median": 12.299999952316284,
+          "p25": 10.050000011920929,
+          "p75": 12.550000011920929,
+          "min": 3.600000023841858,
+          "max": 12.700000047683716
         }
       },
       "updateThroughSettlement": {
         "taskMs": {
           "samples": 7,
-          "median": 21.011000000000113,
-          "p25": 20.85349999999997,
-          "p75": 22.126999999999786,
-          "min": 19.925000000000026,
-          "max": 23.331000000000213
+          "median": 18.579000000000345,
+          "p25": 18.25799999999994,
+          "p75": 22.082500000000117,
+          "min": 16.607999999999954,
+          "max": 24.042999999999815
         },
         "layoutMs": {
           "samples": 7,
-          "median": 2.84300000000004,
-          "p25": 2.828999999999998,
-          "p75": 2.866499999999994,
-          "min": 2.7539999999999787,
-          "max": 2.932000000000018
+          "median": 2.894999999999981,
+          "p25": 2.751000000000059,
+          "p75": 2.9700000000000144,
+          "min": 2.7169999999999694,
+          "max": 3.141999999999978
         },
         "recalcStyleMs": {
           "samples": 7,
-          "median": 0.4530000000000367,
-          "p25": 0.4274999999999973,
-          "p75": 0.4820000000000102,
-          "min": 0.39300000000000446,
-          "max": 0.49399999999999444
+          "median": 0.4450000000000287,
+          "p25": 0.4345000000000043,
+          "p75": 0.46200000000001795,
+          "min": 0.4220000000000057,
+          "max": 0.4669999999999952
         },
         "layoutCount": {
           "samples": 7,
@@ -196,35 +196,35 @@
       },
       "elapsedMs": {
         "samples": 7,
-        "median": 1832,
-        "p25": 1831.050000011921,
-        "p75": 1832.300000011921,
-        "min": 1829.3000000715256,
-        "max": 1832.6999999284744
+        "median": 1831.7000000476837,
+        "p25": 1831.449999988079,
+        "p75": 1831.9500000476837,
+        "min": 1831.1999999284744,
+        "max": 1832.3000000715256
       },
       "rafIntervalMedianMs": {
         "samples": 7,
-        "median": 8.300000000000182,
+        "median": 8.299999999999272,
         "p25": 8.299999999999272,
-        "p75": 8.30000000000291,
+        "p75": 8.300000000001546,
         "min": 8.299999999999272,
         "max": 8.30000000000291
       },
       "rafIntervalP95Ms": {
         "samples": 7,
-        "median": 9.099999999998545,
-        "p25": 9.054999999999245,
-        "p75": 9.099999999998545,
-        "min": 9,
-        "max": 9.099999999998726
+        "median": 9.100000000000364,
+        "p25": 9.099999999998545,
+        "p75": 9.150000000001636,
+        "min": 8.91000000000131,
+        "max": 9.199999999999909
       },
       "maxUpdateLatenessMs": {
         "samples": 7,
-        "median": 0.8333333333330302,
-        "p25": 0.500000000001819,
-        "p75": 0.949999988079071,
-        "min": 0.16666666666787933,
-        "max": 1.600000023841858
+        "median": 0.6333332856520428,
+        "p25": 0.48333336909672653,
+        "p75": 0.9833333690967265,
+        "min": 0.1333334048576944,
+        "max": 1.2000000476837158
       },
       "mountedElementsIncludingShadowDOM": {
         "samples": 7,
@@ -247,27 +247,27 @@
       "mount": {
         "taskMs": {
           "samples": 7,
-          "median": 27.74499999999991,
-          "p25": 27.089999999999836,
-          "p75": 28.43499999999993,
-          "min": 26.559999999999917,
-          "max": 28.92899999999998
+          "median": 27.90499999999996,
+          "p25": 27.60349999999989,
+          "p75": 28.09649999999997,
+          "min": 25.8149999999997,
+          "max": 28.7980000000001
         },
         "layoutMs": {
           "samples": 7,
           "median": 5.620999999999987,
-          "p25": 5.458500000000004,
-          "p75": 5.68300000000005,
-          "min": 5.193999999999976,
-          "max": 5.751999999999979
+          "p25": 5.267000000000078,
+          "p75": 5.8075000000000205,
+          "min": 5.12199999999996,
+          "max": 5.844999999999989
         },
         "recalcStyleMs": {
           "samples": 7,
-          "median": 6.162000000000001,
-          "p25": 6.063000000000013,
-          "p75": 6.278499999999992,
-          "min": 5.896999999999986,
-          "max": 6.496000000000002
+          "median": 6.190000000000001,
+          "p25": 6.130499999999984,
+          "p75": 6.336999999999982,
+          "min": 5.71499999999997,
+          "max": 6.623999999999963
         },
         "layoutCount": {
           "samples": 7,
@@ -287,45 +287,45 @@
         },
         "synchronousMountMs": {
           "samples": 7,
-          "median": 9.700000047683716,
-          "p25": 9.549999952316284,
-          "p75": 10.050000071525574,
+          "median": 9.600000023841858,
+          "p25": 9.5,
+          "p75": 10.050000011920929,
           "min": 9.299999952316284,
           "max": 10.599999904632568
         },
         "mountThroughFlushMs": {
           "samples": 7,
-          "median": 26.100000023841858,
-          "p25": 25.44999998807907,
-          "p75": 26.800000071525574,
-          "min": 25.100000023841858,
-          "max": 27.09999990463257
+          "median": 26.199999928474426,
+          "p25": 26,
+          "p75": 26.55000001192093,
+          "min": 24.40000009536743,
+          "max": 27
         }
       },
       "updateThroughSettlement": {
         "taskMs": {
           "samples": 7,
-          "median": 275.4950000000003,
-          "p25": 273.34149999999977,
-          "p75": 277.00350000000003,
-          "min": 268.84700000000004,
-          "max": 278.5179999999999
+          "median": 278.0990000000001,
+          "p25": 275.8595,
+          "p75": 283.84450000000004,
+          "min": 273.921,
+          "max": 289.30100000000004
         },
         "layoutMs": {
           "samples": 7,
-          "median": 106.21899999999995,
-          "p25": 105.56900000000002,
-          "p75": 106.89700000000002,
-          "min": 104.35799999999995,
-          "max": 108.16200000000003
+          "median": 106.23599999999999,
+          "p25": 106.03099999999998,
+          "p75": 108.41499999999999,
+          "min": 105.25600000000001,
+          "max": 110.88599999999998
         },
         "recalcStyleMs": {
           "samples": 7,
-          "median": 55.185999999999986,
-          "p25": 54.11200000000001,
-          "p75": 56.21299999999998,
-          "min": 53.809,
-          "max": 57.13200000000002
+          "median": 54.61299999999999,
+          "p25": 54.207500000000024,
+          "p75": 56.43700000000001,
+          "min": 53.59900000000001,
+          "max": 57.15700000000001
         },
         "layoutCount": {
           "samples": 7,
@@ -346,11 +346,11 @@
       },
       "elapsedMs": {
         "samples": 7,
-        "median": 1841,
-        "p25": 1838.9999999403954,
-        "p75": 1845.8999999761581,
-        "min": 1837,
-        "max": 1847.9000000953674
+        "median": 1847,
+        "p25": 1840.699999988079,
+        "p75": 1852,
+        "min": 1838.6000000238419,
+        "max": 1855.3999999761581
       },
       "rafIntervalMedianMs": {
         "samples": 7,
@@ -362,19 +362,19 @@
       },
       "rafIntervalP95Ms": {
         "samples": 7,
-        "median": 9.169999999999344,
-        "p25": 9.100000000002183,
-        "p75": 9.199999999998772,
-        "min": 9.075000000001637,
-        "max": 9.200000000000728
+        "median": 9.19999999999709,
+        "p25": 9.174999999999272,
+        "p75": 9.274999999998727,
+        "min": 9.100000000000364,
+        "max": 9.299999999999272
       },
       "maxUpdateLatenessMs": {
         "samples": 7,
-        "median": 0.9666666189841635,
-        "p25": 0.7833333214130107,
-        "p75": 1.1333333452557781,
-        "min": 0.6666666666642413,
-        "max": 1.4666666189823445
+        "median": 0.8999999761581421,
+        "p25": 0.7166667381916341,
+        "p75": 1.0166666309032735,
+        "min": 0.4666666189823445,
+        "max": 1.466666738191634
       },
       "mountedElementsIncludingShadowDOM": {
         "samples": 7,
@@ -397,27 +397,27 @@
       "mount": {
         "taskMs": {
           "samples": 7,
-          "median": 3.4929999999997463,
-          "p25": 3.410000000000024,
-          "p75": 3.5595000000000487,
-          "min": 3.3080000000000886,
-          "max": 3.689999999999971
+          "median": 3.5560000000001146,
+          "p25": 3.4404999999999575,
+          "p75": 3.589000000000009,
+          "min": 3.226999999999869,
+          "max": 3.7730000000002484
         },
         "layoutMs": {
           "samples": 7,
-          "median": 0.5200000000000204,
-          "p25": 0.5145000000000011,
-          "p75": 0.5299999999999749,
-          "min": 0.5010000000000847,
-          "max": 0.5359999999999809
+          "median": 0.5290000000000017,
+          "p25": 0.5024999999999891,
+          "p75": 0.5420000000000147,
+          "min": 0.46599999999996644,
+          "max": 0.5540000000000544
         },
         "recalcStyleMs": {
           "samples": 7,
           "median": 0.40600000000001746,
-          "p25": 0.4039999999999877,
-          "p75": 0.4170000000000007,
-          "min": 0.3949999999999787,
-          "max": 0.4370000000000207
+          "p25": 0.3965000000000288,
+          "p75": 0.4235000000000211,
+          "min": 0.3770000000000162,
+          "max": 0.4310000000000147
         },
         "layoutCount": {
           "samples": 7,
@@ -438,44 +438,44 @@
         "synchronousMountMs": {
           "samples": 7,
           "median": 1.6999999284744263,
-          "p25": 1.5999999642372131,
-          "p75": 1.7000000476837158,
-          "min": 1.5999999046325684,
-          "max": 1.899999976158142
+          "p25": 1.6999999284744263,
+          "p75": 1.75,
+          "min": 1.600000023841858,
+          "max": 1.7999999523162842
         },
         "mountThroughFlushMs": {
           "samples": 7,
-          "median": 5.399999976158142,
-          "p25": 4.050000011920929,
-          "p75": 12.300000011920929,
-          "min": 3.1999999284744263,
-          "max": 12.899999976158142
+          "median": 4.600000023841858,
+          "p25": 3.799999952316284,
+          "p75": 12.249999940395355,
+          "min": 3.5,
+          "max": 12.699999928474426
         }
       },
       "updateThroughSettlement": {
         "taskMs": {
           "samples": 7,
-          "median": 30.25499999999992,
-          "p25": 29.97999999999995,
-          "p75": 32.12349999999997,
-          "min": 28.693999999999996,
-          "max": 33.37900000000005
+          "median": 29.9060000000001,
+          "p25": 28.819000000000038,
+          "p75": 31.09049999999991,
+          "min": 28.676000000000144,
+          "max": 33.324999999999605
         },
         "layoutMs": {
           "samples": 7,
-          "median": 3.0179999999999927,
-          "p25": 2.9990000000000014,
-          "p75": 3.0505000000000115,
-          "min": 2.922000000000091,
-          "max": 3.1849999999999934
+          "median": 3.018999999999994,
+          "p25": 3.0060000000000087,
+          "p75": 3.1274999999999773,
+          "min": 2.9519999999999547,
+          "max": 3.5240000000000826
         },
         "recalcStyleMs": {
           "samples": 7,
-          "median": 0.5249999999999977,
-          "p25": 0.515500000000016,
-          "p75": 0.5664999999999976,
-          "min": 0.4669999999999952,
-          "max": 0.7159999999999944
+          "median": 0.5359999999999809,
+          "p25": 0.5134999999999862,
+          "p75": 0.5729999999999624,
+          "min": 0.49899999999999944,
+          "max": 0.5970000000000142
         },
         "layoutCount": {
           "samples": 7,
@@ -497,14 +497,14 @@
       "elapsedMs": {
         "samples": 7,
         "median": 1831.2000000476837,
-        "p25": 1830.800000011921,
-        "p75": 1831.4999999403954,
-        "min": 1823.1000000238419,
+        "p25": 1830.8500000238419,
+        "p75": 1831.5999999642372,
+        "min": 1830.3999999761581,
         "max": 1831.7000000476837
       },
       "rafIntervalMedianMs": {
         "samples": 7,
-        "median": 8.299999999999272,
+        "median": 8.300000000001091,
         "p25": 8.299999999999272,
         "p75": 8.300000000002001,
         "min": 8.299999999999272,
@@ -512,19 +512,19 @@
       },
       "rafIntervalP95Ms": {
         "samples": 7,
-        "median": 9.100000000000364,
-        "p25": 9.099999999999454,
-        "p75": 9.105000000003564,
-        "min": 9,
-        "max": 9.199999999997454
+        "median": 9.099999999998545,
+        "p25": 9.099999999998545,
+        "p75": 9.099999999999635,
+        "min": 9.010000000000035,
+        "max": 9.19999999999709
       },
       "maxUpdateLatenessMs": {
         "samples": 7,
-        "median": 0.6000000238418579,
-        "p25": 0.48333330949208175,
-        "p75": 1.1166666547451314,
-        "min": 0.4666666189841635,
-        "max": 1.4000000953674316
+        "median": 0.6999999284744263,
+        "p25": 0.5500000715246642,
+        "p75": 0.9333333571739786,
+        "min": 0.4666666189805255,
+        "max": 1
       },
       "mountedElementsIncludingShadowDOM": {
         "samples": 7,
@@ -544,25 +544,26 @@
       }
     }
   },
-  "sourceTreeSha256": "2539209e9a871e3f22d54ae8cab0ec8ebf9609385cb74eeebb257995c936223c",
+  "sourceTreeSha256": "5a65f87325594bddb4517ed9d9e877b177c741c818ab45229a60a04b2d128e5b",
+  "rendering": "Default top/bottom linear edge masks enabled; dark benchmark page.",
   "samples": [
     {
       "kind": "plain",
       "round": 0,
       "order": 0,
       "mount": {
-        "synchronousMountMs": 0.10000002384185791,
-        "mountThroughFlushMs": 12.900000095367432,
-        "taskMs": 1.6079999999999983,
-        "layoutMs": 0.32199999999998896,
-        "recalcStyleMs": 0.13799999999999923,
+        "synchronousMountMs": 0.19999992847442627,
+        "mountThroughFlushMs": 12.299999952316284,
+        "taskMs": 1.7320000000000113,
+        "layoutMs": 0.3660000000000052,
+        "recalcStyleMs": 0.15199999999999936,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 19.925000000000026,
-        "layoutMs": 2.932000000000018,
-        "recalcStyleMs": 0.39300000000000446,
+        "taskMs": 18.09099999999997,
+        "layoutMs": 2.920000000000006,
+        "recalcStyleMs": 0.4220000000000057,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -585,17 +586,17 @@
       "order": 1,
       "mount": {
         "synchronousMountMs": 10.599999904632568,
-        "mountThroughFlushMs": 27.09999990463257,
-        "taskMs": 28.92899999999998,
-        "layoutMs": 5.620999999999987,
-        "recalcStyleMs": 6.162000000000001,
+        "mountThroughFlushMs": 27,
+        "taskMs": 28.267000000000042,
+        "layoutMs": 5.844999999999989,
+        "recalcStyleMs": 6.103999999999998,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 276.422,
-        "layoutMs": 105.769,
-        "recalcStyleMs": 56.95799999999999,
+        "taskMs": 274.98100000000005,
+        "layoutMs": 106.20300000000002,
+        "recalcStyleMs": 54.61299999999999,
         "layoutCount": 1208,
         "recalcStyleCount": 1208
       },
@@ -617,18 +618,18 @@
       "round": 0,
       "order": 2,
       "mount": {
-        "synchronousMountMs": 1.7000000476837158,
-        "mountThroughFlushMs": 3.600000023841858,
-        "taskMs": 3.535000000000066,
-        "layoutMs": 0.5159999999999887,
-        "recalcStyleMs": 0.4049999999999887,
+        "synchronousMountMs": 1.7999999523162842,
+        "mountThroughFlushMs": 3.799999952316284,
+        "taskMs": 3.4570000000000434,
+        "layoutMs": 0.4989999999999717,
+        "recalcStyleMs": 0.39000000000001533,
         "layoutCount": 2,
         "recalcStyleCount": 2
       },
       "updateThroughSettlement": {
-        "taskMs": 28.693999999999996,
-        "layoutMs": 3.0179999999999927,
-        "recalcStyleMs": 0.5249999999999977,
+        "taskMs": 28.95099999999995,
+        "layoutMs": 3.1220000000000137,
+        "recalcStyleMs": 0.49899999999999944,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -650,18 +651,18 @@
       "round": 1,
       "order": 0,
       "mount": {
-        "synchronousMountMs": 1.7000000476837158,
-        "mountThroughFlushMs": 12.400000095367432,
-        "taskMs": 3.3929999999999794,
-        "layoutMs": 0.5130000000000134,
-        "recalcStyleMs": 0.4029999999999867,
+        "synchronousMountMs": 1.6999999284744263,
+        "mountThroughFlushMs": 12.299999952316284,
+        "taskMs": 3.5969999999999613,
+        "layoutMs": 0.5310000000000037,
+        "recalcStyleMs": 0.4210000000000047,
         "layoutCount": 2,
         "recalcStyleCount": 2
       },
       "updateThroughSettlement": {
-        "taskMs": 29.915000000000024,
-        "layoutMs": 2.9939999999999967,
-        "recalcStyleMs": 0.5090000000000094,
+        "taskMs": 29.9060000000001,
+        "layoutMs": 3.017999999999965,
+        "recalcStyleMs": 0.5139999999999867,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -683,18 +684,18 @@
       "round": 1,
       "order": 1,
       "mount": {
-        "synchronousMountMs": 10.200000047683716,
-        "mountThroughFlushMs": 26.90000009536743,
-        "taskMs": 28.749999999999943,
-        "layoutMs": 5.501999999999951,
-        "recalcStyleMs": 6.496000000000002,
+        "synchronousMountMs": 9.299999952316284,
+        "mountThroughFlushMs": 26.199999928474426,
+        "taskMs": 27.90499999999996,
+        "layoutMs": 5.789000000000044,
+        "recalcStyleMs": 6.440000000000001,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 278.5179999999999,
-        "layoutMs": 108.16200000000003,
-        "recalcStyleMs": 55.185999999999986,
+        "taskMs": 273.921,
+        "layoutMs": 106.77599999999998,
+        "recalcStyleMs": 54.138999999999996,
         "layoutCount": 1208,
         "recalcStyleCount": 1208
       },
@@ -717,17 +718,17 @@
       "order": 2,
       "mount": {
         "synchronousMountMs": 0.10000002384185791,
-        "mountThroughFlushMs": 4.5,
-        "taskMs": 1.827000000000023,
-        "layoutMs": 0.3349999999999742,
-        "recalcStyleMs": 0.18699999999999273,
+        "mountThroughFlushMs": 3.600000023841858,
+        "taskMs": 1.667000000000085,
+        "layoutMs": 0.3009999999999957,
+        "recalcStyleMs": 0.13799999999999923,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 20.802999999999905,
-        "layoutMs": 2.83300000000003,
-        "recalcStyleMs": 0.40800000000001946,
+        "taskMs": 21.419000000000075,
+        "layoutMs": 2.7169999999999694,
+        "recalcStyleMs": 0.4669999999999952,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -749,18 +750,18 @@
       "round": 2,
       "order": 0,
       "mount": {
-        "synchronousMountMs": 9.299999952316284,
-        "mountThroughFlushMs": 25.100000023841858,
-        "taskMs": 26.559999999999917,
-        "layoutMs": 5.193999999999976,
-        "recalcStyleMs": 5.896999999999986,
+        "synchronousMountMs": 9.600000023841858,
+        "mountThroughFlushMs": 26.600000023841858,
+        "taskMs": 28.7980000000001,
+        "layoutMs": 5.620999999999987,
+        "recalcStyleMs": 6.190000000000001,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 274.764,
-        "layoutMs": 106.96600000000001,
-        "recalcStyleMs": 54.035000000000025,
+        "taskMs": 289.30100000000004,
+        "layoutMs": 110.88599999999998,
+        "recalcStyleMs": 57.15700000000001,
         "layoutCount": 1208,
         "recalcStyleCount": 1208
       },
@@ -782,18 +783,18 @@
       "round": 2,
       "order": 1,
       "mount": {
-        "synchronousMountMs": 1.5999999046325684,
-        "mountThroughFlushMs": 3.1999999284744263,
-        "taskMs": 3.427000000000069,
-        "layoutMs": 0.5200000000000204,
-        "recalcStyleMs": 0.41800000000002946,
+        "synchronousMountMs": 1.6999999284744263,
+        "mountThroughFlushMs": 3.799999952316284,
+        "taskMs": 3.5810000000000564,
+        "layoutMs": 0.5290000000000017,
+        "recalcStyleMs": 0.4030000000000422,
         "layoutCount": 2,
         "recalcStyleCount": 2
       },
       "updateThroughSettlement": {
-        "taskMs": 33.37900000000005,
-        "layoutMs": 3.062000000000009,
-        "recalcStyleMs": 0.6079999999999974,
+        "taskMs": 28.68700000000013,
+        "layoutMs": 3.018999999999994,
+        "recalcStyleMs": 0.5699999999999594,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -815,18 +816,18 @@
       "round": 2,
       "order": 2,
       "mount": {
-        "synchronousMountMs": 0.20000004768371582,
-        "mountThroughFlushMs": 12.300000071525574,
-        "taskMs": 1.7529999999998935,
-        "layoutMs": 0.3469999999999862,
-        "recalcStyleMs": 0.15899999999996473,
+        "synchronousMountMs": 0.10000002384185791,
+        "mountThroughFlushMs": 12.700000047683716,
+        "taskMs": 1.414999999999944,
+        "layoutMs": 0.2969999999999917,
+        "recalcStyleMs": 0.13099999999999223,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 21.011000000000113,
-        "layoutMs": 2.84300000000004,
-        "recalcStyleMs": 0.49399999999999444,
+        "taskMs": 16.607999999999954,
+        "layoutMs": 2.7410000000001045,
+        "recalcStyleMs": 0.44199999999999795,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -848,18 +849,18 @@
       "round": 3,
       "order": 0,
       "mount": {
-        "synchronousMountMs": 0.19999992847442627,
-        "mountThroughFlushMs": 11.899999976158142,
-        "taskMs": 1.567000000000096,
-        "layoutMs": 0.3130000000000077,
-        "recalcStyleMs": 0.15300000000001424,
+        "synchronousMountMs": 0.10000002384185791,
+        "mountThroughFlushMs": 12.5,
+        "taskMs": 1.598999999999906,
+        "layoutMs": 0.3110000000000612,
+        "recalcStyleMs": 0.14199999999997548,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 20.904000000000032,
-        "layoutMs": 2.7539999999999787,
-        "recalcStyleMs": 0.4870000000000152,
+        "taskMs": 18.424999999999912,
+        "layoutMs": 3.141999999999978,
+        "recalcStyleMs": 0.4270000000000107,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -881,18 +882,18 @@
       "round": 3,
       "order": 1,
       "mount": {
-        "synchronousMountMs": 1.5999999046325684,
-        "mountThroughFlushMs": 12.899999976158142,
-        "taskMs": 3.3080000000000886,
-        "layoutMs": 0.5010000000000847,
-        "recalcStyleMs": 0.4370000000000207,
+        "synchronousMountMs": 1.7999999523162842,
+        "mountThroughFlushMs": 12.699999928474426,
+        "taskMs": 3.4239999999998716,
+        "layoutMs": 0.5060000000000064,
+        "recalcStyleMs": 0.40600000000001746,
         "layoutCount": 2,
         "recalcStyleCount": 2
       },
       "updateThroughSettlement": {
-        "taskMs": 33.30500000000014,
-        "layoutMs": 3.1849999999999934,
-        "recalcStyleMs": 0.7159999999999944,
+        "taskMs": 30.386000000000024,
+        "layoutMs": 3.1329999999999414,
+        "recalcStyleMs": 0.5759999999999654,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -914,18 +915,18 @@
       "round": 3,
       "order": 2,
       "mount": {
-        "synchronousMountMs": 9.900000095367432,
-        "mountThroughFlushMs": 26.700000047683716,
-        "taskMs": 28.119999999999923,
-        "layoutMs": 5.724000000000062,
-        "recalcStyleMs": 6.357999999999975,
+        "synchronousMountMs": 10,
+        "mountThroughFlushMs": 26.5,
+        "taskMs": 27.925999999999895,
+        "layoutMs": 5.825999999999998,
+        "recalcStyleMs": 6.233999999999962,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 277.585,
-        "layoutMs": 106.82800000000003,
-        "recalcStyleMs": 57.13200000000002,
+        "taskMs": 284.3659999999999,
+        "layoutMs": 110.05399999999999,
+        "recalcStyleMs": 56.977,
         "layoutCount": 1208,
         "recalcStyleCount": 1208
       },
@@ -948,17 +949,17 @@
       "order": 0,
       "mount": {
         "synchronousMountMs": 1.600000023841858,
-        "mountThroughFlushMs": 4.5,
-        "taskMs": 3.689999999999971,
-        "layoutMs": 0.5299999999999194,
-        "recalcStyleMs": 0.3949999999999787,
+        "mountThroughFlushMs": 4.600000023841858,
+        "taskMs": 3.226999999999869,
+        "layoutMs": 0.46599999999996644,
+        "recalcStyleMs": 0.3770000000000162,
         "layoutCount": 2,
         "recalcStyleCount": 2
       },
       "updateThroughSettlement": {
-        "taskMs": 30.9419999999998,
-        "layoutMs": 3.039000000000014,
-        "recalcStyleMs": 0.5249999999999977,
+        "taskMs": 28.676000000000144,
+        "layoutMs": 3.5240000000000826,
+        "recalcStyleMs": 0.5359999999999809,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -981,17 +982,17 @@
       "order": 1,
       "mount": {
         "synchronousMountMs": 0.10000002384185791,
-        "mountThroughFlushMs": 11.5,
-        "taskMs": 1.7480000000000828,
-        "layoutMs": 0.38800000000005497,
-        "recalcStyleMs": 0.15900000000002024,
+        "mountThroughFlushMs": 12.600000023841858,
+        "taskMs": 1.739000000000157,
+        "layoutMs": 0.3450000000000397,
+        "recalcStyleMs": 0.15300000000001424,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 23.331000000000213,
-        "layoutMs": 2.866999999999953,
-        "recalcStyleMs": 0.4770000000000052,
+        "taskMs": 18.579000000000345,
+        "layoutMs": 3.0200000000000227,
+        "recalcStyleMs": 0.4450000000000287,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -1013,18 +1014,18 @@
       "round": 4,
       "order": 2,
       "mount": {
-        "synchronousMountMs": 9.700000047683716,
-        "mountThroughFlushMs": 26.100000023841858,
-        "taskMs": 27.74499999999991,
-        "layoutMs": 5.751999999999979,
-        "recalcStyleMs": 6.1990000000000105,
+        "synchronousMountMs": 9.5,
+        "mountThroughFlushMs": 24.40000009536743,
+        "taskMs": 25.8149999999997,
+        "layoutMs": 5.12199999999996,
+        "recalcStyleMs": 5.71499999999997,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 275.4950000000003,
-        "layoutMs": 106.21899999999995,
-        "recalcStyleMs": 55.46799999999996,
+        "taskMs": 276.73799999999994,
+        "layoutMs": 106.23599999999999,
+        "recalcStyleMs": 53.59900000000001,
         "layoutCount": 1208,
         "recalcStyleCount": 1208
       },
@@ -1046,18 +1047,18 @@
       "round": 5,
       "order": 0,
       "mount": {
-        "synchronousMountMs": 9.399999976158142,
-        "mountThroughFlushMs": 25.399999976158142,
-        "taskMs": 27.096999999999927,
-        "layoutMs": 5.642000000000036,
-        "recalcStyleMs": 5.989000000000022,
+        "synchronousMountMs": 9.5,
+        "mountThroughFlushMs": 26.100000023841858,
+        "taskMs": 27.676000000000034,
+        "layoutMs": 5.331000000000086,
+        "recalcStyleMs": 6.623999999999963,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 271.9189999999996,
-        "layoutMs": 105.36900000000004,
-        "recalcStyleMs": 53.809,
+        "taskMs": 283.3230000000002,
+        "layoutMs": 105.85899999999992,
+        "recalcStyleMs": 55.89700000000003,
         "layoutCount": 1208,
         "recalcStyleCount": 1208
       },
@@ -1079,18 +1080,18 @@
       "round": 5,
       "order": 1,
       "mount": {
-        "synchronousMountMs": 0.10000002384185791,
-        "mountThroughFlushMs": 5,
-        "taskMs": 1.6409999999997815,
-        "layoutMs": 0.29800000000002047,
-        "recalcStyleMs": 0.13499999999999623,
+        "synchronousMountMs": 0.19999992847442627,
+        "mountThroughFlushMs": 8.5,
+        "taskMs": 1.8890000000002516,
+        "layoutMs": 0.3330000000000277,
+        "recalcStyleMs": 0.13999999999997348,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 21.96499999999979,
-        "layoutMs": 2.8249999999999664,
-        "recalcStyleMs": 0.4469999999999752,
+        "taskMs": 22.746000000000155,
+        "layoutMs": 2.7610000000000134,
+        "recalcStyleMs": 0.4589999999999872,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -1114,16 +1115,16 @@
       "mount": {
         "synchronousMountMs": 1.6999999284744263,
         "mountThroughFlushMs": 12.199999928474426,
-        "taskMs": 3.4929999999997463,
-        "layoutMs": 0.5300000000000304,
-        "recalcStyleMs": 0.40600000000001746,
+        "taskMs": 3.5560000000001146,
+        "layoutMs": 0.5540000000000544,
+        "recalcStyleMs": 0.4310000000000147,
         "layoutCount": 2,
         "recalcStyleCount": 2
       },
       "updateThroughSettlement": {
-        "taskMs": 30.044999999999877,
-        "layoutMs": 3.0040000000000067,
-        "recalcStyleMs": 0.4669999999999952,
+        "taskMs": 33.324999999999605,
+        "layoutMs": 2.9519999999999547,
+        "recalcStyleMs": 0.5970000000000142,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -1145,18 +1146,18 @@
       "round": 6,
       "order": 0,
       "mount": {
-        "synchronousMountMs": 0.19999992847442627,
-        "mountThroughFlushMs": 12,
-        "taskMs": 1.6119999999997248,
-        "layoutMs": 0.3269999999999662,
+        "synchronousMountMs": 0.20000004768371582,
+        "mountThroughFlushMs": 11.600000023841858,
+        "taskMs": 1.6979999999997553,
+        "layoutMs": 0.3149999999999542,
         "recalcStyleMs": 0.14799999999998148,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 22.28899999999978,
-        "layoutMs": 2.866000000000035,
-        "recalcStyleMs": 0.4530000000000367,
+        "taskMs": 24.042999999999815,
+        "layoutMs": 2.894999999999981,
+        "recalcStyleMs": 0.4650000000000487,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },
@@ -1178,18 +1179,18 @@
       "round": 6,
       "order": 1,
       "mount": {
-        "synchronousMountMs": 9.699999928474426,
-        "mountThroughFlushMs": 25.5,
-        "taskMs": 27.082999999999746,
-        "layoutMs": 5.415000000000059,
-        "recalcStyleMs": 6.137000000000004,
+        "synchronousMountMs": 10.100000023841858,
+        "mountThroughFlushMs": 25.899999976158142,
+        "taskMs": 27.53099999999975,
+        "layoutMs": 5.203000000000069,
+        "recalcStyleMs": 6.156999999999968,
         "layoutCount": 1,
         "recalcStyleCount": 1
       },
       "updateThroughSettlement": {
-        "taskMs": 268.84700000000004,
-        "layoutMs": 104.35799999999995,
-        "recalcStyleMs": 54.188999999999986,
+        "taskMs": 278.0990000000001,
+        "layoutMs": 105.25600000000001,
+        "recalcStyleMs": 54.276000000000046,
         "layoutCount": 1208,
         "recalcStyleCount": 1208
       },
@@ -1211,18 +1212,18 @@
       "round": 6,
       "order": 2,
       "mount": {
-        "synchronousMountMs": 1.899999976158142,
-        "mountThroughFlushMs": 5.399999976158142,
-        "taskMs": 3.5840000000000316,
-        "layoutMs": 0.5359999999999809,
-        "recalcStyleMs": 0.41599999999997195,
+        "synchronousMountMs": 1.7000000476837158,
+        "mountThroughFlushMs": 3.5,
+        "taskMs": 3.7730000000002484,
+        "layoutMs": 0.5530000000000257,
+        "recalcStyleMs": 0.42600000000003746,
         "layoutCount": 2,
         "recalcStyleCount": 2
       },
       "updateThroughSettlement": {
-        "taskMs": 30.25499999999992,
-        "layoutMs": 2.922000000000091,
-        "recalcStyleMs": 0.5220000000000224,
+        "taskMs": 31.794999999999796,
+        "layoutMs": 2.994000000000052,
+        "recalcStyleMs": 0.5129999999999857,
         "layoutCount": 8,
         "recalcStyleCount": 8
       },

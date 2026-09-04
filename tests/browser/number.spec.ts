@@ -40,6 +40,19 @@ test("same formatted value does not restart animations", async ({ page }) => {
   expect(stable).toBe(true);
 });
 
+test("fades reel edges with a configurable linear mask", async ({ page }) => {
+  await page.evaluate(() => window.mountNumber({ value: 3257.52, duration: 800 }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  const slot = page.locator(".rn-slot").first();
+  const mask = await slot.evaluate((element) => getComputedStyle(element).maskImage);
+  expect(mask).toContain("linear-gradient");
+  expect(mask).toContain("rgba(0, 0, 0, 0)");
+  await page.locator("#number").evaluate((element) => element.style.setProperty("--rn-edge-fade", "12px"));
+  expect(await slot.evaluate((element) => getComputedStyle(element).maskImage)).toContain("12px");
+  await page.locator("#number").evaluate((element) => element.style.setProperty("--rn-mask", "none"));
+  expect(await slot.evaluate((element) => getComputedStyle(element).maskImage)).toBe("none");
+});
+
 test("native playback does not read geometry each frame", async ({ page }) => {
   await page.evaluate(() => window.mountNumber({ value: 1, duration: 800 }));
   await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
