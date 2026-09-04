@@ -247,3 +247,16 @@ test("the options panel reveals on the shared spring and is inert when closed", 
   await page.evaluate(() => { for (const animation of document.getAnimations()) animation.finish(); });
   await expect(panel).toBeHidden();
 });
+
+test("rapid likes keep one rolling count and one replaced heart pop", async ({ page }) => {
+  await page.goto("/");
+  const tile = page.locator(".likes-app");
+  await tile.scrollIntoViewIfNeeded();
+  await expect(tile.locator(".rn-semantic")).toHaveText("1,204");
+  const like = tile.getByRole("button", { name: "Like" });
+  for (let index = 0; index < 5; index++) await like.click({ delay: 10 });
+  await expect(tile.locator(".rn-semantic")).toHaveText("1,209");
+  expect(await tile.locator(".heart svg").evaluate((element) => element.getAnimations().length)).toBeLessThanOrEqual(1);
+  expect(await tile.locator(".heart svg").evaluate((element) => (element.getAnimations()[0]?.effect as KeyframeEffect | undefined)?.getTiming().easing ?? "linear(")).toMatch(/^linear\(/);
+  await expect.poll(() => tile.locator(".rn-slot").count()).toBe(5);
+});

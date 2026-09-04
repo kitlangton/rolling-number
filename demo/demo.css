@@ -21,7 +21,7 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 button, input, select { color: inherit; }
 button { border: 0; border-radius: 7px; padding: 0 16px; min-height: 40px; background: #17191c; font-size: 13px; }
 button:disabled { opacity: .35; cursor: default; }
-button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 1px solid #4b515a; outline-offset: 2px; }
 ::selection { background: #3a4048; color: white; }
 h1, h2, p { margin: 0; }
 .site-shell { width: min(1040px, 100%); padding: 0 40px; margin-inline: auto; }
@@ -59,7 +59,9 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .toggles { grid-column: span 2; display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
 .toggles label { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 11px; min-height: 30px; }
 .locale-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 12px; }
-.install { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 22px; padding: 0 0 34px; }
+/* Left-anchored in the options column: the command grows to the right only, so the
+   segmented pill never drifts while it slides. */
+.install { display: flex; align-items: center; width: min(720px, 100%); margin-inline: auto; padding: 0 0 34px; }
 .install-command { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 3px; border-radius: 9px; background: #111316; }
 .install-command code { font: 12px var(--mono); color: var(--ink); padding: 0 8px; white-space: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
 .install-command .quiet { flex: none; }
@@ -83,7 +85,6 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .example-actions { display: flex; gap: 18px; }
 .quiet { display: inline-flex; align-items: center; gap: 20px; padding: 0; background: none; color: #b8babd; min-height: 36px; font-size: 12px; }
 .quiet span, .muted { color: #999b9f; }
-.colon { color: #76797f; padding-inline: .05em; }
 .price { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
 .price > span { flex: none; font-size: 12px; color: var(--muted); }
 .seat-control { display: flex; align-items: center; gap: 20px; min-height: 36px; }
@@ -95,14 +96,14 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .site-footer code { margin-right: auto; font-family: var(--mono); color: #b0b2b6; }
 .mini-app { display: flex; flex-direction: column; min-height: 210px; gap: 12px; }
 .shop-app { grid-column: span 5; }
-.focus-app { grid-column: span 3; }
+.likes-app { grid-column: span 3; }
 .team-app { grid-column: span 4; }
 .example-bigint { grid-column: span 5; }
 .upload-app { grid-column: span 7; }
 .weather-app { grid-column: span 3; }
 .invoice-app { grid-column: span 4; }
 .audience-app { grid-column: span 5; }
-.shop-app, .focus-app, .team-app { min-height: 242px; }
+.shop-app, .likes-app, .team-app { min-height: 242px; }
 .mini-app .example-number { font-size: 36px; padding: 0; }
 .mini-app .bigint-number { font-size: clamp(15px, 2vw, 22px); min-height: 0; }
 .mini-label { color: var(--muted); font-size: 11px; line-height: 1.5; letter-spacing: 0; }
@@ -120,10 +121,10 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .product-info button { margin-top: 5px; }
 .shop-app .app-metric { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: auto; }
 .shop-app .example-number { font-size: 32px; }
-.focus-dial { width: 124px; height: 124px; position: relative; align-self: center; }
-.focus-dial > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.focus-dial .timer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; padding: 0; }
-.dial-progress { transition: stroke-dashoffset 500ms ease; }
+.likes-body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; flex: 1; }
+.heart { width: 56px; height: 56px; padding: 0; border-radius: 50%; background: #1c2025; color: #d5d9df; display: grid; place-items: center; }
+.heart svg { width: 24px; height: 24px; fill: currentColor; transform-origin: center; }
+.centered-label { text-align: center; }
 .avatar-stack { display: flex; align-items: center; min-height: 34px; margin-top: 6px; }
 .mini-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #111316; background: #1e2227; color: #8a9099; overflow: hidden; margin-right: -9px; transition: width var(--duration) var(--spring), margin-right var(--duration) var(--spring), border-width var(--duration) var(--spring), transform var(--duration) var(--spring), opacity calc(var(--duration) * .65) var(--spring); }
 .mini-avatar[data-present="false"] { width: 0; margin-right: 0; border-width: 0; transform: scale(.4); opacity: 0; }
@@ -145,7 +146,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .upload-file > div:not(.example-number), .invoice-body > div { display: flex; flex-direction: column; gap: 6px; }
 .upload-file .example-number { margin-left: auto; font-size: 32px; }
 .upload-track { height: 3px; background: #23272d; overflow: hidden; border-radius: 2px; }
-.upload-track > span { display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: left; transition: transform 350ms ease-out; }
+.upload-track > span { display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: left; transition: transform var(--duration) var(--spring); }
 .weather-summary { margin-top: 8px; }
 .weather-graphic { position: absolute; width: 54px; height: 50px; top: 12px; right: 14px; }
 .weather-controls { display: flex; align-items: center; }
@@ -158,10 +159,11 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .currency-switch { display: flex; padding: 3px; align-self: flex-start; border-radius: 9px; background: #0d0f12; }
 .currency-switch .segmented button, .currency-switch .segmented-highlight span { min-height: 28px; padding: 0 8px; font: 9px var(--mono); }
 .activity-graphic { width: 100%; height: 46px; }
-.activity-graphic rect { transform-box: fill-box; transform-origin: center bottom; transition: transform 500ms ease-out; }
+.activity-graphic rect { transform-box: fill-box; transform-origin: center bottom; transition: transform var(--duration) var(--spring); }
+.activity-graphic rect:nth-child(3) { transition-delay: 20ms; } .activity-graphic rect:nth-child(4) { transition-delay: 40ms; } .activity-graphic rect:nth-child(5) { transition-delay: 60ms; } .activity-graphic rect:nth-child(6) { transition-delay: 80ms; } .activity-graphic rect:nth-child(7) { transition-delay: 100ms; } .activity-graphic rect:nth-child(8) { transition-delay: 120ms; }
 .activity-graphic[data-animated="false"] rect { transition: none; }
-[data-reduced="true"] :is(.dial-progress, .upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members) { transition: none; }
-@media (prefers-reduced-motion: reduce) { .dial-progress, .upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members { transition: none; } }
+[data-reduced="true"] :is(.upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members) { transition: none; }
+@media (prefers-reduced-motion: reduce) { .upload-track > span, .activity-graphic rect, .mini-avatar, .extra-members { transition: none; } }
 @media (hover: hover) {
   button:not(:disabled):hover { background: #25282d; }
   .quiet:hover { background: none !important; color: var(--ink); }
@@ -170,7 +172,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 @media (min-width: 641px) and (max-width: 900px) {
   .examples { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .shop-app, .example-bigint { grid-column: span 4; }
-  .focus-app, .team-app { grid-column: span 2; }
+  .likes-app, .team-app { grid-column: span 2; }
   .upload-app, .weather-app, .invoice-app, .audience-app { grid-column: span 3; }
 }
 @media (max-width: 640px) {

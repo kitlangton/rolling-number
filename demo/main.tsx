@@ -132,7 +132,6 @@ function Install({ duration, reduced }: { duration: number; reduced: boolean }) 
 }
 
 const currency: Intl.NumberFormatOptions = { style: "currency", currency: "USD", maximumFractionDigits: 0 };
-const clock: Intl.NumberFormatOptions = { minimumIntegerDigits: 2, useGrouping: false };
 const milliseconds: Intl.NumberFormatOptions = { style: "unit", unit: "millisecond", unitDisplay: "short", maximumFractionDigits: 0 };
 const percent: Intl.NumberFormatOptions = { style: "percent", maximumFractionDigits: 0 };
 const temperature: Intl.NumberFormatOptions = { style: "unit", unit: "celsius", signDisplay: "exceptZero", minimumFractionDigits: 1, maximumFractionDigits: 1 };
@@ -141,8 +140,8 @@ const localeOptions = [["en-US", "English"], ["de-DE", "Deutsch"], ["fr-FR", "Fr
 
 const Examples = memo(function Examples({ locale, duration, reduced, motionBlur }: { locale: string; duration: number; reduced: boolean; motionBlur: boolean }) {
   const [revenue, setRevenue] = useState({ value: 8240, animated: true });
-  const [seconds, setSeconds] = useState({ value: 90, animated: true });
-  const [running, setRunning] = useState(false);
+  const [likes, setLikes] = useState({ value: 1204, animated: true });
+  const heart = useRef<SVGSVGElement>(null);
   const [seats, setSeats] = useState({ value: 8, animated: true });
   const [large, setLarge] = useState({ value: 9007199254740993n, animated: true });
   const [progress, setProgress] = useState({ value: .64, animated: true });
@@ -198,12 +197,6 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
     media.addEventListener("change", preference);
     return () => { observer.disconnect(); track.cancel(); media.removeEventListener("change", preference); };
   }, [duration, reduced]);
-  useEffect(() => {
-    if (!running) return;
-    const timer = setInterval(() => setSeconds((current) => ({ value: Math.max(0, current.value - 1), animated: true })), 1000);
-    return () => clearInterval(timer);
-  }, [running]);
-  useEffect(() => { if (seconds.value === 0) setRunning(false); }, [seconds.value]);
   const shared = { locales: locale, duration, motionBlur };
   return (
     <section id="examples" className="examples" aria-label="Examples" data-reduced={reduced} style={{ "--duration": `${duration}ms`, "--spring": springEasing(duration) } as CSSProperties}>
@@ -215,13 +208,24 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
         </div>
         <div className="app-metric"><span className="mini-label">Revenue</span><div ref={revenueNumber} className="example-number revenue-number"><RollingNumber {...shared} value={revenue.value} format={currency} animated={!reduced && revenue.animated} /></div></div>
       </article>
-      <article className="example mini-app focus-app">
-        <h2>Focus</h2>
-        <div className="focus-dial">
-          <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="53" fill="none" stroke="#1f2227" strokeWidth="1.5" /><circle className="dial-progress" cx="60" cy="60" r="53" fill="none" stroke="#d5d9df" strokeWidth="1.5" pathLength="1" strokeDasharray="1" strokeDashoffset={1 - seconds.value / 90} transform="rotate(-90 60 60)" /></svg>
-          <div className="example-number timer" role="timer" aria-live="off"><span className="sr-only">{seconds.value} seconds remaining</span><span aria-hidden="true"><RollingNumber {...shared} value={Math.floor(seconds.value / 60)} format={clock} animated={!reduced && seconds.animated} /><span className="colon">:</span><RollingNumber {...shared} value={seconds.value % 60} format={clock} animated={!reduced && seconds.animated} /></span></div>
+      <article className="example mini-app likes-app">
+        <h2>Likes</h2>
+        <div className="likes-body">
+          <button className="heart" aria-label="Like" onClick={(event) => {
+            const animated = !reduced && event.detail > 0;
+            // Replace, never stack: a fast tap restarts the pop from its current scale.
+            if (animated && heart.current) {
+              const current = new DOMMatrix(getComputedStyle(heart.current).transform).a || 1;
+              for (const running of heart.current.getAnimations()) running.cancel();
+              heart.current.animate([{ transform: `scale(${Math.min(current, .72)})` }, { transform: "scale(1)" }], { duration, easing: springEasing(duration) });
+            }
+            setLikes((current) => ({ value: current.value + 1, animated }));
+          }}>
+            <svg ref={heart} viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7.5 2.5c0 5.4-7.5 10-7.5 10Z" /></svg>
+          </button>
+          <div className="example-number"><RollingNumber {...shared} value={likes.value} animated={!reduced && likes.animated} /></div>
         </div>
-        <div className="example-actions centered"><button className="mini-button" aria-label={running ? "Pause timer" : "Start timer"} disabled={seconds.value === 0} onClick={() => setRunning((current) => !current)}>{running ? "Pause" : "Start"}</button><button className="quiet muted" aria-label="Reset timer" onClick={(event) => { setRunning(false); setSeconds({ value: 90, animated: event.detail > 0 }); }}>Reset</button></div>
+        <span className="mini-label centered-label">Tap quickly. Digits keep rolling.</span>
       </article>
       <article className="example mini-app team-app">
         <h2>Team plan</h2>
