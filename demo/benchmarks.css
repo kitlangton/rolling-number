@@ -1,0 +1,17 @@
+.compare-shell { padding-bottom: 60px; }
+.compare-shell h2 { font-size: 28px; letter-spacing: -.04em; font-weight: 500; }
+.compare-shell h3 { margin-top: 36px; font-weight: 500; }
+.compare-note { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 16px 0; max-width: 850px; }
+.compare-controls { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; margin-top: 24px; }
+.compare-controls label { display: grid; gap: 8px; font-size: 12px; color: var(--muted); }
+.compare-controls select { width: auto; }
+.compare-status { min-height: 40px; padding-block: 16px; font-size: 13px; }
+.compare-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); min-height: 80px; }
+.compare-cell { height: 36px; display: flex; align-items: center; justify-content: center; font: 20px/1 Arial, sans-serif; font-variant-numeric: tabular-nums; }
+.compare-table { overflow-x: auto; }
+.compare-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare-table th, .compare-table td { padding: 16px 12px 16px 0; text-align: left; border-bottom: 1px solid var(--line); }
+.compare-table th { color: var(--muted); font-weight: 400; }
+.compare-table small { display: block; color: var(--muted); margin-top: 6px; }
+.compare-shell details { margin-top: 28px; font-size: 13px; }
+@media(max-width: 640px) { .compare-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }

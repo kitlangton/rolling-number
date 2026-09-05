@@ -42,7 +42,6 @@ export function collapsePositions(keys: readonly string[], positions: ReadonlyMa
     if (!position) { pending.push(key); continue; }
     for (const missing of pending) result.set(missing, position.x);
     pending.length = 0;
-    result.set(key, position.x);
     end = position.x + position.width;
   }
   for (const missing of pending) result.set(missing, end);

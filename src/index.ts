@@ -1,10 +1,10 @@
 import { direction, model, textModel, type FormatOptions, type Model, type TextOptions, type Token, type Value } from "./format.js";
-import { delayed, entrance, face, rollTarget, spring } from "./motion.js";
+import { delayed, directRoll, entrance, face, rollTarget, spring } from "./motion.js";
 import { collapsePositions, entryRanks, type Stagger } from "./layout.js";
 import { Scheduler, type Participant } from "./scheduler.js";
 import { Track } from "./track.js";
 import { ReelBlur } from "./blur.js";
-import { buildFlaps, flapCadence, flapMotion } from "./flap.js";
+import { buildFlaps, clearFlapBlur, flapCadence, flapMotion } from "./flap.js";
 
 export { formatValue, FLAP_CHARSET } from "./format.js";
 export type { Value, Locales } from "./format.js";
@@ -13,8 +13,10 @@ export type { Stagger } from "./layout.js";
 export interface MotionOptions {
   /** Duration in milliseconds. Zero disables animation. Default: 500. */
   duration?: number | undefined;
+  /** Milliseconds per hinged card (1–10000). Default: cadence derived from duration. Flap mode only. */
+  flipDuration?: number | undefined;
   animated?: boolean | undefined;
-  /** Optional velocity-driven vertical blur for prominent counters. Default: false. */
+  /** Opt-in vertical motion blur for reels and turning split-flap halves. Default: false. */
   motionBlur?: boolean | undefined;
   /** Auto follows displayed magnitude, including for negative values. */
   direction?: "auto" | "up" | "down" | undefined;
@@ -25,7 +27,7 @@ export interface MotionOptions {
   /**
    * "roll" (default) glides a wheel of faces through the slot. "flap" hinges one
    * card per face at the midline like a split-flap board; new glyphs flap in from
-   * the wheel's blank face and motion blur does not apply.
+   * the wheel's blank face. Opt-in motion blur subtly softens the turning halves.
    */
   mode?: "roll" | "flap" | undefined;
 }
@@ -69,10 +71,14 @@ const mounted = new WeakSet<HTMLElement>();
 const translate = (x: number): string => `translateX(${x}px)`;
 const scale = (value: number): string => `scale(${value})`;
 const opacity = (value: number): string => String(Math.max(0, Math.min(1, value)));
+const directText = (options: MotionOptions): boolean => "transition" in options && options.transition === "direct";
 
 function validate(options: MotionOptions): void {
   if (options.duration !== undefined && (!Number.isFinite(options.duration) || options.duration < 0 || options.duration > 10_000)) {
     throw new RangeError("duration must be between 0 and 10000 milliseconds");
+  }
+  if (options.flipDuration !== undefined && (!Number.isFinite(options.flipDuration) || options.flipDuration < 1 || options.flipDuration > 10_000)) {
+    throw new RangeError("flipDuration must be between 1 and 10000 milliseconds");
   }
 }
 
@@ -95,6 +101,8 @@ const numberSource: Source<RollingNumberOptions> = {
 const textSource: Source<RollingTextOptions> = {
   validate(options) {
     if (typeof options.text !== "string") throw new TypeError("text must be a string");
+    if (options.transition !== undefined && options.transition !== "direct" && options.transition !== "wheel") throw new RangeError("transition must be direct or wheel");
+    if (options.transition === "direct" && options.mode === "flap") throw new RangeError("Direct text transitions require roll mode");
     validate(options);
   },
   model: (options) => textModel(options.text, options),
@@ -166,12 +174,14 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     if (this.options.motionBlur && !options.motionBlur) {
       this.blur?.destroy();
       this.blur = undefined;
+      clearFlapBlur(this.visual);
     }
+    if (directText(this.options) !== directText(options)) this.reset = true;
     this.options = options;
     // Rollable formats share digit-place identities; symbols enter/exit by token key.
     this.target = next;
     if (!this.canAnimate()) { this.finish(); return; }
-    if (unchanged && this.enhanced) return;
+    if (unchanged && this.enhanced && !this.reset) return;
     this.semantic.textContent = next.text;
     this.prepare();
   }
@@ -231,7 +241,8 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     const scaleX = bounds.width / width;
     const scaleY = bounds.height / height;
     // Per-counter blur strength, read here so playback never touches computed style.
-    this.blurIntensity = Math.max(0, parseFloat(style.getPropertyValue("--rn-blur")) || 1);
+    const blur = parseFloat(style.getPropertyValue("--rn-blur"));
+    this.blurIntensity = Number.isFinite(blur) ? Math.max(0, blur) : 1;
     this.sizes.set(this.measurement, { width, height });
     const geometry = new Map<string, Geometry>();
     for (const [key, node] of this.measures) {
@@ -367,29 +378,40 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
         // A card mid-flip snaps to whichever face is nearer; the sequence resumes from there.
         const from = Math.round(current.position);
         const to = rollTarget(from, token.index, trend, token.wheel.length);
-        const cadence = flapCadence(duration);
+        const cadence = this.options.flipDuration ?? flapCadence(duration);
         this.blur?.remove(column.reel);
-        buildFlaps(column.reel, token.wheel, from, to, size.height, cadence, delay);
+        let blur: string | undefined;
+        if (this.options.motionBlur && this.blurIntensity > 0) {
+          this.blur ??= new ReelBlur(this.host);
+          this.blur.intensity = this.blurIntensity;
+          blur = this.blur.filterUrl(size.height);
+        }
+        buildFlaps(column.reel, token.wheel, from, to, size.height, cadence, delay, blur);
         column.token = token;
         const active = column;
         column.roll.play(delayed(flapMotion(from, to, cadence), delay), () => "translateY(0px)", () => this.rest(active));
       } else if (!fresh && !resized && changed && token.index !== undefined && token.wheel && column.token.index !== undefined && duration) {
         const current = column.roll.read();
-        const target = rollTarget(current.position, token.index, trend, token.wheel.length);
-        const motion = sweep ? delayed(spring(current.position, target, current.velocity, duration), delay) : spring(current.position, target, current.velocity, duration);
+        const direct = directText(this.options) ? directRoll(column.token.wheel!, current.position, token.text) : undefined;
+        const from = direct?.from ?? current.position;
+        const target = direct?.target ?? rollTarget(current.position, token.index, trend, token.wheel.length);
+        const wheel = direct?.wheel ?? token.wheel;
+        // Keep a direct reveal inside its retained pair rather than wrapping through old letters.
+        const velocity = direct ? Math.min(Math.max(0, current.velocity), (target - from) * 10_000 / duration) : current.velocity;
+        const motion = sweep ? delayed(spring(from, target, velocity, duration), delay) : spring(from, target, velocity, duration);
         const start = Math.floor(Math.min(...motion.points));
         const end = Math.ceil(Math.max(...motion.points));
         // A new roll takes over the blend; entry completion must not cancel it.
         if (column.entry) column.entry.blurred = false;
         const blur = this.blur?.remove(column.reel) ?? 0;
         column.reel.replaceChildren();
-        for (let position = start; position <= end; position++) this.face(column, face(token.wheel, position));
+        for (let position = start; position <= end; position++) this.face(column, face(wheel, position));
         if (this.options.motionBlur) {
           this.blur ??= new ReelBlur(this.host);
           this.blur.intensity = this.blurIntensity;
           this.blur.apply(column.reel, motion, size.height, blur);
         }
-        column.token = token;
+        column.token = direct ? { ...token, wheel, index: target } : token;
         const active = column;
         column.roll.play(motion, (position) => `translateY(${(start - position) * size.height}px)`, () => this.rest(active));
       } else if (fresh || resized || changed || !animate) {

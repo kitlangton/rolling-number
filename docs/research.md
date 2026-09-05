@@ -200,17 +200,163 @@ numbers.
 ## Split-flap mode
 
 The first board demo glided letters through a reel, which reads as an odometer, not
-a Solari board. `mode: "flap"` models the mechanism instead: each step is one card
-hinged at the midline, built from two absolutely positioned half-face copies (the
-top half of the current face falls 0 → -90°, then the bottom half of the next face
-lands 90° → 0 with a small settle), with brightness falling off as a card turns
-away. Paint order is DOM order: landed bottoms stack upward, waiting tops stack
-downward, so the current face always paints last without 3D sorting. The slot's
-existing vertical clip acts as the bezel. A reference implementation
-(daformat/react-split-flap-display) renders the entire drum for every slot as
-permanent 3D flaps; here only the cards a change travels through exist, bounded by
-one revolution, and they are removed on settle. Interruption samples the logical
+a Solari board. `mode: "flap"` models the mechanism instead: the current top falls
+0 → -90°, then the next bottom lands 90° → 0 with a small settle. Brightness falls
+off as a half-card turns away. Four clipped half-card planes now reuse that hinge:
+current bottom and next top behind the moving next bottom and current top.
+The slot acts as the bezel. Local `perspective(5em)` transforms avoid a shared
+parent 3D scene while preserving the projection about the midline.
+
+The first hinged implementation created two animations and two elements for every
+traversed card. The current planes contain text strips that advance discretely,
+with one discrete `--rn-flap-step` animation shared by all four strips and two
+hinge animations. Without blur, normal glyphs need nine temporary elements and
+three effects per moving slot, independent of travel. Text/keyframe data still scales with the
+bounded travel. Glyphs containing line breaks use explicit row elements to keep
+their positions. The step property does not require global registration: local
+`steps(1, end)` holds work with its unregistered discrete animation type too.
+Everything is removed on settlement. Interruption still samples the logical
 wheel position from a linear motion at the card cadence and resumes from the
 nearer face. Explicit `stagger` orders also sweep across in-place changes, since a
 board row runs along its length; the default outward cascade still applies only to
 new places so numbers keep their existing feel.
+
+### Landing correctness and synchronized step boundaries
+
+The initial landing easing accidentally ran 1 → 0 against 90° → 0° keyframes.
+Computed transforms confirmed the lower halves started flat and ended edge-on.
+The corrected easing runs 0 → 1, with a small overshoot. A browser pixel test now
+holds sequence cleanup back and verifies that the landed lower half already
+matches the final glyph; keyframe declarations alone did not catch this bug.
+
+Covered-card visibility was an intermediate optimization; fixed planes replace
+its visibility windows and display-support probe. Edge-on resting transforms hide
+the inactive hinge without overriding an ancestor's visibility.
+
+The index and both hinge timelines use identical normalized offsets for every
+card boundary. Repeated hinge iterations plus a separate global `steps(n, end)`
+index could round to different sides of an exact boundary in different engines,
+showing a future face for that sample. Explicit aligned keyframes with local
+`steps(1, end)` holds fix this. `flapFrames` keeps that math pure; browser tests
+walk every face and test nonzero stagger holds with and without a registration API.
+No JavaScript frame loop or playback layout reads are needed. This does not imply
+compositor-only work: the discrete index also causes browser style/paint work.
+See [the board benchmark](../perf/flap-board.md) for measured gains and dead ends.
+
+Opt-in flap blur now uses the same vertical-only SVG kernel as reel blur, rather
+than an isotropic CSS blur. Only the two turning halves receive blurred glyph
+copies; complementary native opacity effects blend sharp/smeared text with the
+hinge's progress and leave the landed face sharp. The blur source is clipped to
+one glyph before filtering, not the whole long strip. Kernel deviation is 3.5% of
+glyph height times `--rn-blur`, with zero horizontal deviation. One filter is cached
+per renderer and released on blur disable, reduced motion, or destruction.
+
+Blur adds four elements and four opacity effects per active drum, plus the shared
+filter definition. This is an explicit visual-quality cost, not an optimization.
+The board also has a fixed hinge shadow, including at rest.
+Half-card surfaces default to opaque `Canvas`, with `--rn-flap-background` as an
+override. Transparent surfaces expose the waiting glyph through the current
+letter's unpainted areas. Default light/dark pixel tests cover this separately
+from the board's explicitly opaque tile styling.
+
+### Demo audio follows native drum timing
+
+`demo/board-sound.ts` generates short noise/resonance buffers through Web Audio.
+A mutation observer discovers replaced reels, then one 25 ms timer reads each
+drum's logical animation time—not geometry. It groups half-card crossings into
+at most two audio sources per tick, caps simultaneous voices at eight, and scales
+gain sublinearly with the number of impacts. Missed impacts older than 45 ms are
+dropped rather than replayed after a stall.
+
+Audio starts only from the Sound button. Muting clears the observer, timer, drum
+references, and active sources; hiding the page or reducing motion also mutes it.
+Unmount closes the audio context. The audio code stays out of the library package.
+
+### Board fields keep their physical slots
+
+The demo now presents a fictional pull-request queue, never live GitHub data.
+PR numbers use four slots; comment counts use two with a blank tens card; titles
+reserve fifteen slots; statuses reserve nine. The teaser shares the title list
+and capacity and cycles every five seconds, with its own timer/state. Color is
+per status field: review/changes amber, approvals/merging green, CI failures red.
+
+The clock opts into `flipDuration: 220` instead of the default 110 ms cadence at
+the board's duration. Each tick therefore spends enough time visibly folded,
+without slowing the queue. Minute/second tens drums contain only 0–5, and all text
+drums advance forward, so `59 → 00` takes one flip per seconds slot. The clock
+also uses `--rn-blur: 1.6` for a more visible vertical smear. The shared `flipDuration`
+option accepts 1–10000 ms; omitting it preserves the previous cadence everywhere.
+
+The demo applies blur selectively by default: the clock and individual review/CI
+updates get vertical smear, while full-queue shifts stay sharp. Update intent comes
+from React state, not DOM scans during playback. A Full-board blur checkbox retains
+the heavier all-card treatment as an explicit choice. The PR benchmark compares
+those policies separately; its frozen clock does not measure continuous clock ticks.
+
+## Direct-manipulation example
+
+The Scrub range input owns its state in a separate React component. Previously
+every input rerendered the whole examples gallery, invoking formatters for unchanged
+revenue, likes, invoice, and other counters. Its spring still retains velocity on
+interruption, but the demo-specific duration is capped at 160 ms rather than 350 ms
+to keep the response close to the pointer. Keyboard and reduced-motion input stay
+static. See [the Scrub workload](../perf/scrub.md) for measured costs and limits.
+
+Scrub uses a stronger `--rn-blur: 2.4` (previously 1.4) to make fast motion more
+visible. This only increases the existing kernel's vertical deviation; the
+speed-driven opacity envelope, sharp punctuation/unit suffix, 160 ms timing,
+and cleanup are unchanged. No new layers or effects are added.
+
+Native pointer testing later exposed startup starvation that the synthetic rAF
+replay missed. Pending WAAPI effects could be canceled at time zero on successive
+inputs. `animateNow` anchors running effects to `ownerDocument.timeline.currentTime`
+so the next frame advances them before retargeting; roll, blur, and flap effects
+share that anchor. Deliberately paused effects are left paused. This fixes motion
+progress, not frame throughput: repeated native-pointer runs removed zero-time
+replacements while rAF p95 was essentially unchanged.
+
+## Standalone GPU flap experiment (in progress)
+
+The PR board is no longer linked from the Rolling Number showcase and is excluded
+from its default site build. `FLAP_BOARD=1 bun run build:demo` includes the standalone
+page for local experimentation. Its WebGL2 renderer lives entirely under `demo/`:
+one glyph atlas with cached vertical-smear channels, one instanced slot buffer,
+and native-frame drawing while motion is active. Semantic HTML remains the layout
+and fallback. The DOM option is retained for comparison. Initial Chromium paint
+has been inspected, but cross-browser proofs and a matched GPU benchmark are
+pending; do not make performance claims for this backend yet.
+
+## Selectable values and direct text
+
+The intact semantic value is now a transparent, selectable overlay with native
+selection colors. Visual reels remain `user-select: none`. Framework adapters
+select their existing semantic text and exclude the decorative mount, so a drag
+copies one formatted target—not the alphabet strip or a duplicate. The overlay
+does not require settlement polling or new listeners. While animating, selection
+refers to the latest target rather than an intermediate wheel face.
+
+`RollingText transition="direct"` gives every grapheme a stable position without
+an alphabet wheel. On retarget, `directRoll` retains the currently visible pair,
+rebases the fractional position, and appends only the newest target if necessary.
+At most three glyphs remain in a direct strip. Forward inherited speed is bounded
+to avoid overshooting into an old letter. New positions use the existing entrance
+and stagger. Upper/lowercase and emoji are supported; bidi text stays static.
+This is opt-in, preserving existing `transition="wheel"` behavior and charsets.
+Direct transitions use roll mode, not flap mode.
+
+## Demo interactions and comparisons
+
+The seat label now uses the same RollingNumber adapter as its price. The isolated
+Likes example charges for 900 ms, shakes one bounded native effect, and awards
+200–500 fictional likes on release. Pointer cancellation, blur, Escape, visibility
+changes, and cleanup cancel pending charge work. Keyboard input and reduced motion
+retain functionality without shake or rolling.
+
+`/benchmarks.html` is a noindex, unlisted React comparison page. It runs one
+renderer at a time with no blur, fixed input sequence, seven rounds, one warmup,
+and rotating/reversed order. It includes NumberFlow React 0.6.2, React Animated
+Numbers 1.1.1, and React CountUp 6.5.3 through their public APIs. CountUp interpolates
+values rather than rolling glyphs and is explicitly labeled non-equivalent.
+Its wall-time/rAF/element metrics are not CDP task time or presented FPS. Rendering
+errors, cancellation, and hidden pages invalidate the active sample. It does not
+claim automated pixel equivalence; visual correctness still needs inspection.

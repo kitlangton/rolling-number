@@ -1,0 +1,24 @@
+name: Bug report
+description: Report incorrect formatting, motion, layout, or integration behavior.
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link to a runnable example or include the smallest code sample. Remove private data and credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: For visual issues, a screenshot or short recording helps.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Package version, React/Solid/vanilla, browser and version, OS, locale/format options, and reduced-motion setting.
+    validations:
+      required: true

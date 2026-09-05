@@ -20,13 +20,16 @@
 .rn-react[data-rn-hydrated] > .rn-semantic,
 .rn-solid[data-rn-hydrated] > .rn-semantic {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  inset: 0;
   padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  margin: 0;
+  color: transparent;
+  z-index: 1;
+}
+/* A single native text layer is selectable; decorative reels never enter a copy. */
+.rn-value::selection, .rn-semantic::selection {
+  color: HighlightText;
+  background: Highlight;
 }
 .rn-root[data-rn-ready] > .rn-visual {
   display: block;
@@ -70,10 +73,11 @@
 }
 .rn-enter, .rn-reel, .rn-face { display: block; }
 .rn-reel { position: relative; }
-/* Split-flap cards: absolute half-face copies hinged at the slot's midline. */
-.rn-slot[data-rn-flap] .rn-reel { perspective: 5em; }
+/* Each turning half carries its own perspective transform, not a shared 3D scene. */
 /* The slot acts as the bezel: the card stays vertically framed while it hinges. */
 .rn-slot[data-rn-flap] { -webkit-mask-image: none; mask-image: none; }
+/* Hinged faces must occlude the cards behind them, including with default CSS. */
+:where(.rn-slot[data-rn-flap]) .rn-face { background: var(--rn-flap-background, Canvas); }
 .rn-flap { position: absolute; inset: 0; transform-origin: 50% 50%; backface-visibility: hidden; }
 /* --rn-crease is the visible hinge gap between the two halves. */
 .rn-flap-top { clip-path: inset(0 0 calc(50% + var(--rn-crease, 1px) / 2) 0); }
@@ -83,6 +87,7 @@
 .rn-blur-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .rn-face { text-align: center; white-space: pre; }
 .rn-react, .rn-solid { display: inline-block; position: relative; white-space: pre; unicode-bidi: isolate; }
-.rn-mount { display: inline-block; }
+.rn-mount { display: inline-block; user-select: none; }
+.rn-mount .rn-value { pointer-events: none; }
 .rn-react:not([data-rn-hydrated]) > .rn-mount,
 .rn-solid:not([data-rn-hydrated]) > .rn-mount { display: none; }

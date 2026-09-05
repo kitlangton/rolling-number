@@ -19,7 +19,6 @@ Install with \`${installCommands.bun}\` or \`${installCommands.npm}\`. Import \`
 ## Docs
 
 - [README](${siteUrl}/index.md): install, DOM, React and Solid APIs, RollingText split-flap text, formatting, layout, motion blur and accessibility notes
-- [Departure board demo](${siteUrl}/board.html): RollingText with mode="flap" and stagger="start"
 - [Source repository](${repository}): TypeScript source, tests and benchmarks
 - [npm package](https://www.npmjs.com/package/${packageName})
 
@@ -27,7 +26,7 @@ Install with \`${installCommands.bun}\` or \`${installCommands.npm}\`. Import \`
 
 - [Design context](${repository}/blob/main/CONTEXT.md): vocabulary for digit places, symbol roles and transitions
 - [Research notes](${repository}/blob/main/docs/research.md): renderer trade-offs and reference findings
-- [Benchmark results](${repository}/blob/main/perf/results.md): qualified NumberFlow comparison; run "bun run bench" locally
+- [Benchmark results](${repository}/blob/main/perf/current.md): qualified DOM comparison with NumberFlow 0.6.2; run "bun run bench" locally
 `;
 
 const headers = `/llms.txt

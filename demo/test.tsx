@@ -1,8 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot, hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
-import { createRollingNumber, type RollingNumberController, type RollingNumberOptions } from "../src/index";
-import { RollingNumber } from "../src/react";
+import { createRollingNumber, createRollingText, type RollingNumberController, type RollingNumberOptions, type RollingTextController, type RollingTextOptions } from "../src/index";
+import { RollingNumber, RollingText } from "../src/react";
 import { Track } from "../src/track";
 import { sample, spring } from "../src/motion";
 import "../src/styles.css";
@@ -10,26 +10,32 @@ import "../src/styles.css";
 declare global {
   interface Window {
     testNumber: RollingNumberController;
+    testText: RollingTextController;
     mountNumber(options: RollingNumberOptions): void;
+    mountText(options: RollingTextOptions): void;
     reactNumber(options: RollingNumberOptions, hydrate?: boolean): void;
     unmountReact(): void;
-    mountRefProbe(): void;
+    mountRefProbe(kind?: "number" | "text", mode?: "callback" | "object", updated?: boolean): void;
     refProbe: { mounted: number; cleaned: number; nullCalls: number };
+    refObject: { current: HTMLSpanElement | null };
     opacityProbe(): { expected: number; actual: number };
     ready: boolean;
   }
 }
 const fixture = document.getElementById("fixture")!;
 let react: Root | undefined;
-window.mountNumber = (options) => {
+function mount() {
   window.testNumber?.destroy();
+  window.testText?.destroy();
   fixture.replaceChildren();
   const span = document.createElement("span");
   span.id = "number";
   span.style.cssText = "font: 64px/1.2 Georgia,serif; font-variant-numeric:tabular-nums";
   fixture.append(span);
-  window.testNumber = createRollingNumber(span, { pauseOffscreen: false, ...options });
-};
+  return span;
+}
+window.mountNumber = (options) => { window.testNumber = createRollingNumber(mount(), { pauseOffscreen: false, ...options }); };
+window.mountText = (options) => { window.testText = createRollingText(mount(), { pauseOffscreen: false, ...options }); };
 window.reactNumber = (options, hydrate = false) => {
   const element = <StrictMode><RollingNumber {...options} id="react-number" style={{ fontSize: 64 }} /></StrictMode>;
   if (!react) {
@@ -42,13 +48,15 @@ window.reactNumber = (options, hydrate = false) => {
 };
 window.unmountReact = () => { react?.unmount(); react = undefined; };
 window.refProbe = { mounted: 0, cleaned: 0, nullCalls: 0 };
-window.mountRefProbe = () => {
-  react = createRoot(fixture);
-  react.render(<StrictMode><RollingNumber value={1} ref={(node) => {
+window.refObject = { current: null };
+window.mountRefProbe = (kind = "number", mode = "callback", updated = false) => {
+  react ??= createRoot(fixture);
+  const ref = mode === "object" ? window.refObject : (node: HTMLSpanElement | null) => {
     if (!node) { window.refProbe.nullCalls++; return; }
     window.refProbe.mounted++;
     return () => { window.refProbe.cleaned++; };
-  }} /></StrictMode>);
+  };
+  react.render(<StrictMode>{kind === "text" ? <RollingText text={updated ? "B" : "A"} duration={1000} ref={ref} /> : <RollingNumber value={updated ? 8 : 1} duration={1000} ref={ref} />}</StrictMode>);
 };
 window.opacityProbe = () => {
   const element = document.createElement("span");

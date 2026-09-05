@@ -31,6 +31,7 @@ const exact = formatValue(900719925474099312345n, { locales: 'en-US', format: { 
 if (exact !== '900719925474099312345') throw new Error('Packed formatter failed');
 if (!renderToString(<RollingNumber value={42} locales="en-US" stagger="start" />).includes('42')) throw new Error('Packed SSR failed');
 if (!renderToString(<RollingText text="EDINBURGH" charset={FLAP_CHARSET} />).includes('EDINBURGH')) throw new Error('Packed text SSR failed');
+if (!renderToString(<RollingText text="Hello" transition="direct" />).includes('Hello')) throw new Error('Packed direct-text SSR failed');
 const order: Stagger = 'end';
 const acceptsDOM = (element: HTMLElement) => [createRollingNumber(element, { value: 1, stagger: order }), createRollingText(element, { text: 'A' })];
 console.log('Clean consumer imports, bigint formatting and SSR passed');
@@ -50,6 +51,7 @@ import { RollingNumber, RollingText } from '@kitlangton/rolling-number/solid';
 const html = renderToString(() => createComponent(RollingNumber, { value: 9007199254740993n, locales: 'en-US', class: 'balance' }));
 if (!html.includes('9,007,199,254,740,993') || !html.includes('rn-solid balance')) throw new Error('Packed Solid SSR failed');
 if (!renderToString(() => createComponent(RollingText, { text: 'PARIS', stagger: 'start' })).includes('PARIS')) throw new Error('Packed Solid text SSR failed');
+if (!renderToString(() => createComponent(RollingText, { text: 'Hello', transition: 'direct' })).includes('Hello')) throw new Error('Packed Solid direct-text SSR failed');
 if (html.includes('data-rn-hydrated') || html.includes('rn-reel')) throw new Error('Solid SSR mounted the DOM core');
 console.log('Clean Solid consumer imports and SSR passed');
 `);

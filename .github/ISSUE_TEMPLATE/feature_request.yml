@@ -1,0 +1,20 @@
+name: Feature request
+description: Describe a use case the current API cannot express.
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What are you building, and where does the current API fall short?
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Proposed consumer example
+      description: Show how you would like to use the feature. An exact API is not required.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing options, workarounds, or tradeoffs you have considered.

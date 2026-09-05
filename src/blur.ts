@@ -19,7 +19,8 @@ export class ReelBlur {
 
   constructor(private host: HTMLElement) {}
 
-  private filterUrl(height: number): string {
+  /** Shared vertical-only kernel for reel copies and hinged half-card copies. */
+  filterUrl(height: number): string {
     if (!this.filter) {
       const doc = this.host.ownerDocument;
       const svg = doc.createElementNS(svgNamespace, "svg");

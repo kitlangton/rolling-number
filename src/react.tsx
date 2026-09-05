@@ -8,7 +8,7 @@ export type RollingNumberProps = RollingNumberOptions & SpanProps;
 export type RollingTextProps = RollingTextOptions & SpanProps;
 const useCommitEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-const motionKeys = ["duration", "animated", "motionBlur", "direction", "pauseOffscreen", "stagger", "mode"] as const satisfies readonly (keyof MotionOptions)[];
+const motionKeys = ["duration", "flipDuration", "animated", "motionBlur", "direction", "pauseOffscreen", "stagger", "mode"] as const satisfies readonly (keyof MotionOptions)[];
 
 /** Splits engine options from span attributes without enumerating every option twice. */
 function partition<Options extends MotionOptions>(props: Options & SpanProps, own: readonly (keyof Options)[]): [Options, SpanProps] {
@@ -59,4 +59,4 @@ function rolling<Options extends MotionOptions>(
 export const RollingNumber = rolling<RollingNumberOptions>("RollingNumber", ["value", "locales", "format"], createRollingNumber, (options) => formatValue(options.value, options));
 
 /** Split-flap style text. Characters in `charset` roll; others crossfade in place. */
-export const RollingText = rolling<RollingTextOptions>("RollingText", ["text", "charset"], createRollingText, (options) => options.text);
+export const RollingText = rolling<RollingTextOptions>("RollingText", ["text", "charset", "transition"], createRollingText, (options) => options.text);

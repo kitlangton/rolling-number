@@ -6,7 +6,7 @@ test("keeps the dark showcase and functional examples without marketing sections
   expect(await page.locator("html").evaluate((element) => getComputedStyle(element).colorScheme)).toBe("dark");
   await expect(page.locator(".hero, .eyebrow, .research-section, .section-heading")).toHaveCount(0);
   const examples = page.locator("#examples article");
-  await expect(examples).toHaveCount(10);
+  await expect(examples).toHaveCount(10); // Words use direct letter rolls; the flap board stays separate.
   await expect(page.locator(".brand h1")).toHaveText("rolling number");
   await expect(page.locator(".brand svg")).toHaveCount(0);
   await page.getByRole("button", { name: "Buy Studio tee" }).click();
@@ -41,6 +41,9 @@ test("the showcase measures elapsed milliseconds rather than inventing increment
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.clock.fastForward(1000);
   await expect(page.locator(".number-frame .rn-semantic")).toHaveText("10,132 ms");
+  // WebKit delivers the media-query event outside Playwright's virtual clock.
+  // Wait for static fallback, not merely natural animation completion.
+  await expect(number).not.toHaveAttribute("data-rn-ready", "");
   expect(await number.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
 });
 

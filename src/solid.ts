@@ -6,7 +6,7 @@ type SpanProps = Omit<JSX.HTMLAttributes<HTMLSpanElement>, "children" | "innerHT
 export type RollingNumberProps = RollingNumberOptions & SpanProps;
 export type RollingTextProps = RollingTextOptions & SpanProps;
 
-const motionKeys = ["duration", "animated", "motionBlur", "direction", "pauseOffscreen", "stagger", "mode"] as const satisfies readonly (keyof MotionOptions)[];
+const motionKeys = ["duration", "flipDuration", "animated", "motionBlur", "direction", "pauseOffscreen", "stagger", "mode"] as const satisfies readonly (keyof MotionOptions)[];
 
 /** Solid owns semantic text; the same DOM core owns only the decorative mount. */
 function rolling<Options extends MotionOptions>(
@@ -61,4 +61,4 @@ function rolling<Options extends MotionOptions>(
 export const RollingNumber = rolling<RollingNumberOptions>(["value", "locales", "format"], createRollingNumber, (options) => formatValue(options.value, options));
 
 /** Split-flap style text. Characters in `charset` roll; others crossfade in place. */
-export const RollingText = rolling<RollingTextOptions>(["text", "charset"], createRollingText, (options) => options.text);
+export const RollingText = rolling<RollingTextOptions>(["text", "charset", "transition"], createRollingText, (options) => options.text);

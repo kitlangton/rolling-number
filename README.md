@@ -6,6 +6,12 @@ A small, original TypeScript library for interruptible rolling numbers. Native
 browser animation playback, a framework-independent DOM API, and thin React and
 Solid adapters. MIT licensed. No runtime dependencies in the DOM core.
 
+[Demo](https://rolling.kitlangton.dev) · [Contributing](CONTRIBUTING.md) · [Agent guide](AGENTS.md) · [MIT license](LICENSE)
+
+This README follows the working tree. The direct-text transition and recent
+selection/startup improvements below are unreleased; npm remains at 0.4.0 until
+the next package release.
+
 ## Install
 
 ```sh
@@ -13,7 +19,7 @@ bun add @kitlangton/rolling-number
 ```
 
 Or use `npm install @kitlangton/rolling-number`. The unscoped name belongs to
-another project. Import the stylesheet alongside either the DOM or React entrypoint.
+another project. Import the stylesheet alongside the DOM, React, or Solid entrypoint.
 
 ### For coding agents
 
@@ -78,12 +84,34 @@ an initial roll. React and Solid are optional peers; each adapter imports only i
 own framework. The shipped Solid entry works in browser and server builds without
 a package-specific JSX transform.
 
-## Rolling text (split-flap boards)
+## Rolling text
+
+For labels and headings, use a direct transition: each glyph rolls straight to its
+replacement, including lowercase letters and emoji. Newly added letters reveal
+from below. This does not enumerate an alphabet or animate every intermediate word.
+The initial render stays static for SSR; subsequent text changes animate.
+
+```tsx
+import { RollingText } from '@kitlangton/rolling-number/react'
+import '@kitlangton/rolling-number/styles.css'
+
+<RollingText text={status} transition="direct" stagger="start" motionBlur />
+```
+
+The same options work with `RollingText` from `/solid` and
+`createRollingText(element, { text: status, transition: 'direct' })` from the DOM
+entrypoint. Direct transitions retain at most the visible pair plus the newest
+glyph when interrupted. They use roll mode; combining `transition="direct"` with
+`mode="flap"` throws. Existing alphabet-wheel behavior remains the default
+`transition="wheel"`, and `charset` applies only to that behavior. RTL text keeps
+the readable static fallback.
+
+### Alphabet wheels and split-flap boards
 
 ```tsx
 import { RollingText } from '@kitlangton/rolling-number/react'
 
-<RollingText text="EDINBURGH" stagger="start" motionBlur />
+<RollingText text={"FIX THE FIX".padEnd(15)} mode="flap" stagger="start" motionBlur />
 ```
 
 `RollingText` (also exported from `/solid`, and `createRollingText` from the DOM
@@ -92,19 +120,36 @@ space, A–Z, 0–9 and common punctuation, exported as `FLAP_CHARSET`) advance
 through the wheel like a departure board; other glyphs crossfade in place. Pass an
 array to give each position its own drum, e.g. digit drums for a time and letter
 drums for a destination. Words of different length open and close width with the
-same layout spring as numbers. Wheels always advance, so a change from `Z` to `A`
-travels through the blank rather than backwards.
+same layout spring as numbers. With auto direction, wheels advance, so `Z` to `A`
+travels forward through the remaining wheel rather than backwards.
 
 `mode="flap"` (numbers too) replaces the gliding reel with real split-flap
 mechanics: one card per face hinges at the slot's midline, the top half of the
 current face falls, then the bottom half of the next lands, at a mechanical
-45–110 ms cadence derived from `duration`. Only the cards a change travels
-through are created, and they are removed on settle, so a slot never holds more
-than one revolution of cards. New characters flap in from the blank face.
-`--rn-crease` sets the visible hinge gap. Motion blur does not apply in this mode.
+45–110 ms cadence derived from `duration`, or an explicit `flipDuration` per card.
+For example, use `flipDuration={220}` to make individual clock ticks more visible.
+Four temporary half-card strips reuse
+the same hinge throughout the change; native stepped timing advances their glyphs.
+Travel is bounded to one revolution, and settlement returns to one static face.
+New characters flap in from the blank face.
+`--rn-crease` sets the visible hinge gap. Opt into `motionBlur` for vertical-only
+smear as each half turns; landed faces stay sharp. `--rn-blur: 0` disables the smear.
+Flap faces need an opaque surface to hide the waiting glyph. The default is the
+system `Canvas` color; set `--rn-flap-background` or an opaque `.rn-face` background
+to match your design. Ordinary rolling mode keeps its transparent background.
 `stagger="start"` or `"end"` sweeps a row left to right or right to left, for
-in-place changes as well as new characters. See the live board at
-[rolling.kitlangton.dev/board.html](https://rolling.kitlangton.dev/board.html).
+in-place changes as well as new characters.
+
+The board demo also has an opt-in **Sound** toggle. Web Audio synthesizes grouped
+tick–clack impacts from the moving drums' native timing. It uses no recordings,
+caps concurrent voices and volume, and mutes on reduced motion or a hidden tab.
+Sound belongs to the demo, not the library or its adapters.
+
+For a physical board, reserve its slots in the text: comment count `3` uses `" 3"`
+with a blank-capable tens drum, and shorter PR titles use trailing blanks up to the
+longest title. This keeps the same cards in place instead of inserting digits or
+resizing the display. The standalone flap-board experiment uses fictional PR data;
+it is separate from the number showcase and is not connected to GitHub.
 
 ## Vanilla DOM
 
@@ -135,8 +180,9 @@ idempotent. Invalid values/options throw before replacing the current display.
 | `locales` | browser default | Locale(s) passed to `Intl.NumberFormat` |
 | `format` | `{}` | Native `Intl.NumberFormatOptions` |
 | `duration` | `500` | Milliseconds; `0` disables motion; maximum `10000` |
+| `flipDuration` | automatic | Milliseconds per card in flap mode, from `1` to `10000`; leaves roll-mode timing unchanged |
 | `animated` | `true` | `false` immediately settles the latest value |
-| `motionBlur` | `false` | Opt-in, speed-driven vertical blur on rolling digits |
+| `motionBlur` | `false` | Opt-in vertical blur on rolling digits and turning flap halves |
 | `direction` | `"auto"` | `"auto"`, `"up"`, or `"down"` |
 | `pauseOffscreen` | `true` | Offscreen counters keep the latest text without rolling |
 
@@ -218,7 +264,7 @@ and right-aligned layouts. New glyphs rise from below after space starts opening
 This does not animate arbitrary surrounding siblings
 or promise zero layout shift. Reserve space with CSS `min-width` when a stable
 surrounding layout matters. Ancestor axis-aligned scaling is supported; rotated or
-skewed ancestors, vertical writing and per-digit typography are not a v0.1 contract.
+skewed ancestors, vertical writing and per-digit typography are not supported.
 
 Keep horizontal overflow visible on containers around the number. A horizontal
 scrollport or `overflow: hidden` can cut off outgoing digits when the host shrinks,
@@ -234,6 +280,9 @@ notation, NaN and infinity render as intact static localized text. They are not
 silently transliterated or forced into LTR layout.
 
 Assistive technology receives one formatted value; decorative glyphs are hidden.
+The native value is selectable and copyable, including at rest. Copying uses the
+latest formatted target once, not the temporary reel glyphs; while motion is in
+progress that target may differ from the intermediate painted digits.
 There is no default live region. Applications can opt into `aria-live="polite"`
 and `aria-atomic="true"` for a deliberately paced announcement. Reduced-motion
 changes settle active animations immediately.
@@ -252,14 +301,18 @@ See [the methodology](perf/method.md) and [research and design tradeoffs](docs/r
 Benchmarks are workload- and browser-specific. A smaller DOM or no per-frame
 JavaScript does not, on its own, prove smoother presented frames or universal speed.
 
-The [published local comparison](perf/results.md) of commit `35155ca` measured
-**59.2% less main-thread work and 56.7% fewer retained elements** than NumberFlow
-0.6.2 for 100 animated counters in Chromium 151 on an Apple M2 Max. This baseline
-predates format-to-format transitions and the Solid adapter. It includes the
-slower cases, methodology and raw per-round data—not a
-claim that every workload or browser is faster.
+The [latest local DOM comparison](perf/current.md) measured **59.8% less
+main-thread work and 56.7% fewer retained elements** than NumberFlow 0.6.2 for
+100 synchronized counters in Chromium 151 on an Apple M2 Max. Both libraries had
+long frame intervals in this stress workload. The report includes the source
+fingerprint, spread, limits, and raw runs—not a claim that every application or
+browser is faster. [Earlier results](perf/results.md) remain for historical context.
 
 ## Development
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup, focused tests, PR guidance,
+and the distinction between library releases and website deployment. The short
+[AGENTS.md](AGENTS.md) map covers rendering invariants and validation expectations.
 
 ```sh
 bun run check
@@ -273,12 +326,18 @@ cleanup, proportional fonts, reduced motion, hidden → visible transitions, and
 React hydration under StrictMode and Solid hydration/reactive cleanup in Chromium,
 Firefox and WebKit.
 
-The dark-only demo pairs the showcase with eight small interactive interfaces:
-a fictional tee shop, focus timer, team plan, BigInt event viewer, upload, weather
-control, invoice and audience chart. Their SVG illustrations are local and original;
+The dark-only demo includes a fictional tee shop, a hold-to-charge Super Like,
+team seats, a BigInt event viewer, upload, weather, invoice, audience, Scrub, and
+direct word transitions. Their SVG illustrations are local and original;
 no purchases, uploads or external account changes take place. The header is a plain
 wordmark. Buying the demo tee brightens revenue, then fades back over 1.8 seconds;
 reduced motion disables that flash. The examples do not re-render on every hero tick.
+
+The unlisted `/benchmarks.html` page compares the React integrations of Rolling
+Number, NumberFlow, React Animated Numbers, and React CountUp. It is not linked in
+the showcase navigation and asks crawlers not to index it; this is not access
+control. Its in-browser elapsed/rAF measurements are separate from the CLI's DOM
+task-time benchmark. CountUp is numeric interpolation, not a glyph-roll equivalent.
 
 `dist/` contains ESM and declarations plus an explicit stylesheet. There is no
 automatic global style injection, custom-element registration, or server-side DOM

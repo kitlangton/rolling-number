@@ -25,8 +25,11 @@ it("opens and closes gaps at retained token edges", () => {
   const positions = new Map([["prefix", { x: 0, width: 8 }], ["units", { x: 8, width: 10 }]]);
   const keys = ["prefix", "hundreds", "tens", "units", "suffix"];
   expect([...collapsePositions(keys, positions)]).toEqual([
-    ["prefix", 0], ["hundreds", 8], ["tens", 8], ["units", 8], ["suffix", 18],
+    ["hundreds", 8], ["tens", 8], ["suffix", 18],
   ]);
+  expect([...collapsePositions(["prefix", "units"], positions)]).toEqual([]);
+  expect([...collapsePositions(["a", "b"], new Map())]).toEqual([["a", 0], ["b", 0]]);
+  expect([...collapsePositions([], positions)]).toEqual([]);
 });
 
 it("reveals new glyphs from below only after horizontal space starts opening", () => {

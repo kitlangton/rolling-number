@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { cpus, platform, release, totalmem } from "node:os";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cpus, platform, release, tmpdir, totalmem } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Browser, type CDPSession, type Page } from "playwright";
@@ -11,6 +11,13 @@ import type { BenchAPI, BenchKind, WorkloadResult } from "../demo/bench";
 // BENCH_DURATION is workload milliseconds, not the animation duration.
 // BENCH_ANIMATED=0 is a separate static-update workload, never pooled with motion.
 const root = fileURLToPath(new URL("../", import.meta.url));
+const sourcePaths = [...new Bun.Glob("src/*").scanSync({ cwd: root }), "demo/bench.ts", "demo/bench.html", "vite.config.ts", "package.json", "bun.lock"].sort();
+async function fingerprint() {
+  const hash = createHash("sha256");
+  for (const path of sourcePaths) { hash.update(`${path}\0`); hash.update(await readFile(resolve(root, path))); }
+  return hash.digest("hex");
+}
+const sourceSha256 = await fingerprint();
 
 function numeric(name: string, fallback: number, min: number, max: number, integer = false) {
   const value = Number(process.env[name] ?? fallback);
@@ -135,15 +142,19 @@ async function packageVersion(name?: string) {
 
 let browser: Browser | undefined;
 let server: PreviewServer | undefined;
+let outDir: string | undefined;
 try {
   const referenceVersion = await packageVersion("number-flow");
   if (referenceVersion !== "0.6.2") throw new Error(`Expected number-flow@0.6.2, found ${referenceVersion}; update the comparison label and methodology before changing the baseline`);
   process.env.ROLLING_NUMBER_BENCH = "1";
-  await build({ root: resolve(root, "demo"), configFile: resolve(root, "vite.config.ts"), logLevel: "warn" });
+  // Demo builds also empty site/. Give each benchmark its own immutable assets.
+  outDir = await mkdtemp(resolve(process.env.BENCH_TMPDIR ?? tmpdir(), "rolling-number-bench-"));
+  await build({ root: resolve(root, "demo"), configFile: resolve(root, "vite.config.ts"), logLevel: "warn", build: { outDir } });
   server = await preview({
     root: resolve(root, "demo"),
     configFile: resolve(root, "vite.config.ts"),
     logLevel: "warn",
+    build: { outDir },
     preview: { host: "127.0.0.1", port: 0, open: false },
   });
   const address = server.httpServer.address();
@@ -212,6 +223,7 @@ try {
   }));
 
   const entryHtml = await readFile(resolve(server.config.root, server.config.build.outDir, "bench.html"));
+  if (await fingerprint() !== sourceSha256) throw new Error("Benchmark source changed during measurement; discard this run");
   const result = {
     schemaVersion: 1,
     benchmark: "dom-carry-reversal-v1",
@@ -224,7 +236,7 @@ try {
       browser: browser.version(),
       bun: process.versions.bun ?? null,
     },
-    build: { mode: "production", entryHtmlSha256: createHash("sha256").update(entryHtml).digest("hex") },
+    build: { mode: "production", sourceSha256, entryHtmlSha256: createHash("sha256").update(entryHtml).digest("hex") },
     environment: {
       ...environment,
       headless: settings.headless,
@@ -259,13 +271,17 @@ try {
     warmups,
   };
   await mkdir(resolve(root, "perf"), { recursive: true });
-  const output = resolve(root, "perf/results.local.json");
+  const output = resolve(root, process.env.BENCH_OUTPUT ?? "perf/results.local.json");
   await writeFile(output, `${JSON.stringify(result, null, 2)}\n`);
   console.log(`Saved ${output}`);
 } finally {
   try {
     await browser?.close();
   } finally {
-    await server?.close();
+    try {
+      await server?.close();
+    } finally {
+      if (outDir) await rm(outDir, { recursive: true, force: true });
+    }
   }
 }

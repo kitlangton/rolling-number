@@ -5,9 +5,13 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -19,3 +23,10 @@ jobs:
       - run: bunx playwright install --with-deps chromium firefox webkit
       - run: bun run test:browser
       - run: bun run build:demo
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failures
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore

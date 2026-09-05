@@ -94,3 +94,13 @@ export function rollTarget(position: number, index: number, trend: -1 | 0 | 1, s
 /** The face shown at an integer wheel position, wrapping in both directions. */
 export const face = (wheel: readonly string[], position: number): string => wheel[((position % wheel.length) + wheel.length) % wheel.length]!;
 export const numeral = (position: number): string => String(((position % 10) + 10) % 10);
+
+/** Keep only the visible pair plus the newest glyph; interrupted words never build a queue. */
+export function directRoll(previous: readonly string[], position: number, glyph: string) {
+  const floor = Math.floor(position);
+  const from = position - floor;
+  const wheel = [face(previous, floor)];
+  if (from > .00001) wheel.push(face(previous, floor + 1));
+  if (wheel.at(-1) !== glyph) wheel.push(glyph);
+  return { wheel, from, target: wheel.length - 1 };
+}

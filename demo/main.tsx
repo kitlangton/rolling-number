@@ -2,6 +2,8 @@ import { StrictMode, memo, useEffect, useLayoutEffect, useRef, useState } from "
 import type { CSSProperties, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { RollingNumber, RollingText } from "../src/react";
+import { Likes } from "./Likes";
+import { springEasing } from "./motion";
 import { Track } from "../src/track";
 import { spring } from "../src/motion";
 import { ActivityGraphic, AvatarGraphic, FileGraphic, LedgerGraphic, ShirtGraphic, WeatherGraphic } from "./MiniGraphics";
@@ -10,11 +12,6 @@ import "../src/styles.css";
 import "./demo.css";
 
 type PackageManager = keyof typeof installCommands;
-
-/** The same critically damped spring the digits use, as a native easing for width and position. */
-function springEasing(duration: number): string {
-  return `linear(${spring(0, 1, 0, duration).points.map((point) => point.toFixed(5)).join(",")})`;
-}
 
 /** Copies text and reports briefly; also readable by assistive technology through the status region. */
 function useCopy(): [boolean, (text: string) => void] {
@@ -125,18 +122,44 @@ const temperature: Intl.NumberFormatOptions = { style: "unit", unit: "celsius", 
 const currencies = ["USD", "EUR", "JPY", "GBP"];
 const localeOptions = [["en-US", "English"], ["de-DE", "Deutsch"], ["fr-FR", "Français"], ["hi-IN", "Hindi"], ["ja-JP", "日本語"], ["ar-EG", "العربية"], ["fa-IR", "فارسی"]];
 
-const Examples = memo(function Examples({ locale, duration, reduced, motionBlur }: { locale: string; duration: number; reduced: boolean; motionBlur: boolean }) {
+type ExampleOptions = { locale: string; duration: number; reduced: boolean; motionBlur: boolean };
+
+function WordExample({ duration, reduced, motionBlur }: Omit<ExampleOptions, "locale">) {
+  const words = ["Hello, world", "Ready to roll", "Ship it ✨", "Aa → Bb"];
+  const [index, setIndex] = useState(0);
+  const [animated, setAnimated] = useState(true);
+  return <article className="example mini-app words-app">
+    <h2>Words</h2>
+    <div className="example-number word-number"><RollingText text={words[index]!} transition="direct" stagger="start" duration={duration} motionBlur={motionBlur} animated={!reduced && animated} /></div>
+    <div className="example-actions"><button className="mini-button" onClick={(event) => { setAnimated(event.detail > 0); setIndex((current) => (current + 1) % words.length); }}>Roll the words</button></div>
+  </article>;
+}
+
+/** Continuous input owns its state here, not in the whole examples gallery. */
+function Scrub({ locale, duration, reduced, motionBlur }: ExampleOptions) {
+  const [scrub, setScrub] = useState({ value: 48210, animated: true });
+  const scrubbing = useRef(false);
+  return (
+    <article className="example mini-app scrub-app">
+      <h2>Scrub</h2>
+      <div className="app-metric"><span className="mini-label">Odometer · continuous input</span><div className="example-number scrub-number"><RollingNumber locales={locale} motionBlur={motionBlur} value={scrub.value} format={{ style: "unit", unit: "kilometer", unitDisplay: "short", maximumFractionDigits: 0 }} duration={Math.min(duration, 160)} animated={!reduced && scrub.animated} /></div></div>
+      <label className="scrub-control"><span className="mini-label">Drag freely; every input retargets the wheels from their current speed.</span>
+        <input type="range" min="0" max="120000" step="1" value={scrub.value} aria-label="Distance"
+          onPointerDown={() => { scrubbing.current = true; }} onPointerUp={() => { scrubbing.current = false; }} onPointerCancel={() => { scrubbing.current = false; }} onBlur={() => { scrubbing.current = false; }} onKeyDown={() => { scrubbing.current = false; }}
+          onChange={(event) => setScrub({ value: Number(event.target.value), animated: scrubbing.current })} />
+      </label>
+    </article>
+  );
+}
+
+const Examples = memo(function Examples({ locale, duration, reduced, motionBlur }: ExampleOptions) {
   const [revenue, setRevenue] = useState({ value: 8240, animated: true });
-  const [likes, setLikes] = useState({ value: 1204, animated: true });
-  const heart = useRef<SVGSVGElement>(null);
   const [seats, setSeats] = useState({ value: 8, animated: true });
   const [large, setLarge] = useState({ value: 9007199254740993n, animated: true });
   const [progress, setProgress] = useState({ value: .64, animated: true });
   const [degrees, setDegrees] = useState({ value: -4.5, animated: true });
   const [currencyIndex, setCurrencyIndex] = useState({ value: 0, animated: true });
   const [growth, setGrowth] = useState({ value: 23, animated: true });
-  const [scrub, setScrub] = useState({ value: 48210, animated: true });
-  const scrubbing = useRef(false);
   const revenueNumber = useRef<HTMLDivElement>(null);
   const saleFlash = useRef<Animation | null>(null);
   function stopSaleFlash() {
@@ -186,13 +209,6 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
     media.addEventListener("change", preference);
     return () => { observer.disconnect(); track.cancel(); media.removeEventListener("change", preference); };
   }, [duration, reduced]);
-  const [teaser, setTeaser] = useState("EDINBURGH");
-  useEffect(() => {
-    const words = ["EDINBURGH", "PENZANCE", "ON TIME", "PLATFORM 9", "DELAYED"];
-    let index = 0;
-    const timer = setInterval(() => setTeaser(words[++index % words.length]!), 2800);
-    return () => clearInterval(timer);
-  }, []);
   const shared = { locales: locale, duration, motionBlur };
   return (
     <section id="examples" className="examples" aria-label="Examples" data-reduced={reduced}>
@@ -204,31 +220,13 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
         </div>
         <div className="app-metric"><span className="mini-label">Revenue</span><div ref={revenueNumber} className="example-number revenue-number"><RollingNumber {...shared} value={revenue.value} format={currency} animated={!reduced && revenue.animated} /></div></div>
       </article>
-      <article className="example mini-app likes-app">
-        <h2>Likes</h2>
-        <div className="likes-body">
-          <button className="heart" aria-label="Like" onClick={(event) => {
-            const animated = !reduced && event.detail > 0;
-            // Replace, never stack: a fast tap restarts the pop from its current scale.
-            if (animated && heart.current) {
-              const current = new DOMMatrix(getComputedStyle(heart.current).transform).a || 1;
-              for (const running of heart.current.getAnimations()) running.cancel();
-              heart.current.animate([{ transform: `scale(${Math.min(current, .72)})` }, { transform: "scale(1)" }], { duration, easing: springEasing(duration) });
-            }
-            setLikes((current) => ({ value: current.value + 1, animated }));
-          }}>
-            <svg ref={heart} viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7.5 2.5c0 5.4-7.5 10-7.5 10Z" /></svg>
-          </button>
-          <div className="example-number"><RollingNumber {...shared} value={likes.value} animated={!reduced && likes.animated} /></div>
-        </div>
-        <span className="mini-label centered-label">Tap quickly. Digits keep rolling.</span>
-      </article>
+      <Likes locale={locale} duration={duration} reduced={reduced} motionBlur={motionBlur} />
       <article className="example mini-app team-app">
         <h2>Team plan</h2>
         <div className="avatar-stack" aria-hidden="true" data-animated={!reduced && seats.animated}>{Array.from({ length: 5 }, (_, index) => <span className="mini-avatar" key={index} data-present={index < seats.value}><AvatarGraphic /></span>)}<span className="extra-members" data-present={seats.value > 5}>+<RollingNumber {...shared} value={Math.max(0, seats.value - 5)} animated={!reduced && seats.animated} /></span></div>
         <div className="price"><div ref={priceNumber} className="example-number"><RollingNumber {...shared} value={seats.value * 12} format={currency} animated={!reduced && seats.animated} /></div><span ref={priceSuffix}>/ month</span></div>
         <div className="seat-control">
-          <label htmlFor="seats">Seats <output>{seats.value}</output></label>
+          <label htmlFor="seats">Seats <output><RollingNumber {...shared} value={seats.value} animated={!reduced && seats.animated} /></output></label>
           <input id="seats" type="range" min="1" max="24" value={seats.value}
             onPointerDown={() => { pointer.current = true; }} onPointerUp={() => { pointer.current = false; }} onPointerCancel={() => { pointer.current = false; }} onBlur={() => { pointer.current = false; }} onKeyDown={() => { pointer.current = false; }}
             onChange={(event) => setSeats({ value: Number(event.target.value), animated: pointer.current })} />
@@ -274,20 +272,8 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
           <button className="mini-button" onClick={(event) => setGrowth((current) => ({ value: current.value === 23 ? 5823823 : 23, animated: event.detail > 0 }))}>{growth.value === 23 ? "Go viral" : "Reset audience"}</button>
         </div>
       </article>
-      <article className="example mini-app scrub-app">
-        <h2>Scrub</h2>
-        <div className="app-metric"><span className="mini-label">Odometer · continuous input</span><div className="example-number scrub-number"><RollingNumber {...shared} value={scrub.value} format={{ style: "unit", unit: "kilometer", unitDisplay: "short", maximumFractionDigits: 0 }} duration={Math.min(duration, 350)} animated={!reduced && scrub.animated} /></div></div>
-        <label className="scrub-control"><span className="mini-label">Drag freely; every input retargets the wheels from their current speed.</span>
-          <input type="range" min="0" max="120000" step="1" value={scrub.value} aria-label="Distance"
-            onPointerDown={() => { scrubbing.current = true; }} onPointerUp={() => { scrubbing.current = false; }} onPointerCancel={() => { scrubbing.current = false; }} onBlur={() => { scrubbing.current = false; }} onKeyDown={() => { scrubbing.current = false; }}
-            onChange={(event) => setScrub({ value: Number(event.target.value), animated: scrubbing.current })} />
-        </label>
-      </article>
-      <article className="example mini-app board-teaser">
-        <h2>Departures</h2>
-        <div className="teaser-body"><span className="teaser-text"><RollingText {...shared} text={teaser} mode="flap" stagger="start" duration={Math.max(duration, 700)} animated={!reduced} /></span></div>
-        <div className="example-actions"><a className="mini-button" href="./board.html">Open the split-flap board <span aria-hidden="true">→</span></a></div>
-      </article>
+      <Scrub locale={locale} duration={duration} reduced={reduced} motionBlur={motionBlur} />
+      <WordExample duration={duration} reduced={reduced} motionBlur={motionBlur} />
     </section>
   );
 });
@@ -322,7 +308,7 @@ function App() {
       <a className="skip-link" href="#playground">Skip to showcase</a>
       <header className="site-header">
         <a className="brand" href="#" aria-label="Rolling Number home"><h1>rolling number</h1></a>
-        <nav aria-label="Main navigation"><a href="./board.html">Departures</a><a href={`${repository}#readme`}>Docs</a><a href={repository}>GitHub <span aria-hidden="true">↗</span></a></nav>
+        <nav aria-label="Main navigation"><a href={`${repository}#readme`}>Docs</a><a href={repository}>GitHub <span aria-hidden="true">↗</span></a></nav>
       </header>
       <main>
         <section className="playground" id="playground" aria-label="Interactive number playground">

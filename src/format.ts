@@ -98,6 +98,8 @@ export function direction(previous: Model, next: Model): -1 | 0 | 1 {
 }
 
 export interface TextOptions {
+  /** "direct" rolls each glyph straight to its replacement, without alphabet cycling. Default: "wheel". */
+  transition?: "wheel" | "direct" | undefined;
   /**
    * Characters that roll through a wheel, in wheel order; others crossfade in place.
    * An array gives each character position its own wheel, like a board with digit
@@ -131,10 +133,11 @@ export function textModel(text: string, options: TextOptions = {}): Model {
   const rollable = !bidi.test(text);
   if (!rollable) return { text, tokens: [], rollable, signature: "text", magnitude: "" };
   const tokens = segment(text).map((glyph, position): Token => {
+    if (options.transition === "direct") return { key: `char:${position}`, identity: `char:${position}`, text: glyph, wheel: [glyph], index: 0 };
     const wheel = wheelFor(typeof charset === "string" ? charset : charset[position] ?? charset.at(-1) ?? FLAP_CHARSET);
     const identity = `char:${position}`;
     const index = wheel.indexOf(glyph);
     return index >= 0 ? { key: identity, identity, text: glyph, wheel, index } : { key: `${identity}:${glyph}`, identity, text: glyph };
   });
-  return { text, tokens, rollable, signature: "text", magnitude: "" };
+  return { text, tokens, rollable, signature: `text:${options.transition ?? "wheel"}`, magnitude: "" };
 }

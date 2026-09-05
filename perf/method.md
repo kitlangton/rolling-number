@@ -25,6 +25,18 @@ an implementation can defer all its work and appear artificially cheap.
 - Record browser, OS, hardware and limits. These are local microbenchmarks, not a
   claim that a library wins for every application or browser.
 
+## Build isolation
+
+`bun run bench` builds and previews in a unique temporary directory, not `site/`.
+It cleans up that exact directory after completion or failure. `BENCH_TMPDIR`
+optionally selects the parent; otherwise it uses the operating system's temp
+directory. This prevents concurrent demo builds from replacing benchmark assets,
+but does not isolate CPU contention. Keep other workloads idle for timing runs.
+
+The [September 4 state-attribute experiment](state-attributes.md) found this
+shared-output failure while testing two rendering optimizations. Both were
+discarded because their apparent speed gains did not hold up to controls.
+
 ## Hypotheses to test
 
 1. A bounded glyph representation can reduce element count and mount work relative
@@ -55,3 +67,8 @@ regressions. The final median was 1540.43 ms, versus 1822.67 ms for the correcte
 49-keyframe baseline. Compact opacity was rejected because clamping makes its
 mapping non-linear. See [results and limitations](results.md) for the final matched
 NumberFlow comparison, static workload, environment, spread and data files.
+
+The [flap-board benchmark](flap-board.md) is a separate workload: the actual React
+departure board, two interrupted row shifts, and natural settlement. It compares
+retained builds of this library, not NumberFlow. Native timers and WAAPI share
+their real timeline; only the schedule's `Date` and random seed are fixed.

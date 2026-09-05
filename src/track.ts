@@ -1,6 +1,17 @@
 import { sample, type Motion, type Sample } from "./motion.js";
 
 const linearSupport = new WeakMap<Window, boolean>();
+
+/** Start every effect in a transition on the same document frame, without a pending play task. */
+export function animateNow(element: HTMLElement, keyframes: Keyframe[], timing: KeyframeAnimationOptions): Animation {
+  const animation = element.animate(keyframes, timing);
+  // Native play() otherwise waits for a later paint to assign its start time.
+  // Pointer input can replace it first, repeatedly sampling position/velocity at
+  // time zero. Anchor to this document's frame, not a separate JS clock.
+  const now = element.ownerDocument.timeline?.currentTime;
+  if (typeof now === "number" && animation.playState === "running") animation.startTime = now;
+  return animation;
+}
 function supportsLinear(element: HTMLElement): boolean {
   const view = element.ownerDocument.defaultView;
   if (!view) return false;
@@ -36,7 +47,6 @@ export class Track {
   play(motion: Motion, format: (value: number) => string, done?: () => void): void {
     this.cancel();
     this.value = motion.target;
-    this.motion = motion;
     this.element.style.setProperty(this.property, format(motion.target));
     if (!motion.duration || motion.points.every((point) => point === motion.target)) {
       done?.();
@@ -55,8 +65,9 @@ export class Track {
     const easing = compact
       ? `linear(${motion.points.map((point) => Number(((point - first) / distance).toFixed(6))).join(",")})`
       : "linear";
-    const animation = this.element.animate(keyframes, { duration: motion.duration, easing });
+    const animation = animateNow(this.element, keyframes, { duration: motion.duration, easing });
     this.animation = animation;
+    this.motion = motion;
     animation.onfinish = () => {
       if (this.animation !== animation) return;
       this.animation = undefined;

@@ -39,10 +39,13 @@ Candidate source-tree SHA-256:
 `8c98f8c67a50ace1d9a7c36606d2fbe6f48a656cc56096c99c5bc388dc106f25`.
 Full local capture: `perf/retarget-after.local.json`.
 
-## Next experiment: redundant state attributes
+## Follow-up: redundant state attributes
 
 Setting `data-rn-measuring` and `data-rn-ready` to the same value on every commit
 may invalidate stylesheet selectors unnecessarily. Guard those two writes; do
 not change trajectories, measurement order, or glyph representation.
 
-Pending measurement against the same baseline, with horizontal playback restored.
+**Discard.** Early repeated runs suggested a 6–8% improvement, but a later control
+did not sustain it. See [state-attributes.md](state-attributes.md) for measurements,
+the shared-build interference discovered during the last control, and the
+benchmark isolation fix. Neither rendering experiment is retained.

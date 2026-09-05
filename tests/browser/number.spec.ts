@@ -362,12 +362,15 @@ test("flap mode hinges bounded half cards, resumes from a mid-flip interruption 
   });
   const slot = page.locator("[data-rn-key='digit:0']");
   await expect(slot).toHaveAttribute("data-rn-flap", "");
-  // 8 → 1 going up is three steps (8, 9, 0 → 1): two statics plus two cards each.
-  // The static top shows the final face; waiting tops stack so the current face paints last.
-  await expect(slot.locator(".rn-flap")).toHaveCount(8);
-  expect(await slot.locator(".rn-flap-top").evaluateAll((cards) => cards.map((card) => card.textContent))).toEqual(["1", "0", "9", "8"]);
-  expect(await slot.locator(".rn-flap-bottom").evaluateAll((cards) => cards.map((card) => card.textContent))).toEqual(["8", "9", "0", "1"]);
-  const cadence = await slot.locator(".rn-flap-top").last().evaluate((card) => card.getAnimations()[0]!.effect!.getComputedTiming().duration as number * 2);
+  // 8 → 1 going up is three steps (8, 9, 0 → 1), represented by four fixed planes.
+  // The next-face strips repeat their target so it remains painted before cleanup.
+  await expect(slot.locator(".rn-flap")).toHaveCount(4);
+  expect(await slot.locator(".rn-flap-top").evaluateAll((cards) => cards.map((card) => card.textContent!.split("\n")))).toEqual([["9", "0", "1", "1"], ["8", "9", "0", "1"]]);
+  expect(await slot.locator(".rn-flap-bottom").evaluateAll((cards) => cards.map((card) => card.textContent!.split("\n")))).toEqual([["8", "9", "0", "1"], ["9", "0", "1", "1"]]);
+  const cadence = await slot.locator(".rn-flap-top").last().evaluate((card) => {
+    const effect = card.getAnimations()[0]!.effect as KeyframeEffect;
+    return Number(effect.getComputedTiming().duration) * effect.getKeyframes()[1]!.computedOffset * 2;
+  });
   expect(cadence).toBeGreaterThanOrEqual(45);
   expect(cadence).toBeLessThanOrEqual(110);
   // Advance into the second card, then retarget: the sequence restarts from the nearer face.
@@ -378,8 +381,8 @@ test("flap mode hinges bounded half cards, resumes from a mid-flip interruption 
     await new Promise(requestAnimationFrame);
   });
   const tops = await slot.locator(".rn-flap-top").evaluateAll((cards) => cards.map((card) => card.textContent));
-  expect(tops[tops.length - 1]).toBe("9");
-  expect(tops.length).toBeLessThanOrEqual(6);
+  expect(tops.at(-1)!.split("\n")).toEqual(["9", "0", "1", "2", "3"]);
+  expect(tops.length).toBe(2);
   await page.evaluate(() => window.testNumber.finish());
   await expect(slot.locator(".rn-flap")).toHaveCount(0);
   await expect(page.locator("#number > .rn-value")).toHaveText("3");

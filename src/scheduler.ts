@@ -3,7 +3,6 @@ export interface Participant {
   measure(): (() => void) | undefined;
   refresh(): void;
   visibility(visible: boolean): void;
-  preferenceChanged(): void;
   sizeChanged(element: Element, width: number, height: number): boolean;
 }
 
@@ -32,10 +31,10 @@ export class Scheduler {
 
   private constructor(private view: Browser) {
     this.media = view.matchMedia("(prefers-reduced-motion: reduce)");
-    this.media.addEventListener("change", this.preferences);
-    view.document.addEventListener("visibilitychange", this.preferences);
-    view.document.fonts?.addEventListener("loadingdone", this.fonts);
-    void view.document.fonts?.ready.then(() => this.fonts());
+    this.media.addEventListener("change", this.refresh);
+    view.document.addEventListener("visibilitychange", this.refresh);
+    view.document.fonts?.addEventListener("loadingdone", this.refresh);
+    void view.document.fonts?.ready.then(this.refresh);
     if (view.ResizeObserver) this.resize = new view.ResizeObserver((entries) => {
       for (const entry of entries) {
         const owner = this.sizes.get(entry.target);
@@ -47,8 +46,7 @@ export class Scheduler {
     }, { rootMargin: "64px" });
   }
 
-  private preferences = (): void => { for (const member of this.members) member.preferenceChanged(); };
-  private fonts = (): void => { for (const member of this.members) member.refresh(); };
+  private refresh = (): void => { for (const member of this.members) member.refresh(); };
 
   add(owner: Participant, host: Element): void {
     this.members.add(owner);
@@ -90,9 +88,9 @@ export class Scheduler {
     this.view.cancelAnimationFrame(this.frame);
     this.resize?.disconnect();
     this.intersection?.disconnect();
-    this.media.removeEventListener("change", this.preferences);
-    this.view.document.removeEventListener("visibilitychange", this.preferences);
-    this.view.document.fonts?.removeEventListener("loadingdone", this.fonts);
+    this.media.removeEventListener("change", this.refresh);
+    this.view.document.removeEventListener("visibilitychange", this.refresh);
+    this.view.document.fonts?.removeEventListener("loadingdone", this.refresh);
     schedulers.delete(this.view);
   }
 }
