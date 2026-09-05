@@ -8,10 +8,6 @@ Solid adapters. MIT licensed. No runtime dependencies in the DOM core.
 
 [Demo](https://rolling.kitlangton.dev) · [Contributing](CONTRIBUTING.md) · [Agent guide](AGENTS.md) · [MIT license](LICENSE)
 
-This README follows the working tree. The direct-text transition and recent
-selection/startup improvements below are unreleased; npm remains at 0.4.0 until
-the next package release.
-
 ## Install
 
 ```sh

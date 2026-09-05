@@ -10,12 +10,12 @@ export interface Sample {
 }
 
 /** Let horizontal space open before a new glyph rises through its fixed viewport. */
-export function entrance(height: number, duration: number): Motion {
+export function entrance(height: number, duration: number, hold = .14): Motion {
   return {
     target: 0, duration,
     points: Array.from({ length: 49 }, (_, index) => {
       if (index === 48) return 0;
-      const progress = Math.max(0, Math.min(1, (index / 48 - .14) / .86));
+      const progress = Math.max(0, Math.min(1, (index / 48 - hold) / (1 - hold)));
       return height * (1 + 10 * progress) * Math.exp(-10 * progress);
     }),
   };

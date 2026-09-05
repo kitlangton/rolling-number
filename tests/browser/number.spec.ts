@@ -79,7 +79,8 @@ for (const alignment of ["left", "center", "right"] as const) {
     const delays = await page.evaluate(() => ["digit:2", "group:3:,", "digit:3", "digit:4", "digit:5", "group:6:,", "digit:6"].map((key) => {
       const slot = document.querySelector<HTMLElement>(`.rn-slot[data-rn-key='${key}']`)!;
       const fade = slot.getAnimations().find((animation) => (animation.effect as KeyframeEffect).getKeyframes().some((frame) => "opacity" in frame))!;
-      return Number(fade.effect!.getComputedTiming().duration) - (key.startsWith("group") ? 180 : 600);
+      // Group fades include the same 14% hold as masked digit entrances.
+      return Number(fade.effect!.getComputedTiming().duration) - (key.startsWith("group") ? 180 + 600 * .14 : 600);
     }));
     expect(delays[0]).toBe(0);
     for (let index = 1; index < delays.length; index++) expect(delays[index]!).toBeGreaterThan(delays[index - 1]!);

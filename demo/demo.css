@@ -101,8 +101,6 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 .invoice-app { grid-column: span 4; }
 .audience-app { grid-column: span 5; }
 .scrub-app { grid-column: span 7; }
-.words-app { grid-column: span 5; }
-.word-number { font-size: clamp(25px, 3.1vw, 38px); --rn-blur: 1.8; }
 .heart { touch-action: none; user-select: none; }
 .likes-app[data-charge="ready"] .heart { color: #f0a6b7; }
 .scrub-number { --rn-blur: 2.4; }
@@ -184,7 +182,7 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
   .examples { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .shop-app, .example-bigint { grid-column: span 4; }
   .likes-app, .team-app { grid-column: span 2; }
-  .upload-app, .weather-app, .invoice-app, .audience-app, .scrub-app, .words-app { grid-column: span 3; }
+  .upload-app, .weather-app, .invoice-app, .audience-app, .scrub-app { grid-column: span 3; }
 }
 @media (max-width: 640px) {
   .site-shell { padding-inline: 22px; }

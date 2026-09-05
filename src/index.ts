@@ -5,6 +5,7 @@ import { Scheduler, type Participant } from "./scheduler.js";
 import { Track } from "./track.js";
 import { ReelBlur } from "./blur.js";
 import { buildFlaps, clearFlapBlur, flapCadence, flapMotion } from "./flap.js";
+import { motionExperiments, type MotionExperiment } from "./experimental.js";
 
 export { formatValue, FLAP_CHARSET } from "./format.js";
 export type { Value, Locales } from "./format.js";
@@ -273,6 +274,16 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     face.className = "rn-face";
     face.textContent = text;
     face.style.height = `${column.height}px`;
+    // Keep every glyph's text layout at row zero. Flow-stacked faces round their
+    // baselines at different fractional offsets; removing the strip at rest can
+    // then move the painted glyph by a device pixel (notably in WebKit).
+    const row = column.reel.children.length;
+    face.style.position = "absolute";
+    face.style.top = "0";
+    face.style.left = "0";
+    face.style.width = "100%";
+    face.style.transform = `translateY(${row * column.height}px)`;
+    column.reel.style.height = `${(row + 1) * column.height}px`;
     column.reel.append(face);
   }
 
@@ -281,8 +292,20 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     column.reel.replaceChildren();
     column.reel.style.removeProperty("height");
     this.face(column, column.token.text);
+    this.wrapInk(column);
     if (column.token.index === undefined) column.roll.set(1, scale);
     else column.roll.set(column.token.index, () => "translateY(0px)");
+  }
+
+  private wrapInk(column: Column): void {
+    if (this.options.mode === "flap") return;
+    // One paint surface per strip, not per face. Keep the glyphs composited at
+    // rest too: Safari otherwise changes their raster origin when ancestor
+    // transform/opacity effects end, even though their DOM coordinates agree.
+    const ink = this.host.ownerDocument.createElement("span");
+    ink.className = "rn-ink";
+    ink.append(...column.reel.childNodes);
+    column.reel.append(ink);
   }
 
   private finishEntry(column: Column): void {
@@ -293,14 +316,14 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     column.entry = undefined;
   }
 
-  private enter(column: Column, duration: number, delay: number): void {
+  private enter(column: Column, duration: number, delay: number, experiment?: MotionExperiment): void {
     const element = this.host.ownerDocument.createElement("span");
     element.className = "rn-enter";
     column.reel.replaceWith(element);
     element.append(column.reel);
     const track = new Track(element, "transform");
     column.entry = { element, track, blurred: false };
-    const motion = delayed(entrance(column.height, duration), delay);
+    const motion = delayed(entrance(column.height * (experiment?.entryDistance ?? 1), experiment?.entryDuration ?? duration, experiment?.entryHold), delay);
     if (this.options.motionBlur && column.token.text.trim()) {
       this.blur ??= new ReelBlur(this.host);
       this.blur.intensity = this.blurIntensity;
@@ -315,6 +338,8 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
     this.measurementPending = false;
     const animate = this.enhanced && !this.reset;
     const duration = animate ? this.options.duration ?? 500 : 0;
+    const experiment = motionExperiments.get(this.host);
+    const widthDuration = duration ? experiment?.widthDuration ?? duration : 0;
     const flap = this.options.mode === "flap";
     const trend = this.options.direction === "up" ? 1 : this.options.direction === "down" ? -1 : this.source.direction(this.displayed, this.target);
     if (this.target.text !== this.displayed.text) this.host.dataset.rnTrend = trend > 0 ? "up" : trend < 0 ? "down" : "none";
@@ -351,7 +376,8 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
       if (!column) {
         column = this.makeColumn(token);
         this.columns.set(token.key, column);
-        column.x.set(animate ? (replacement?.x ?? starts.get(token.key) ?? size.x) + originShift : size.x, translate);
+        const start = (replacement?.x ?? starts.get(token.key) ?? size.x) + originShift;
+        column.x.set(animate ? start + (size.x - start) * (replacement ? 0 : experiment?.entryOrigin ?? 0) : size.x, translate);
         column.opacity.set(animate ? 0 : 1, opacity);
       }
       const changed = column.token.text !== token.text;
@@ -362,11 +388,18 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
       column.element.style.height = `${size.height}px`;
       column.element.style.top = `${size.y}px`;
       const x = previous.get(token.key);
-      column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, duration), translate);
+      column.x.play(spring(x ? x.position + originShift : column.x.read().position, size.x, x?.velocity ?? 0, widthDuration), translate);
       if (fresh || reentered || !animate) {
         const alpha = column.opacity.read();
-        const fade = spring(alpha.position, 1, alpha.velocity, token.index === undefined ? Math.min(duration, 180) : duration);
-        column.opacity.play(fresh ? delayed(fade, delay) : fade, opacity);
+        const fade = spring(alpha.position, 1, alpha.velocity, token.index === undefined ? Math.min(duration, 180) : duration ? experiment?.fadeDuration ?? duration : 0);
+        // Digits have a masked vertical hold before their rise. Fresh grouping
+        // separators share that hold before their short, sharp fade, so a comma
+        // does not appear early while its neighboring digit is still hidden.
+        // Role replacements (e.g. locale punctuation) retain their crossfade.
+        const entryHold = !flap && token.identity.startsWith("group:") && !replacement
+          ? (experiment?.entryDuration ?? duration) * (experiment?.entryHold ?? .14)
+          : 0;
+        column.opacity.play(fresh ? delayed(fade, delay + entryHold) : fade, opacity);
       }
       column.height = size.height;
       column.width = size.width;
@@ -406,6 +439,7 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
         const blur = this.blur?.remove(column.reel) ?? 0;
         column.reel.replaceChildren();
         for (let position = start; position <= end; position++) this.face(column, face(wheel, position));
+        this.wrapInk(column);
         if (this.options.motionBlur) {
           this.blur ??= new ReelBlur(this.host);
           this.blur.intensity = this.blurIntensity;
@@ -418,7 +452,7 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
         column.token = token;
         this.rest(column);
       }
-      if (fresh && duration && token.index !== undefined && !flap) this.enter(column, duration, delay);
+      if (fresh && duration && token.index !== undefined && !flap) this.enter(column, duration, delay, experiment);
       if (replacement && duration && (fresh || reentered)) {
         const current = column.roll.read();
         const active = column;
@@ -430,7 +464,7 @@ class Renderer<Options extends MotionOptions> implements Participant, RollingCon
       const x = previous.get(key)!;
       const replacementKey = newSymbols.get(column.token.identity);
       const replacement = replacementKey ? geometry.get(replacementKey) : undefined;
-      column.x.play(spring(x.position + originShift, replacement?.x ?? exits.get(key) ?? x.position, x.velocity, duration), translate);
+      column.x.play(spring(x.position + originShift, replacement?.x ?? exits.get(key) ?? x.position, x.velocity, widthDuration), translate);
       if (column.exiting) continue;
       column.exiting = true;
       if (replacement && duration) {

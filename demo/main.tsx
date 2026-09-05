@@ -1,7 +1,7 @@
 import { StrictMode, memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { RollingNumber, RollingText } from "../src/react";
+import { RollingNumber } from "../src/react";
 import { Likes } from "./Likes";
 import { springEasing } from "./motion";
 import { Track } from "../src/track";
@@ -123,17 +123,6 @@ const currencies = ["USD", "EUR", "JPY", "GBP"];
 const localeOptions = [["en-US", "English"], ["de-DE", "Deutsch"], ["fr-FR", "Français"], ["hi-IN", "Hindi"], ["ja-JP", "日本語"], ["ar-EG", "العربية"], ["fa-IR", "فارسی"]];
 
 type ExampleOptions = { locale: string; duration: number; reduced: boolean; motionBlur: boolean };
-
-function WordExample({ duration, reduced, motionBlur }: Omit<ExampleOptions, "locale">) {
-  const words = ["Hello, world", "Ready to roll", "Ship it ✨", "Aa → Bb"];
-  const [index, setIndex] = useState(0);
-  const [animated, setAnimated] = useState(true);
-  return <article className="example mini-app words-app">
-    <h2>Words</h2>
-    <div className="example-number word-number"><RollingText text={words[index]!} transition="direct" stagger="start" duration={duration} motionBlur={motionBlur} animated={!reduced && animated} /></div>
-    <div className="example-actions"><button className="mini-button" onClick={(event) => { setAnimated(event.detail > 0); setIndex((current) => (current + 1) % words.length); }}>Roll the words</button></div>
-  </article>;
-}
 
 /** Continuous input owns its state here, not in the whole examples gallery. */
 function Scrub({ locale, duration, reduced, motionBlur }: ExampleOptions) {
@@ -273,7 +262,6 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
         </div>
       </article>
       <Scrub locale={locale} duration={duration} reduced={reduced} motionBlur={motionBlur} />
-      <WordExample duration={duration} reduced={reduced} motionBlur={motionBlur} />
     </section>
   );
 });
@@ -308,7 +296,7 @@ function App() {
       <a className="skip-link" href="#playground">Skip to showcase</a>
       <header className="site-header">
         <a className="brand" href="#" aria-label="Rolling Number home"><h1>rolling number</h1></a>
-        <nav aria-label="Main navigation"><a href={`${repository}#readme`}>Docs</a><a href={repository}>GitHub <span aria-hidden="true">↗</span></a></nav>
+        <nav aria-label="Main navigation"><a href="./motion.html">Motion lab</a><a href={`${repository}#readme`}>Docs</a><a href={repository}>GitHub <span aria-hidden="true">↗</span></a></nav>
       </header>
       <main>
         <section className="playground" id="playground" aria-label="Interactive number playground">

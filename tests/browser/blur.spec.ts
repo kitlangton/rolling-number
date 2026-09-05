@@ -56,8 +56,12 @@ test("blurred playback does not read layout and releases temporary copies on set
   await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0);
   await expect(page.locator(".rn-smear, .rn-sharp")).toHaveCount(0);
   expect(await page.locator(".rn-face").count()).toBe(await page.locator(".rn-token").count());
+  // One stable paint surface per resting strip, never one per travel face.
+  expect(await page.locator(".rn-ink").count()).toBe(await page.locator(".rn-reel").count());
+  await expect(page.locator(".rn-ink .rn-ink")).toHaveCount(0);
   await page.evaluate(() => window.testNumber.destroy());
   await expect(page.locator(".rn-blur-defs")).toHaveCount(0);
+  await expect(page.locator(".rn-ink")).toHaveCount(0);
 });
 
 test("entry completion cannot remove blur owned by a newer roll", async ({ page }) => {

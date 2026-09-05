@@ -28,14 +28,10 @@ test("direct text keeps the visible letters on interruption without cycling an a
   await expect(page.locator(".rn-smear")).toHaveCount(0);
 });
 
-test("the words example reveals new labels and the seat label uses RollingNumber", async ({ page }) => {
+test("the showcase omits the words spinner and the seat label uses RollingNumber", async ({ page }) => {
   await page.goto("/");
-  const words = page.locator(".words-app");
-  await words.scrollIntoViewIfNeeded();
-  await page.getByRole("button", { name: "Roll the words" }).click();
-  await expect(words.locator(".rn-semantic")).toHaveText("Ready to roll");
-  await expect.poll(() => words.evaluate((node) => node.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
-  await expect.poll(() => words.evaluate((node) => node.getAnimations({ subtree: true }).length)).toBe(0);
+  await expect(page.getByRole("button", { name: "Roll the words" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Words", exact: true })).toHaveCount(0);
   await expect(page.locator(".seat-control output .rn-semantic")).toHaveText("8");
   await page.locator("#seats").press("ArrowRight");
   await expect(page.locator(".seat-control output .rn-semantic")).toHaveText("9");

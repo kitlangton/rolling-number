@@ -73,6 +73,7 @@
 }
 .rn-enter, .rn-reel, .rn-face { display: block; }
 .rn-reel { position: relative; }
+.rn-ink { display: block; position: absolute; inset: 0; will-change: transform; }
 /* Each turning half carries its own perspective transform, not a shared 3D scene. */
 /* The slot acts as the bezel: the card stays vertically framed while it hinges. */
 .rn-slot[data-rn-flap] { -webkit-mask-image: none; mask-image: none; }

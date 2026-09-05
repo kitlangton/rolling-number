@@ -1,5 +1,14 @@
 import { expect, it } from "vitest";
-import { numeral, rollTarget, sample, spring } from "../src/motion";
+import { entrance, numeral, rollTarget, sample, spring } from "../src/motion";
+
+it("lets the lab tune entrance hold and distance without changing the default curve", () => {
+  expect(entrance(100, 500)).toEqual(entrance(100, 500, .14));
+  const held = entrance(50, 800, .5);
+  expect(sample(held, 300)).toEqual({ position: 50, velocity: 0 });
+  expect(sample(held, 600).position).toBeLessThan(50);
+  expect(sample(held, 800)).toEqual({ position: 0, velocity: 0 });
+  expect(entrance(0, 500).points.every((point) => point === 0)).toBe(true);
+});
 
 it("starts from the sampled interruption position and settles exactly", () => {
   const first = spring(0, 9, 0, 500);

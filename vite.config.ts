@@ -24,6 +24,7 @@ export default defineConfig({
       input: {
         main: new URL("./demo/index.html", import.meta.url).pathname,
         benchmarks: new URL("./demo/benchmarks.html", import.meta.url).pathname,
+        motion: new URL("./demo/motion.html", import.meta.url).pathname,
         // Standalone experiment, excluded from the Rolling Number site build.
         ...(process.env.FLAP_BOARD ? { board: new URL("./demo/board.html", import.meta.url).pathname } : {}),
         // The benchmark page is built only for `bun run bench`, not for the public site.

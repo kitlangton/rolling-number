@@ -50,6 +50,25 @@ Run all checks before submitting changes to rendering, formatting, adapters, or
 packaging. Test a real pointer drag when changing continuous input. Include reduced
 motion, interruption, cleanup, and SSR/fallback cases relevant to your change.
 
+### Installed Safari paint checks (macOS)
+
+Playwright WebKit snapshots do not exercise every installed-Safari compositor
+handoff. For pixel shifts that happen as native animations finish, enable Safari
+Settings → Developer → Allow remote automation, then run these in separate terminals:
+
+```sh
+bun run dev --port 4173
+safaridriver --port 4445
+bun run scripts/verify-safari.ts
+```
+
+The check uses a separate automation window, only visits the local test fixture,
+and closes its WebDriver session afterward. `SAFARI_WEBDRIVER_URL` and
+`ROLLING_NUMBER_URL` override the two local endpoints. Leave that automation window
+untouched during the run. The check compares painted glyph positions with native
+effects still running, finished, and cleaned up; paused endpoints alone can hide
+the defect. It does not play audio or change Safari settings.
+
 ## Report bugs and propose changes
 
 Use [GitHub issues](https://github.com/kitlangton/rolling-number/issues). A useful

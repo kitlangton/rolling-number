@@ -346,6 +346,69 @@ Direct transitions use roll mode, not flap mode.
 
 ## Demo interactions and comparisons
 
+`/motion.html` is a noindex width/entrance tuning lab. It compares the unchanged
+renderer defaults with a host-scoped internal `motionExperiments` WeakMap, not a
+new public option surface. Width timing, entrance duration/hold/distance, digit
+fade timing, and insertion origin are independently adjustable. Both previews
+use the same value and playback-speed multiplier, with explicit replay/reversal
+and opt-in looping. Reduced motion disables playback and looping. The experiment
+uses the existing sampled native tracks and cleanup, without playback layout reads.
+Presets are proposals to inspect, not a selected replacement for library defaults.
+
+Fresh grouping separators now join the digit entrance hold before their short,
+sharp fade. The previous rank stagger existed, but a leading comma at rank one
+had no delay and faded in while the new digit was still below its mask. Existing
+punctuation-role replacements retain their immediate crossfade. The lab also
+orders replay after initial measurement frames rather than a 100 ms timer: delayed
+first frames could otherwise adopt the expanded value as the initial static state.
+The delayed-frame regression is verified in Playwright WebKit; that is not a claim
+of verification in the installed Safari browser.
+
+The main ticker exposed a separate post-settlement defect: at fractional hero
+sizes, flow-stacked faces rasterized their text baselines differently from the
+single resting face. The `2` and `3` moved by a device pixel when the strip was
+removed. Reel faces now share a row-zero layout origin and use static translations
+for row placement, preserving the same text baseline through cleanup. The reel
+retains its explicit strip height for blur bounds. The main-page regression compares
+endpoint/settled `1`, `2`, and `3` captures before invoking real cleanup. It bounds
+both spatial drift and average pixel error: Chromium may change a few antialiased
+edge samples during layer compaction without moving the glyph.
+
+### Installed Safari: running effects are a different paint path
+
+The endpoint-only check missed another defect in Safari 26.5 on macOS 26.5.1.
+At DPR 2, a 32 px digit shifted about 2 CSS px left when its native effects became
+finished, **before** our cleanup callback. At 48 px it shifted about 1.5 px left.
+The DOM's horizontal coordinates did not change. Blur's extra opacity surfaces
+amplified the discrepancy, but removing blur did not eliminate it at every size.
+Forcing only the slot/reel layers, changing filter bounds, and preserving a face
+node did not address the complete failure. Pausing the effects before capturing
+their endpoints could conceal it; Playwright WebKit is not installed Safari.
+
+Non-flap strips now wrap their faces in one `.rn-ink` paint surface with
+`will-change: transform`, including at rest. Ancestor transform and blur-opacity
+effects can end without changing the glyphs' compositing boundary. This adds one
+surface per strip, not one per travel face; blur clones that surface only while
+needed. Face/strip counts remain bounded, and finish, reduced-motion fallback,
+offscreen pausing, and destruction release the surfaces with the visual columns.
+The spring, blur envelope/kernel, public API, and selectable semantic layer are
+unchanged. There are no extra playback effects or layout reads. Persistent paint
+surfaces have a resource cost; this is not a performance improvement claim.
+
+`tests/browser/paint-handoff.ts` supplies the same painted-ink test to Playwright
+and `scripts/verify-safari.ts`. It holds effects **running** just before their
+end, captures the finished state separately, then invokes real cleanup. Before
+the fix, 12 of 14 installed-Safari roll cases failed a 0.1 CSS px horizontal-drift
+bound. Afterward, all 28 roll/`999 → 1,000` entrance cases passed at 16, 24, 30,
+32, 36, 48, and 144 px, with blur on and off; maximum measured drift was about
+0.0012 CSS px. These are scoped pixel checks, not a guarantee for every browser,
+font, transform, or display scale.
+
+A separate installed-Safari capture of the actual main ticker checked `1`, `2`,
+and `3`: disabling only `.rn-ink` promotion restored a 0.85–1.00 CSS px jump;
+enabling it held drift below 0.003 CSS px. Manual review then confirmed that both
+the hero and smaller interactions settled cleanly with motion blur enabled.
+
 The seat label now uses the same RollingNumber adapter as its price. The isolated
 Likes example charges for 900 ms, shakes one bounded native effect, and awards
 200–500 fictional likes on release. Pointer cancellation, blur, Escape, visibility
