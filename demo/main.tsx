@@ -146,7 +146,7 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
   const [seats, setSeats] = useState({ value: 8, animated: true });
   const [large, setLarge] = useState({ value: 9007199254740993n, animated: true });
   const [progress, setProgress] = useState({ value: .64, animated: true });
-  const [degrees, setDegrees] = useState({ value: -4.5, animated: true });
+  const [degrees, setDegrees] = useState({ value: -4.5, animated: true, trend: "none" });
   const [currencyIndex, setCurrencyIndex] = useState({ value: 0, animated: true });
   const [growth, setGrowth] = useState({ value: 23, animated: true });
   const revenueNumber = useRef<HTMLDivElement>(null);
@@ -239,12 +239,12 @@ const Examples = memo(function Examples({ locale, duration, reduced, motionBlur 
           <button className="quiet muted" aria-label="Restart upload" onClick={(event) => setProgress({ value: 0, animated: event.detail > 0 })}>Restart</button>
         </div>
       </article>
-      <article className="example mini-app weather-app">
+      <article className="example mini-app weather-app" data-temperature-trend={degrees.trend}>
         <h2>Weather</h2>
         <div className="weather-summary"><div><span className="mini-label">Reykjavík</span><div className="example-number"><RollingNumber {...shared} value={degrees.value} format={temperature} animated={!reduced && degrees.animated} /></div></div><WeatherGraphic /></div>
         <div className="weather-controls"><span className="mini-label">Adjust temperature</span><div className="example-actions">
-          <button className="mini-button square" aria-label="Cool down" onClick={(event) => setDegrees((current) => ({ value: current.value - 5, animated: event.detail > 0 }))}>−</button>
-          <button className="mini-button square" aria-label="Warm up" onClick={(event) => setDegrees((current) => ({ value: current.value + 5, animated: event.detail > 0 }))}>+</button>
+          <button className="mini-button square" aria-label="Cool down" onClick={(event) => setDegrees((current) => ({ value: current.value - 5, animated: event.detail > 0, trend: "cooling" }))}>−</button>
+          <button className="mini-button square" aria-label="Warm up" onClick={(event) => setDegrees((current) => ({ value: current.value + 5, animated: event.detail > 0, trend: "warming" }))}>+</button>
         </div></div>
       </article>
       <article className="example mini-app invoice-app">

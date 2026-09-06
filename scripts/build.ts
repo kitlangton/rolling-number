@@ -8,6 +8,7 @@ const result = await Bun.build({
   target: "browser",
   splitting: true,
   minify: true,
+  jsx: { runtime: "automatic", development: false },
   external: ["react", "react/jsx-runtime", "solid-js", "solid-js/web"],
 });
 if (!result.success) throw new AggregateError(result.logs, "Build failed");

@@ -13,6 +13,7 @@ function run(command: string[], cwd = directory): string {
 }
 function verifyConsumer(version: number): void {
   console.log(`React ${version}: ${run(["bun", "run", "consumer.tsx"])}`);
+  console.log(`React ${version} production: ${run(["env", "NODE_ENV=production", "node", "consumer.mjs"])}`);
   run(["bunx", "tsc", "--noEmit", "--strict", "--jsx", "react-jsx", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "consumer.tsx"]);
 }
 try {
@@ -36,12 +37,25 @@ const order: Stagger = 'end';
 const acceptsDOM = (element: HTMLElement) => [createRollingNumber(element, { value: 1, stagger: order }), createRollingText(element, { text: 'A' })];
 console.log('Clean consumer imports, bigint formatting and SSR passed');
 `);
+  await writeFile(join(directory, "consumer.mjs"), `
+import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
+import { RollingNumber, RollingText } from '@kitlangton/rolling-number/react';
+for (const [component, props, expected] of [
+  [RollingNumber, { value: 42, locales: 'en-US' }, '42'],
+  [RollingText, { text: 'Hello', transition: 'direct' }, 'Hello'],
+]) {
+  if (!renderToString(createElement(component, props)).includes(expected)) throw new Error('Packed production React render failed');
+}
+console.log('Clean production React rendering passed');
+`);
   verifyConsumer(19);
   const stylesheet = run(["bun", "-e", "console.log(import.meta.resolve('@kitlangton/rolling-number/styles.css'))"]);
   const css = await readFile(new URL(stylesheet), "utf8");
   if (!css.includes(".rn-root") || !css.includes("mask-image")) throw new Error("Packed stylesheet is missing renderer styles");
   const adapter = await readFile(join(directory, "node_modules/@kitlangton/rolling-number/dist/react.js"), "utf8");
   if (!adapter.startsWith('"use client";')) throw new Error("Packed React entry lost its client boundary");
+  if (/jsx-dev-runtime|jsxDEV/.test(adapter)) throw new Error("Packed React entry uses the development JSX runtime");
   console.log("Clean NodeNext declarations, stylesheet export and React client boundary passed");
   run(["bun", "add", "solid-js@1.9.15"]);
   await writeFile(join(directory, "solid-consumer.ts"), `

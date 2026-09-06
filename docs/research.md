@@ -429,6 +429,22 @@ Likes example charges for 900 ms, shakes one bounded native effect, and awards
 changes, and cleanup cancel pending charge work. Keyboard input and reduced motion
 retain functionality without shake or rolling.
 
+The weather example colors by signed temperature change, independently of the
+engine's magnitude-based wheel trend: cooling from −4.5 to −9.5 is blue even
+though the digit wheel advances upward. This also preserves the feedback for
+keyboard and reduced-motion updates. The install command is centered as a whole
+while package-manager changes animate its width.
+
+### Production React package verification
+
+Issue #2 exposed a gap in the packed-consumer checks: Bun's package build emitted
+`react/jsx-dev-runtime`, and development-mode consumers passed while production
+React crashed. The build now explicitly sets `jsx.development: false`. Package
+verification renders both React components in clean React 18/19 consumers with Node and
+`NODE_ENV=production`, and rejects a packed React entry containing the development
+JSX runtime. Development rendering, types, Solid, CSS exports, and the React
+client boundary remain covered by the same packed-artifact checks.
+
 `/benchmarks.html` is a noindex, unlisted React comparison page. It runs one
 renderer at a time with no blur, fixed input sequence, seven rounds, one warmup,
 and rotating/reversed order. It includes NumberFlow React 0.6.2, React Animated

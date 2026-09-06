@@ -140,6 +140,35 @@ test("extra examples cover percentages, signs, currency changes and large growth
   await expect(example("Audience").locator(".rn-semantic")).toHaveText("23");
 });
 
+test("weather colors follow warming and cooling on both sides of zero", async ({ page }) => {
+  await page.goto("/");
+  const weather = page.locator(".weather-app");
+  const value = weather.locator(".rn-semantic");
+  const painted = weather.locator(".rn-root");
+  await weather.scrollIntoViewIfNeeded();
+  await expect(painted).toHaveAttribute("data-rn-ready", "");
+  for (const [button, expected, color] of [
+    ["Cool down", "-9.5°C", "rgb(196, 216, 240)"],
+    ["Warm up", "-4.5°C", "rgb(240, 220, 192)"],
+    ["Warm up", "+0.5°C", "rgb(240, 220, 192)"],
+    ["Warm up", "+5.5°C", "rgb(240, 220, 192)"],
+    ["Cool down", "+0.5°C", "rgb(196, 216, 240)"],
+    ["Cool down", "-4.5°C", "rgb(196, 216, 240)"],
+  ]) {
+    await weather.getByRole("button", { name: button!, exact: true }).click();
+    await expect(value).toHaveText(expected!);
+    await expect(painted).toHaveCSS("color", color!);
+  }
+  await page.getByRole("button", { name: "Options", exact: true }).click();
+  await page.getByLabel("Reduce motion", { exact: true }).check();
+  await weather.getByRole("button", { name: "Cool down", exact: true }).press("Enter");
+  await expect(value).toHaveText("-9.5°C");
+  await expect(painted).toHaveCSS("color", "rgb(196, 216, 240)");
+  await weather.getByRole("button", { name: "Warm up", exact: true }).press("Enter");
+  await expect(value).toHaveText("-4.5°C");
+  await expect(painted).toHaveCSS("color", "rgb(240, 220, 192)");
+});
+
 test("number containers keep horizontal overflow visible rather than truncating", async ({ page }) => {
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
@@ -162,6 +191,11 @@ test("install row slides one pill, animates the command width, copies, and links
   await expect(install.locator("code")).toHaveText("bun add @kitlangton/rolling-number");
   const pill = install.locator(".segmented-pill");
   const rect = (locator: typeof pill) => locator.evaluate((element) => { const box = element.getBoundingClientRect(); return { x: box.x, width: box.width }; });
+  const centered = async () => {
+    const outer = await rect(install), inner = await rect(install.locator(".install-command"));
+    return Math.abs(inner.x + inner.width / 2 - outer.x - outer.width / 2);
+  };
+  expect(await centered()).toBeLessThan(1);
   const bun = install.getByRole("button", { name: "bun", exact: true });
   const npm = install.getByRole("button", { name: "npm", exact: true });
   await expect(pill).toHaveAttribute("data-live", "");
@@ -177,8 +211,9 @@ test("install row slides one pill, animates the command width, copies, and links
   expect(mid.x).toBeGreaterThanOrEqual(from.x);
   expect(mid.x).toBeLessThanOrEqual(to.x + .5);
   expect(await pill.evaluate((element) => getComputedStyle(element).transitionTimingFunction)).toMatch(/^linear\(/);
-  await expect.poll(async () => Math.abs((await rect(pill)).x - to.x)).toBeLessThan(1);
+  await expect.poll(async () => Math.abs((await rect(pill)).x - (await rect(npm)).x)).toBeLessThan(1);
   expect(Math.abs((await rect(pill)).width - to.width)).toBeLessThan(1);
+  expect(await centered()).toBeLessThan(1);
   await expect(npm).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   expect(await page.locator("link[rel='alternate'][type='text/markdown']").getAttribute("href")).toBe("/index.md");
   expect(await page.locator("footer a[href='./llms.txt']").count()).toBe(1);
