@@ -17,8 +17,8 @@ function verifyConsumer(version: number): void {
   run(["bunx", "tsc", "--noEmit", "--strict", "--jsx", "react-jsx", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "consumer.tsx"]);
 }
 try {
-  const artifact = join(directory, "package.tgz");
-  run(["bun", "pm", "pack", "--ignore-scripts", "--filename", artifact], root);
+  const artifact = process.argv[2] ? resolve(process.argv[2]) : join(directory, "package.tgz");
+  if (!process.argv[2]) run(["bun", "pm", "pack", "--ignore-scripts", "--filename", artifact], root);
   const contents = run(["tar", "-tzf", artifact]).split("\n");
   if (contents.some((path) => /(?:^|\/)(?:src|tests|demo|node_modules)\//u.test(path))) throw new Error("Unexpected source/dev files in tarball");
   console.log(`Packed artifact: ${contents.length} entries\n${contents.join("\n")}`);

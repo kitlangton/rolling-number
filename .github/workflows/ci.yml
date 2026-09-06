@@ -21,7 +21,8 @@ jobs:
       - run: bun run check
       - run: bun run scripts/verify-package.ts
       - run: bunx playwright install --with-deps chromium firefox webkit
-      - run: bun run test:browser
+      # The standalone audio experiment is outside the number-package release checks.
+      - run: bun run test:browser --grep-invert 'sound|audio' --workers=1
       - run: bun run build:demo
       - uses: actions/upload-artifact@v4
         if: failure()

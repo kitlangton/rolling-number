@@ -127,7 +127,29 @@ See [docs/experiments.md](docs/experiments.md) before working on it.
 It requires the maintainer's Cloudflare access and is **not** a contributor setup
 step. It does not publish npm packages.
 
-There is no Changesets or automatic npm-publishing workflow. Keep unreleased API
-changes clearly identified in docs; do not bump versions or publish as part of an
-ordinary PR. A package release requires explicit maintainer approval, full
-validation, and packed-artifact verification.
+Versions are maintained manually; this repository does not use Changesets. Keep
+unreleased API changes clearly identified in docs; do not bump versions or publish
+as part of an ordinary PR. A package release requires explicit maintainer approval.
+
+The `Release` workflow (`.github/workflows/release.yml`) publishes stable `v*` tags
+through npm trusted publishing (OIDC). It runs the type, unit/SSR, non-audio browser,
+and demo-build checks, then installs the exact npm tarball in clean React 18/19 and
+Solid consumers before publishing it. No npm token or per-release npm confirmation
+is required. The standalone audio experiment is excluded from package CI.
+
+After committing a version bump and pushing `main`, push an annotated tag matching
+`package.json`, such as `v0.4.2`. The workflow rejects a mismatched tag and publishes
+with the `latest` npm dist-tag. Verify the Actions result and `npm view` afterward.
+For validation without publishing, run:
+
+```sh
+gh workflow run release.yml --ref main -f dry-run=true
+```
+
+To retry a failed publish, dispatch the same workflow at its release tag with
+`-f dry-run=false`. Do not retry a version already present in the registry. A dry
+run validates the artifact but does not exercise npm's OIDC authentication.
+
+The npm package's trusted publisher must name `kitlangton/rolling-number`, workflow
+`release.yml`, no environment, and allow direct `npm publish`. npm's stage-only
+permission would require a separate interactive approval for each release.

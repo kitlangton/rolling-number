@@ -1,0 +1,77 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Validate the release without publishing
+        type: boolean
+        default: true
+permissions:
+  contents: read
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: npm install --global npm@11.19.0
+      - name: Check release tag
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}
+        run: |
+          bun -e '
+            const { name, version } = await Bun.file("package.json").json();
+            if (process.env.DRY_RUN !== "true" && process.env.GITHUB_REF !== `refs/tags/v${version}`) {
+              throw new Error("Publishing requires a v<package.json version> tag");
+            }
+            if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error("The latest release must use a stable version");
+            console.log(`${name}@${version}`);
+          '
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bunx playwright install --with-deps chromium firefox webkit
+      # The standalone audio experiment is outside the number-package release checks.
+      - run: bun run test:browser --grep-invert 'sound|audio' --workers=1
+      - run: bun run build:demo
+      - name: Pack release
+        id: pack
+        run: |
+          npm pack --ignore-scripts --json --pack-destination "$RUNNER_TEMP" > "$RUNNER_TEMP/pack.json"
+          bun -e '
+            const [artifact] = await Bun.file(`${process.env.RUNNER_TEMP}/pack.json`).json();
+            console.log(`tarball=${process.env.RUNNER_TEMP}/${artifact.filename}`);
+          ' >> "$GITHUB_OUTPUT"
+      - name: Verify the exact tarball in clean consumers
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: bun run scripts/verify-package.ts "$TARBALL"
+      - name: Publish with npm trusted publishing
+        if: github.event_name == 'push' || !inputs.dry-run
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+        run: npm publish "$TARBALL" --ignore-scripts --access public
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: release-browser-failures
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
