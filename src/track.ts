@@ -57,12 +57,14 @@ export class Track {
     // Two parsed transforms + a sampled easing are much cheaper than dozens of
     // fully parsed transform keyframes. Zero-distance spring motion still needs
     // explicit frames; older browsers keep the same trajectory via that fallback.
-    // Opacity formatting clamps overshoot, so it is not an affine mapping.
+    // Opacity uses its formatted samples as easing outputs between 0 and 1.
+    // Clamp before interpolation, preserving overshoot and equal-endpoint pulses.
+    const compactOpacity = this.property === "opacity" && supportsLinear(this.element);
     const compact = this.property === "transform" && Math.abs(distance) > 0.00001 && supportsLinear(this.element);
-    const keyframes = compact
+    const keyframes = compactOpacity ? [{ opacity: 0 }, { opacity: 1 }] : compact
       ? [{ [this.property]: format(first) }, { [this.property]: format(motion.target) }]
       : motion.points.map((point) => ({ [this.property]: format(point) }));
-    const easing = compact
+    const easing = compactOpacity ? `linear(${motion.points.map(format).join(",")})` : compact
       ? `linear(${motion.points.map((point) => Number(((point - first) / distance).toFixed(6))).join(",")})`
       : "linear";
     const animation = animateNow(this.element, keyframes, { duration: motion.duration, easing });

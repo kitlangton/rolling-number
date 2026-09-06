@@ -4,7 +4,7 @@ import { renderToString } from "react-dom/server";
 import { createRollingNumber, createRollingText, type RollingNumberController, type RollingNumberOptions, type RollingTextController, type RollingTextOptions } from "../src/index";
 import { RollingNumber, RollingText } from "../src/react";
 import { Track } from "../src/track";
-import { sample, spring } from "../src/motion";
+import { sample, spring, type Motion } from "../src/motion";
 import "../src/styles.css";
 
 declare global {
@@ -19,6 +19,7 @@ declare global {
     refProbe: { mounted: number; cleaned: number; nullCalls: number };
     refObject: { current: HTMLSpanElement | null };
     opacityProbe(): { expected: number; actual: number };
+    opacityPlaybackProbe(motion: Motion, invert: boolean): { maxError: number; keyframes: number; remaining: number };
     ready: boolean;
   }
 }
@@ -69,5 +70,30 @@ window.opacityProbe = () => {
   track.cancel();
   element.remove();
   return result;
+};
+window.opacityPlaybackProbe = (motion, invert) => {
+  const element = document.createElement("span");
+  const reference = document.createElement("span");
+  fixture.append(element, reference);
+  const format = (value: number) => String(Math.max(0, Math.min(1, invert ? 1 - value : value)));
+  const track = new Track(element, "opacity");
+  track.play(motion, format);
+  const animation = element.getAnimations()[0]!;
+  const explicit = reference.animate(motion.points.map((point) => ({ opacity: format(point) })), { duration: motion.duration, fill: "both" });
+  animation.pause();
+  explicit.pause();
+  let maxError = 0;
+  // Include sample boundaries, interpolated midpoints, and the native endpoint.
+  for (let index = 0; index <= 96; index++) {
+    animation.currentTime = explicit.currentTime = motion.duration * index / 96;
+    maxError = Math.max(maxError, Math.abs(Number(getComputedStyle(element).opacity) - Number(getComputedStyle(reference).opacity)));
+  }
+  const keyframes = (animation.effect as KeyframeEffect).getKeyframes().length;
+  track.cancel();
+  explicit.cancel();
+  const remaining = element.getAnimations().length + reference.getAnimations().length;
+  element.remove();
+  reference.remove();
+  return { maxError, keyframes, remaining };
 };
 window.ready = true;

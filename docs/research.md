@@ -51,8 +51,12 @@ The hybrid spring stores the exact sampled trajectory used by WAAPI and samples
 position/velocity at interruption. It avoids custom-property animation and a
 JavaScript frame loop; that is not a universal guarantee of compositor-only work.
 The compact path uses two transform endpoints with a sampled `linear()` easing.
-Opacity retains explicit samples because clamping its overshoot is non-linear;
-interpolating two clamped endpoints would change the trajectory.
+Opacity uses endpoints 0 and 1 with its formatted (already clamped) samples as the
+easing outputs. Clamping before interpolation preserves overshoot and blur pulses
+whose first and last opacities agree. Older browsers retain explicit keyframes.
+The logical trajectory sampled on interruption is unchanged. See the
+[post-0.4.0 efficiency research](../perf/autoresearch.md) for the scoped ticker gain
+and the native explicit-keyframe equivalence checks.
 Reel viewports now use a simple top/bottom linear alpha mask for softer entry and
 exit edges. `--rn-edge-fade` controls its extent; `--rn-mask: none` retains hard
 clipping. The current benchmark includes the mask rather than reusing the initial
