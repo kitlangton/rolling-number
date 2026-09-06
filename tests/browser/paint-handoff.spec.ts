@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { horizontalInkCenter, preparePaintHandoff, samplePaintHandoff } from "./paint-handoff";
+import { horizontalInkCenter, preparePaintHandoff, sampleBlurPaint, samplePaintHandoff, verticalInkEdges } from "./paint-handoff";
 
 test.use({ deviceScaleFactor: 2, viewport: { width: 800, height: 800 } });
 
@@ -19,5 +19,19 @@ for (const entry of [false, true]) for (const size of [16, 32, 36, 48, 144]) for
       centers.push(await page.evaluate(horizontalInkCenter, image.toString("base64")));
     }
     expect(Math.max(...centers) - Math.min(...centers)).toBeLessThan(.1);
+  });
+}
+
+for (const size of [16, 32, 144]) {
+  test(`the stable paint surface still paints vertical motion blur (${size}px)`, async ({ page }) => {
+    await page.goto("/test.html");
+    await page.waitForFunction(() => window.ready);
+    await page.evaluate(preparePaintHandoff, { size, blur: true });
+    const edges: number[] = [];
+    for (const blurred of [true, false]) {
+      await page.evaluate(sampleBlurPaint, blurred);
+      edges.push(await page.evaluate(verticalInkEdges, (await page.screenshot()).toString("base64")));
+    }
+    expect(edges[0]! / edges[1]!).toBeLessThan(.95);
   });
 }

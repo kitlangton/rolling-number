@@ -76,3 +76,39 @@ export async function horizontalInkCenter(base64: string): Promise<number> {
   if (!mass) throw new Error("Paint probe captured no visible glyph");
   return moment / mass / dpr;
 }
+
+/** Isolate the real smear surface; compare its SVG kernel with an identity kernel. */
+export async function sampleBlurPaint(blurred: boolean): Promise<void> {
+  for (const name of ["sharp", "smear"]) {
+    const element = document.querySelector(`.rn-${name}`)!;
+    const opacity = name === "smear" ? 1 : 0;
+    for (const animation of element.getAnimations()) {
+      (animation.effect as KeyframeEffect).setKeyframes([{ opacity }, { opacity }]);
+    }
+  }
+  const kernel = document.querySelector("feGaussianBlur")!;
+  if (!kernel.hasAttribute("data-probe-deviation")) kernel.setAttribute("data-probe-deviation", kernel.getAttribute("stdDeviation")!);
+  kernel.setAttribute("stdDeviation", blurred ? kernel.getAttribute("data-probe-deviation")! : "0 0");
+  await new Promise(requestAnimationFrame);
+  await new Promise(requestAnimationFrame);
+}
+
+/** Blur must soften actual vertical ink edges, not only expose a computed filter. */
+export async function verticalInkEdges(base64: string): Promise<number> {
+  const image = new Image();
+  image.src = `data:image/png;base64,${base64}`;
+  await image.decode();
+  const canvas = document.createElement("canvas");
+  canvas.width = image.width; canvas.height = image.height;
+  const context = canvas.getContext("2d")!;
+  context.drawImage(image, 0, 0);
+  const dpr = devicePixelRatio;
+  const { data, width, height } = context.getImageData(160 * dpr, 170 * dpr, 200 * dpr, 240 * dpr);
+  let edges = 0;
+  for (let y = 1; y < height; y++) for (let x = 0; x < width; x++) {
+    const delta = data[(y * width + x) * 4]! - data[((y - 1) * width + x) * 4]!;
+    edges += delta * delta;
+  }
+  if (!edges) throw new Error("Blur probe captured no visible glyph edges");
+  return edges;
+}

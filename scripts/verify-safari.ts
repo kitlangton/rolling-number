@@ -1,6 +1,6 @@
 // Installed Safari exercises a compositor handoff that Playwright WebKit snapshots
 // can flatten away. Start the local demo and safaridriver before running this check.
-import { horizontalInkCenter, preparePaintHandoff, samplePaintHandoff } from "../tests/browser/paint-handoff";
+import { horizontalInkCenter, preparePaintHandoff, sampleBlurPaint, samplePaintHandoff, verticalInkEdges } from "../tests/browser/paint-handoff";
 
 const driver = process.env.SAFARI_WEBDRIVER_URL ?? "http://127.0.0.1:4445";
 const base = process.env.ROLLING_NUMBER_URL ?? "http://127.0.0.1:4173";
@@ -46,7 +46,19 @@ try {
     console.log(`${shift < .1 ? "PASS" : "FAIL"} ${entry ? "entry" : "roll"} ${size}px blur=${blur}: ${shift.toFixed(4)} CSS px horizontal paint shift`);
     if (shift >= .1) failures++;
   }
-  if (failures) throw new Error(`${failures} installed-Safari paint handoffs failed`);
+  for (const size of [16, 32, 144]) {
+    await evaluate(preparePaintHandoff, { size, blur: true });
+    const edges: number[] = [];
+    for (const blurred of [true, false]) {
+      await evaluate(sampleBlurPaint, blurred);
+      const image = await request(`/session/${session}/screenshot`) as string;
+      edges.push(await evaluate(verticalInkEdges, image));
+    }
+    const ratio = edges[0]! / edges[1]!;
+    console.log(`${ratio < .95 ? "PASS" : "FAIL"} blur ${size}px: ${(ratio * 100).toFixed(1)}% of sharp vertical edge energy`);
+    if (ratio >= .95) failures++;
+  }
+  if (failures) throw new Error(`${failures} installed-Safari paint checks failed`);
 } finally {
   if (session) await request(`/session/${session}`, undefined, "DELETE");
 }

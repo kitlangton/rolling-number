@@ -67,7 +67,9 @@ and closes its WebDriver session afterward. `SAFARI_WEBDRIVER_URL` and
 `ROLLING_NUMBER_URL` override the two local endpoints. Leave that automation window
 untouched during the run. The check compares painted glyph positions with native
 effects still running, finished, and cleaned up; paused endpoints alone can hide
-the defect. It does not play audio or change Safari settings.
+the defect. It also verifies that the SVG kernel actually softens painted glyph
+edges, since a composited descendant can bypass the filter in Safari. It does not
+play audio or change Safari settings.
 
 ## Report bugs and propose changes
 

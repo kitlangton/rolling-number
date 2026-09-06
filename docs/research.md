@@ -409,6 +409,16 @@ and `3`: disabling only `.rn-ink` promotion restored a 0.85–1.00 CSS px jump;
 enabling it held drift below 0.003 CSS px. Manual review then confirmed that both
 the hero and smaller interactions settled cleanly with motion blur enabled.
 
+That first stabilization had a separate regression: promoting the smear's cloned
+`.rn-ink` let Safari composite it outside its ancestor SVG filter. Blur was enabled
+in state and computed styles but absent in the painted pixels. The smear copy now
+uses `will-change: auto` so the SVG filter can rasterize its input; only the sharp
+ink keeps the stable promoted surface. All 28 position checks still pass. Three
+additional native checks compare the smear against an identity kernel at 16,
+32, and 144 px and require genuinely softened vertical ink edges. With the bad
+promotion, the screenshots were identical (edge-energy ratio 1); with the fix,
+the 32 px ratio is about 0.134. Computed filter/opacity checks alone are insufficient.
+
 The seat label now uses the same RollingNumber adapter as its price. The isolated
 Likes example charges for 900 ms, shakes one bounded native effect, and awards
 200–500 fictional likes on release. Pointer cancellation, blur, Escape, visibility
