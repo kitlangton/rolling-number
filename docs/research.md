@@ -143,6 +143,9 @@ test samples an actual painted pixel inside such a digit, then reapplies the old
 scrollport styles as a negative control. Bento tiles remain overflow-visible too.
 Reel viewports use vertical-only clipping where supported, with the previous
 per-slot clipping as a legacy CSS fallback; soft top/bottom masks are preserved.
+That clipping uses `clip-path: inset(0 -100vmax)`, not mixed-axis overflow:
+Firefox 132 and older paint nothing in a translated slot with
+`overflow-x: visible; overflow-y: clip` (issue #3; verified in Firefox 128 and 132).
 
 The elapsed-millisecond demo samples at 33 ms rather than 100 ms. The previous
 cadence aliased the tens/ones places into nearly constant values. The counter still

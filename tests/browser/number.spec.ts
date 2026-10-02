@@ -156,6 +156,22 @@ test("fades reel edges with a configurable linear mask", async ({ page }) => {
   expect(await slot.evaluate((element) => getComputedStyle(element).maskImage)).toBe("none");
 });
 
+test("wheel slots clip vertically without mixed-axis overflow", async ({ page }) => {
+  // Firefox 132 and older paint nothing in translated slots with overflow-x: visible; overflow-y: clip.
+  await page.evaluate(() => window.mountNumber({ value: 3257.52, locales: "en-US" }));
+  await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
+  const styles = await page.locator(".rn-slot").evaluateAll((slots) => slots.map((slot) => {
+    const style = getComputedStyle(slot);
+    return { wheel: slot.hasAttribute("data-rn-wheel"), overflowX: style.overflowX, overflowY: style.overflowY, clipPath: style.clipPath };
+  }));
+  expect(styles.filter((style) => style.wheel)).toHaveLength(6);
+  for (const style of styles) {
+    expect(style.overflowX).toBe(style.overflowY);
+    if (style.wheel) expect(style.clipPath).toMatch(/^inset\(0px -/);
+    else expect(style.clipPath).toBe("none");
+  }
+});
+
 test("native playback does not read geometry each frame", async ({ page }) => {
   await page.evaluate(() => window.mountNumber({ value: 1, duration: 800 }));
   await expect(page.locator("#number")).toHaveAttribute("data-rn-ready", "");
