@@ -63,11 +63,14 @@
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
 }
-@supports (overflow: clip) {
-  .rn-slot { overflow-x: visible; overflow-y: clip; }
+/* Clip reels vertically only. Firefox 132 and older stop painting translated slots
+   with mixed-axis overflow (`overflow-x: visible; overflow-y: clip`). */
+@supports (clip-path: inset(0 -100vmax)) {
+  .rn-slot { overflow: visible; clip-path: inset(0 -100vmax); }
 }
 .rn-slot:not([data-rn-wheel]) {
   overflow: visible;
+  clip-path: none;
   -webkit-mask-image: none;
   mask-image: none;
 }
